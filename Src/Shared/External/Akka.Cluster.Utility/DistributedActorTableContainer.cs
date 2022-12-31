@@ -108,7 +108,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         (TKey id, IActorRef? actor) = add;
         if(_table is null || _stopping)
         {
-            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
 
             return;
         }
@@ -116,7 +116,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         if(actor is null)
         {
             _log.Error($"Invalid null actor. (ID={id})");
-            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
 
             return;
         }
@@ -124,7 +124,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         if(_actorMap.ContainsKey(id))
         {
             _log.Error($"Duplicate ID in local container. (ID={id})");
-            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
 
             return;
         }
@@ -176,7 +176,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         catch (Exception exception)
         {
             _log.Error(exception, $"Exception in creating actor (Id={id})");
-            Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.CreateReply(id, null));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.CreateReply(id, Actor: null));
 
             return;
         }
@@ -201,7 +201,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
         if(added)
         {
-            requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, true));
+            requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: true));
         }
         else
         {
@@ -211,7 +211,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
             Context.Unwatch(actor);
             _watchingActorCount -= 1;
 
-            requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+            requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
         }
     }
 
@@ -224,7 +224,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
             Context.Unwatch(actor);
             _watchingActorCount -= 1;
 
-            actor.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, false));
+            actor.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
         }
 
         _addingMap.Clear();

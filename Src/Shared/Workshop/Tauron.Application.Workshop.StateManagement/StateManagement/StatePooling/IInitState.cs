@@ -7,8 +7,3 @@ public interface IInitState<TData>
 {
     void Init(ExtendedMutatingEngine<MutatingContext<TData>> engine);
 }
-
-public interface IPostInit
-{
-    void Init(IActionInvoker invoker);
-}

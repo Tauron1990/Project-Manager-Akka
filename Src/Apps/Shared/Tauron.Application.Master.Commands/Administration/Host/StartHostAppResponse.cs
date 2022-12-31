@@ -3,5 +3,5 @@
 public sealed record StartHostAppResponse(bool Success) : OperationResponse(Success)
 {
     public StartHostAppResponse()
-        : this(false) { }
+        : this(Success: false) { }
 }

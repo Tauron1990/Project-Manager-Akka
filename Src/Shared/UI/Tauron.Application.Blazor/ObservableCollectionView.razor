@@ -1,7 +1,7 @@
 ﻿@inherits NonAutoRenderingComponent
 @typeparam TItem
 
-@if(ListRender == null || EmptyRender == null)
+@if(ListRender is null || EmptyRender is null)
 {
     <MudText>Kein List Renderer angegeben</MudText>
 }
@@ -9,7 +9,7 @@ else if(NonNullSource.Any())
 {
     @ListRender(NonNullSource)
 }
-else if(EmptyRender == null)
+else if(EmptyRender is null)
 {
     @ListRender(NonNullSource)
 }

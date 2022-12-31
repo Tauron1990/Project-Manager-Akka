@@ -59,7 +59,7 @@ public sealed class HostApiManagerFeature : ActorFeatureBase<HostApiManagerFeatu
                     (GetHostNameResult message, ApiState state) = m;
 
                     HostEntry newEntry = state.Entries[Context.Sender.Path] with { Name = message.Name };
-                    TellSelf(SendEvent.Create(new HostEntryChanged(newEntry.Name, newEntry.Actor.Path, false)));
+                    TellSelf(SendEvent.Create(new HostEntryChanged(newEntry.Name, newEntry.Actor.Path, Removed: false)));
 
                     return state with { Entries = state.Entries.SetItem(Context.Sender.Path, newEntry) };
                 });
@@ -72,7 +72,7 @@ public sealed class HostApiManagerFeature : ActorFeatureBase<HostApiManagerFeatu
             {
                 (ActorUp message, ApiState state) = m;
                 message.Actor.Tell(new GetHostName());
-                TellSelf(SendEvent.Create(new HostEntryChanged(HostName.Empty, message.Actor.Path, false)));
+                TellSelf(SendEvent.Create(new HostEntryChanged(HostName.Empty, message.Actor.Path, Removed: false)));
 
                 return state with { Entries = state.Entries.SetItem(message.Actor.Path, new HostEntry(HostName.Empty, message.Actor)) };
             });
@@ -86,7 +86,7 @@ public sealed class HostApiManagerFeature : ActorFeatureBase<HostApiManagerFeatu
                 {
                     (ActorDown actorDown, ApiState state) = m;
                     (HostName name, IActorRef actor) = state.Entries[actorDown.Actor.Path];
-                    TellSelf(SendEvent.Create(new HostEntryChanged(name, actor.Path, true)));
+                    TellSelf(SendEvent.Create(new HostEntryChanged(name, actor.Path, Removed: true)));
 
                     return state with { Entries = state.Entries.Remove(actorDown.Actor.Path) };
                 });
@@ -95,7 +95,7 @@ public sealed class HostApiManagerFeature : ActorFeatureBase<HostApiManagerFeatu
     private IDisposable ProcessEventSubscription(IObservable<StatePair<SubscribeFeature.InternalEventSubscription, ApiState>> obs)
     {
         return obs.SelectMany(m => m.State.Entries.Select(entry => (entry, m.Event.Intrest)))
-           .SubscribeWithStatus(p => p.Intrest.Tell(new HostEntryChanged(p.entry.Value.Name, p.entry.Key, false)));
+           .SubscribeWithStatus(p => p.Intrest.Tell(new HostEntryChanged(p.entry.Value.Name, p.entry.Key, Removed: false)));
     }
 
     public sealed record ApiState(ImmutableDictionary<ActorPath, HostEntry> Entries);

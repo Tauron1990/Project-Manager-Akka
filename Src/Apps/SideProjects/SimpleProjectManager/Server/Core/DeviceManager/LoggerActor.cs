@@ -63,7 +63,7 @@ public sealed class LoggerActor : ReceiveActor
            .Select(p => p.Key)
            .ToArray();
 
-        foreach (DateTime key in toDelete)
+        foreach (var key in toDelete)
             _batches.Remove(key);
 
         _handler.Publish(new NewBatchesArrived(obj.DeviceName, newKey));

@@ -27,10 +27,10 @@ namespace Tauron.Application.CommonUI.Model;
 [DebuggerStepThrough]
 public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 {
-    private readonly Dictionary<string, CommandRegistration> _commandRegistrations = new();
+    private readonly Dictionary<string, CommandRegistration> _commandRegistrations = new(StringComparer.Ordinal);
     private readonly GroupDictionary<string, InvokeHelper> _eventRegistrations = new();
     private readonly Subject<string> _onPropertyChanged = new();
-    private readonly Dictionary<string, PropertyData> _propertys = new();
+    private readonly Dictionary<string, PropertyData> _propertys = new(StringComparer.Ordinal);
 
     private bool _isSeald;
 
@@ -62,7 +62,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
     protected void InitHandler()
     {
-        Receive<InitEvent>(obs => obs.ToUnit(async evt => await InitializeAsync(evt)));
+        Receive<InitEvent>(obs => obs.ToUnit(async evt => await InitializeAsync(evt).ConfigureAwait(false)));
         Receive<Terminated>(obs => obs.Subscribe());
     }
 
@@ -186,7 +186,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
     private sealed class ActorCommand : CommandBase, IDisposable
     {
-        private readonly BehaviorSubject<bool> _canExecute = new(false);
+        private readonly BehaviorSubject<bool> _canExecute = new(value: false);
         private readonly AtomicBoolean _deactivated = new();
         private readonly IUIDispatcher _dispatcher;
         private readonly SingleAssignmentDisposable _disposable = new();
@@ -199,7 +199,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
             _self = self;
             _dispatcher = dispatcher;
             if(canExecute is null)
-                _canExecute.OnNext(true);
+                _canExecute.OnNext(value: true);
             else
                 _disposable.Disposable = canExecute.Subscribe(
                     b =>
@@ -215,14 +215,14 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
             _disposable.Dispose();
         }
 
-        public override void Execute(object? parameter = null) => _self.Tell(new CommandExecuteEvent(_name, parameter));
+        public override void Execute(object? parameter) => _self.Tell(new CommandExecuteEvent(_name, parameter));
 
-        public override bool CanExecute(object? parameter = null) => _canExecute.Value;
+        public override bool CanExecute(object? parameter) => _canExecute.Value;
 
         internal void Deactivate()
         {
-            _deactivated.GetAndSet(true);
-            _canExecute.OnNext(false);
+            _deactivated.GetAndSet(newValue: true);
+            _canExecute.OnNext(value: false);
             _canExecute.OnCompleted();
             _dispatcher.Post(RaiseCanExecuteChanged);
         }
@@ -281,7 +281,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
             return;
 
         if(cr.CanExecute())
-            cr.Command(null);
+            cr.Command(obj: null);
     }
 
     protected CommandRegistrationBuilder NewCommad
@@ -299,7 +299,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
 
                 _commandRegistrations.Add(
                     key,
-                    new CommandRegistration(command, () => actorCommand.CanExecute()));
+                    new CommandRegistration(command, () => actorCommand.CanExecute(parameter: null)));
 
                 return prop;
             },
@@ -413,7 +413,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
         Context.Sender.Tell(
             _propertys.TryGetValue(obj.Name, out PropertyData? propertyData)
                 ? new GetValueResponse(obj.Name, propertyData.PropertyBase.ObjectValue)
-                : new GetValueResponse(obj.Name, null));
+                : new GetValueResponse(obj.Name, Value: null));
     }
 
     private void SetPropertyValue(SetValue obj)
@@ -421,7 +421,7 @@ public abstract class UiActor : ObservableActor, IObservablePropertyChanged
         if(!_propertys.TryGetValue(obj.Name, out PropertyData? propertyData))
             return;
 
-        (_, object? value) = obj;
+        object? value = obj.Value;
 
         if(Equals(propertyData.PropertyBase.ObjectValue, value)) return;
 

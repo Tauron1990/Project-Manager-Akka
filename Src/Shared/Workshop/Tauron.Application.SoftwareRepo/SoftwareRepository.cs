@@ -81,7 +81,7 @@ public sealed class SoftwareRepository : Workspace<SoftwareRepository, Applicati
                     return newData is null ? mc : mc.Update(new CommonChange(newData), newData);
                 }));
 
-    public long Get(string name) => ApplicationList.ApplicationEntries.Find(ae => ae.Name == name)?.Id ?? -1;
+    public long Get(string name) => ApplicationList.ApplicationEntries.Find(ae => string.Equals(ae.Name, name, StringComparison.Ordinal))?.Id ?? -1;
 
     public void AddApplication(
         string name, long id, string url, Version version, string originalRepository,
@@ -120,7 +120,7 @@ public sealed class SoftwareRepository : Workspace<SoftwareRepository, Applicati
                 {
                     ApplicationEntry? entry = ApplicationList.ApplicationEntries.Find(ae => ae.Id == id);
 
-                    if(entry == null)
+                    if(entry is null)
                         return mc;
 
                     ApplicationList newData = mc.Data with

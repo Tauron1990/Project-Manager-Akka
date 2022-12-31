@@ -9,7 +9,7 @@ namespace Tauron.Application.Avalonia.UI;
 [PublicAPI]
 public sealed class Loc : UpdatableMarkupExtension
 {
-    private static readonly Dictionary<string, object?> Cache = new();
+    private static readonly Dictionary<string, object?> Cache = new(StringComparer.Ordinal);
 
     public Loc(string entryName) => EntryName = entryName;
 

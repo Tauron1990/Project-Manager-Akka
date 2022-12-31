@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Avalonia.Data.Converters;
 using JetBrains.Annotations;
 
@@ -13,7 +14,7 @@ public class StringToIntConverter : ValueConverterFactoryBase
     {
         protected override bool CanConvertBack => true;
 
-        protected override string Convert(int value) => value.ToString();
+        protected override string Convert(int value) => value.ToString(CultureInfo.InvariantCulture);
 
         protected override int ConvertBack(string value)
         {
@@ -22,7 +23,7 @@ public class StringToIntConverter : ValueConverterFactoryBase
 
             try
             {
-                return int.Parse(value);
+                return int.Parse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo);
             }
             catch (Exception e) when (e is ArgumentException || e is FormatException || e is OverflowException)
             {

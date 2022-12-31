@@ -41,7 +41,7 @@ public abstract class ActorModel : ObservableActor
         where TState : class
         => new(
             ActionInvoker.GetState<TState>(name ?? string.Empty) ??
-            throw new ArgumentException("No such State Found"),
+            throw new ArgumentException("No such State Found", nameof(name)),
             this);
 
     public void DispatchAction(IStateAction action, bool? sendBack = true)

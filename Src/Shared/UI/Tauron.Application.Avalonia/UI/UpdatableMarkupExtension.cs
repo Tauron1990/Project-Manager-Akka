@@ -19,7 +19,7 @@ public abstract class UpdatableMarkupExtension : MarkupExtension
     {
         if(serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget service)
         {
-            if(service.TargetObject.GetType().FullName == "System.Windows.SharedDp")
+            if(string.Equals(service.TargetObject.GetType().FullName, "System.Windows.SharedDp", StringComparison.Ordinal))
                 return this;
 
             TargetObject = service.TargetObject;
@@ -31,31 +31,31 @@ public abstract class UpdatableMarkupExtension : MarkupExtension
 
     protected void UpdateValue(object? value)
     {
-        if(TargetObject != null)
+        if(TargetObject is null)
+            return;
+
+        if(TargetProperty is AvaloniaProperty dependencyProperty)
         {
-            if(TargetProperty is AvaloniaProperty dependencyProperty)
+            var obj = TargetObject as AvaloniaObject;
+
+            void UpdateAction()
             {
-                var obj = TargetObject as AvaloniaObject;
-
-                void UpdateAction()
-                {
-                    obj.SetValue(dependencyProperty, value);
-                }
-
-                // Check whether the target object can be accessed from the
-                // current thread, and use Dispatcher.Invoke if it can't
-
-                if(obj?.CheckAccess() == true)
-                    UpdateAction();
-                else if(obj != null)
-                    Dispatcher.UIThread.InvokeAsync(UpdateAction, DispatcherPriority.Background)
-                       .Ignore();
+                obj.SetValue(dependencyProperty, value);
             }
-            else // _targetProperty is PropertyInfo
-            {
-                var prop = TargetProperty as PropertyInfo;
-                prop?.SetValue(TargetObject, value, null);
-            }
+
+            // Check whether the target object can be accessed from the
+            // current thread, and use Dispatcher.Invoke if it can't
+
+            if(obj?.CheckAccess() == true)
+                UpdateAction();
+            else if(obj != null)
+                Dispatcher.UIThread.InvokeAsync(UpdateAction, DispatcherPriority.Background)
+                   .Ignore();
+        }
+        else // _targetProperty is PropertyInfo
+        {
+            var prop = TargetProperty as PropertyInfo;
+            prop?.SetValue(TargetObject, value, index: null);
         }
     }
 

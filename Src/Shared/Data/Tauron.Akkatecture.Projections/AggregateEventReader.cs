@@ -116,7 +116,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
 
         public void Dispose()
         {
-            _isCancel.GetAndSet(true);
+            _isCancel.GetAndSet(newValue: true);
             _cancelable?.Shutdown();
             _runner?.Wait(TimeSpan.FromSeconds(20));
         }
@@ -169,10 +169,10 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                     (list, transaction) => list.Add(transaction))
                .AlsoTo(
                     Sink.OnComplete<ImmutableList<Transaction>>(
-                        () => _isCancel.GetAndSet(true),
+                        () => _isCancel.GetAndSet(newValue: true),
                         e =>
                         {
-                            _isCancel.GetAndSet(true);
+                            _isCancel.GetAndSet(newValue: true);
                             errorHandler(_exceptionInfo, e);
                         }))
                .ViaMaterialized(KillSwitches.Single<ImmutableList<Transaction>>(), (_, kill) => kill)

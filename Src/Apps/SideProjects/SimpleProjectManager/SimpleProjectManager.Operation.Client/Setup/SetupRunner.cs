@@ -31,11 +31,11 @@ public sealed class SetupRunner
     {
         OperationConfiguration config = _configManager.Configuration;
         var validation = await config.Validate().ConfigureAwait(false);
-        if(CheckUseConfiguration(validation, commandLine, config))
+        if(CheckUseConfiguration(validation, commandLine))
             return;
 
         // ReSharper disable once LoopCanBeConvertedToQuery
-        foreach (ISetup setup in _setups)
+        foreach (var setup in _setups)
             config = await setup.RunSetup(config).ConfigureAwait(false);
 
         validation = await config.Validate().ConfigureAwait(false);
@@ -46,7 +46,7 @@ public sealed class SetupRunner
         await _configManager.Set(config).ConfigureAwait(false);
     }
 
-    private bool CheckUseConfiguration(ImmutableList<ValidationFailure> validation, ClientConfiguration clientConfiguration, OperationConfiguration config)
+    private bool CheckUseConfiguration(ImmutableList<ValidationFailure> validation, ClientConfiguration clientConfiguration)
     {
         if(clientConfiguration.ForceSetup)
             return false;

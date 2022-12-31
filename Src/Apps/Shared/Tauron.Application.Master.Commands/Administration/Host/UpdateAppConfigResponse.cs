@@ -3,5 +3,5 @@
 public sealed record UpdateAppConfigResponse(bool Success, string App) : OperationResponse(Success)
 {
     public UpdateAppConfigResponse()
-        : this(false, "NoAppOnError") { }
+        : this(Success: false, App: "NoAppOnError") { }
 }

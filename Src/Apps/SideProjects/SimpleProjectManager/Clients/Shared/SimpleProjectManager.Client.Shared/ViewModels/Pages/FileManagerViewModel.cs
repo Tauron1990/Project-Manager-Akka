@@ -40,8 +40,8 @@ public sealed class FileManagerViewModel : ViewModelBase
     private IEnumerable<IDisposable> Init()
     {
         var filesStream = _globalState.Files.AllFiles
-           .Select(files => new FilesInfo(false, files))
-           .StartWith(new FilesInfo(true, Array.Empty<DatabaseFile>()))
+           .Select(files => new FilesInfo(IsLoading: false, files))
+           .StartWith(new FilesInfo(IsLoading: true, Array.Empty<DatabaseFile>()))
            .Publish().RefCount();
 
         yield return _files = filesStream.Select(i => i.Files).ToProperty(this, m => m.Files);

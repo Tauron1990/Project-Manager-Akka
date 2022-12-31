@@ -26,7 +26,7 @@ public interface IDeviceService
     Task<bool> CanClickButton(DeviceId device, DeviceId button, CancellationToken token);
 
     [ComputeMethod]
-    Task<DateTime> CurrentLogs(CancellationToken token);
+    Task<DateTime> CurrentLogs(DeviceId device, CancellationToken token);
 
     Task<Logs> GetBatches(DeviceId deviceId, DateTime from, DateTime to, CancellationToken token);
 

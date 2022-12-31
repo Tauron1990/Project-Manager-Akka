@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using ReactiveUI;
+using Vogen;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels;
 

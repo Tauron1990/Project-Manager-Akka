@@ -25,9 +25,9 @@ public abstract class CommandBase : ICommand
         }
     }
 
-    public virtual bool CanExecute(object? parameter = null) => true;
+    public virtual bool CanExecute(object? parameter) => true;
 
-    public abstract void Execute(object? parameter = null);
+    public abstract void Execute(object? parameter);
 
     public virtual void RaiseCanExecuteChanged()
     {

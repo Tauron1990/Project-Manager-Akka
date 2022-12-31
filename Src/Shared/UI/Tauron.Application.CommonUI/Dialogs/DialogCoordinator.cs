@@ -25,13 +25,13 @@ public sealed class DialogCoordinator : IDialogCoordinator, IDialogCoordinatorUI
                 resultTask.SetResult(b);
             });
 
-        ShowDialog(_framework.CreateDefaultMessageContent(title, message, result, true));
+        ShowDialog(_framework.CreateDefaultMessageContent(title, message, result, canCnacel: true));
 
         return resultTask.Task;
     }
 
     public void ShowMessage(string title, string message)
-        => ShowDialog(_framework.CreateDefaultMessageContent(title, message, _ => HideDialog(), false));
+        => ShowDialog(_framework.CreateDefaultMessageContent(title, message, _ => HideDialog(), canCnacel: false));
 
     public void ShowDialog(object dialog)
     {
@@ -63,7 +63,9 @@ public sealed class DialogCoordinator : IDialogCoordinator, IDialogCoordinatorUI
     //    return window.ShowDialog();
     //}
 
+    #pragma warning disable MA0046
     private event Action<object>? ShowDialogEvent;
 
     private event Action? HideDialogEvent;
+    #pragma warning restore MA0046
 }

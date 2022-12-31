@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
-using Tauron.Application.Workshop.StateManagement.StatePooling;
 using Tauron.ObservableExt;
 
 namespace Tauron.Application.Workshop.StateManagement.Internal;
@@ -17,51 +16,6 @@ public abstract class StateContainer : IDisposable
     public abstract void Dispose();
 
     public abstract IDataMutation? TryDipatch(IStateAction action, IObserver<IReducerResult> sendResult, IObserver<Unit> onCompled);
-}
-
-public interface IStateInstance
-{
-    object ActualState { get; }
-
-    void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine);
-
-    void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine)
-        where TData : class, IStateEntity;
-
-    void PostInit(IActionInvoker actionInvoker);
-}
-
-public sealed class PhysicalInstance : IStateInstance
-{
-    private bool _initCalled;
-
-    public PhysicalInstance(object state) => ActualState = state;
-
-    public object ActualState { get; }
-
-    public void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
-    {
-        // ReSharper disable once SuspiciousTypeConversion.Global
-        if(ActualState is IInitState<TData> init)
-            init.Init(engine);
-    }
-
-    public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
-    {
-        if(ActualState is IGetSource<TData> canQuery)
-            canQuery.DataSource(engine);
-    }
-
-    public void PostInit(IActionInvoker actionInvoker)
-    {
-        if(_initCalled) return;
-
-        _initCalled = true;
-
-        // ReSharper disable once SuspiciousTypeConversion.Global
-        if(ActualState is IPostInit postInit)
-            postInit.Init(actionInvoker);
-    }
 }
 
 public sealed class StateContainer<TData> : StateContainer
@@ -119,7 +73,7 @@ public sealed class StateContainer<TData> : StateContainer
                                                             r => !r.IsOk || r.Data is null,
                                                             o => o.Do(_ => cancel.OnNext(Unit.Default)))
                                                        .When(
-                                                            r => r.IsOk && r.Data != null,
+                                                            r => r is { IsOk: true, Data: { } },
                                                             o => reducerBuilder(o.Select(result => result.Data!)));
                                                 });
                                     })).Switch().Publish().RefCount();
@@ -127,7 +81,7 @@ public sealed class StateContainer<TData> : StateContainer
                         subs.Add(processor.Cast<IReducerResult>().Subscribe(sendResult));
                         subs.Add(processor.Subscribe(_ => { }, () => subs.Dispose()));
 
-                        return processor.Where(r => r.IsOk && !r.StartLine).Select(r => r.Data);
+                        return processor.Where(r => r is { IsOk: true, StartLine: false }).Select(r => r.Data);
                     }
                     catch
                     {

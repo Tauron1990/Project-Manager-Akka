@@ -14,14 +14,14 @@ public abstract class StringVlaueTypeTester<TType>
     }
 
     public virtual void Null_InValid_Value()
-        => Assert.Throws<ValueObjectValidationException>(() => TType.From(null));
+        => Assert.Throws<ValueObjectValidationException>(() => TType.From(null!));
 
     public virtual void Empty_InValid_Value()
         => Assert.Throws<ValueObjectValidationException>(() => TType.From(string.Empty));
 
     public virtual void Default_InValid_Value()
         #pragma warning disable VOG009
-        => Assert.Throws<ValueObjectValidationException>(() => default(TType).Value);
+        => Assert.Throws<ValueObjectValidationException>(() => default(TType)!.Value);
     #pragma warning restore VOG009
 
     public virtual void Empty_Equal_Value()

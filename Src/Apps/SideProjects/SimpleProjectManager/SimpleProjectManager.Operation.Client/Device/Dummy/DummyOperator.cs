@@ -11,7 +11,8 @@ internal sealed partial class DummyOperator : IDisposable
 {
     private readonly CancellationTokenSource _cancellation = new();
     private readonly ILogger<DummyOperator> _logger;
-
+    private readonly DeviceId _deviceId;
+    
     private readonly Action<DeviceButton, bool> _stateChange;
     private readonly Action<DeviceSensor, DeviceManagerMessages.ISensorBox> _valueChange;
     private ImmutableList<LogData> _currentLog = ImmutableList<LogData>.Empty;
@@ -19,11 +20,13 @@ internal sealed partial class DummyOperator : IDisposable
 
 
     internal DummyOperator(
+        DeviceId deviceId,
         Action<DeviceButton, bool> stateChange,
         Action<DeviceSensor, DeviceManagerMessages.ISensorBox> valueChange,
         ILogger<DummyOperator> logger)
     {
         _pairs = Array.Empty<ButtonSensorPair>();
+        _deviceId = deviceId;
         _stateChange = stateChange;
         _valueChange = valueChange;
         _logger = logger;
@@ -55,7 +58,7 @@ internal sealed partial class DummyOperator : IDisposable
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), _cancellation.Token).ConfigureAwait(false);
 
-                foreach (ButtonSensorPair sensorPair in _pairs)
+                foreach (var sensorPair in _pairs)
                     UpdatePair(sensorPair);
 
                 #pragma warning disable GU0011
@@ -67,8 +70,8 @@ internal sealed partial class DummyOperator : IDisposable
                             LogCategory.From("Test"),
                             SimpleMessage.From("TestLog"),
                             DateTime.Now,
-                            ImmutableDictionary<PropertyName, PropertyValue>.Empty
-                               .Add(PropertyName.From("Test"), PropertyValue.From("TestValue")))));
+                            ImmutableDictionary<string, PropertyValue>.Empty
+                               .Add("Test", PropertyValue.From("TestValue")))));
             }
         }
         catch (OperationCanceledException) { }
@@ -88,7 +91,7 @@ internal sealed partial class DummyOperator : IDisposable
             sensorPair.Clicked = false;
             sensorPair.CurrentState = true;
 
-            _stateChange(sensorPair.Button, false);
+            _stateChange(sensorPair.Button, arg2: false);
             return;
         }
 
@@ -105,14 +108,14 @@ internal sealed partial class DummyOperator : IDisposable
             return;
 
         sensorPair.CurrentState = false;
-        _stateChange(sensorPair.Button, true);
+        _stateChange(sensorPair.Button, arg2: true);
     }
 
     internal LogBatch NextBatch()
     {
         var current = Interlocked.Exchange(ref _currentLog, ImmutableList<LogData>.Empty);
 
-        return new LogBatch(current);
+        return new LogBatch(_deviceId, current);
     }
 
     internal void ApplyClick(DeviceId id)

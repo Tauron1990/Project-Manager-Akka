@@ -105,7 +105,7 @@ public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservableP
         Disposer.Add
         (
             _propertys.Connect()
-               .Where(o => o.Name == name)
+               .Where(o => string.Equals(o.Name, name, StringComparison.Ordinal))
                .Flatten()
                .SelectMany(
                     c =>

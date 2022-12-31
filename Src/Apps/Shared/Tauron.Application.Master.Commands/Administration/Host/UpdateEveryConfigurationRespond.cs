@@ -3,5 +3,5 @@
 public sealed record UpdateEveryConfigurationRespond(bool Success) : OperationResponse(Success)
 {
     public UpdateEveryConfigurationRespond()
-        : this(false) { }
+        : this(Success: false) { }
 }

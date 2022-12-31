@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj"/>
-        <ProjectReference Include="..\Tauron.Application.Workshop.Akka\Tauron.Application.Workshop.Akka.csproj"/>
-        <ProjectReference Include="..\Tauron.Application.Workshop.StateManagement\Tauron.Application.Workshop.StateManagement.csproj"/>
+        <ProjectReference Include="..\..\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
+        <ProjectReference Include="..\Tauron.Application.Workshop.Akka\Tauron.Application.Workshop.Akka.csproj" />
+        <ProjectReference Include="..\Tauron.Application.Workshop.StateManagement\Tauron.Application.Workshop.StateManagement.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -30,8 +30,8 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
 </Project>

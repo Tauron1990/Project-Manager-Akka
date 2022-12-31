@@ -14,7 +14,7 @@ public sealed class DataClient : IDataClient
 
     public DataClient(string host, int port = 0)
     {
-        _client = new SimpleTcpClient(host, port, false, null, null)
+        _client = new SimpleTcpClient(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
                   {
                       Keepalive = { EnableTcpKeepAlives = true },
                   };

@@ -125,7 +125,7 @@ public class ControlHelper
             string realName = Name;
             string? windowName = null;
 
-            if(realName.Contains(':'))
+            if(realName.Contains(':', StringComparison.Ordinal))
             {
                 string[] nameSplit = realName.Split(new[] { ':' }, 2);
                 realName = nameSplit[0];
@@ -148,7 +148,7 @@ public class ControlHelper
                 priTarget =
                     global::Avalonia.Application.Current?.ApplicationLifetime is
                         IClassicDesktopStyleApplicationLifetime lifetime
-                        ? lifetime.Windows.FirstOrDefault(win => win.Name == windowName)
+                        ? lifetime.Windows.FirstOrDefault(win => string.Equals(win.Name, windowName, StringComparison.Ordinal))
                         : null;
 
                 if(priTarget is null)

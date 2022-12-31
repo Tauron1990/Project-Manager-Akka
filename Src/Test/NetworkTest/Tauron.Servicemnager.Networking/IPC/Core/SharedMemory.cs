@@ -57,7 +57,7 @@ internal class SharedMemory : IDisposable
 
         try
         {
-            _mt = new Mutex(true, $"{uniqueHandlerName}SharmNet_MasterMutex");
+            _mt = new Mutex(initiallyOwned: true, $"{uniqueHandlerName}SharmNet_MasterMutex");
 
             if(_mt.WaitOne(500))
             {

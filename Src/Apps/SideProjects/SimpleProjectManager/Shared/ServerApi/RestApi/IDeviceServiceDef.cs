@@ -30,10 +30,10 @@ public interface IDeviceServiceDef
     Task<bool> CanClickButton([Query] DeviceId device, [Query] DeviceId button, CancellationToken token);
 
     [Get(nameof(CurrentLogs))]
-    Task<DateTime> CurrentLogs(CancellationToken token);
+    Task<DateTime> CurrentLogs([Query("device")]DeviceId device, CancellationToken token);
 
     [Get(nameof(GetBatches))]
-    Task<Logs> GetBatches([Query] DeviceId deviceId, [Query] DateTime from, [Query] DateTime to, CancellationToken token);
+    Task<Logs> GetBatches([Query("deviceid")] DeviceId deviceId, [Query("from")] DateTime from, [Query("to")] DateTime to, CancellationToken token);
 
     [Post(nameof(ClickButton))]
     Task<SimpleResult> ClickButton([Body] DeviceId device, [Query("button")] DeviceId button, CancellationToken token);

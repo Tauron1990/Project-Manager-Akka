@@ -4,13 +4,6 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application.CommonUI.Dialogs;
 
-public interface IDialogCoordinatorUIEvents
-{
-    event Action<object>? ShowDialogEvent;
-
-    event Action? HideDialogEvent;
-}
-
 [PublicAPI]
 public interface IDialogCoordinator
 {

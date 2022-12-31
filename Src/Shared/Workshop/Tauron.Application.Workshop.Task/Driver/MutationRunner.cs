@@ -17,7 +17,7 @@ public sealed class MutationRunner
 
                         break;
                     case IAsyncMutation asyncMutation:
-                        await asyncMutation.Run();
+                        await asyncMutation.Run().ConfigureAwait(false);
 
                         break;
                 }

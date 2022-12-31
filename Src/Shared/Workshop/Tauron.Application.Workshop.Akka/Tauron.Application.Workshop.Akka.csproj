@@ -8,9 +8,17 @@
         <LangVersion>11</LangVersion>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;IL2121;GU0017</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <NoWarn>1701;1702;IL2121;GU0017</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
-        <ProjectReference Include="..\..\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj"/>
-        <ProjectReference Include="..\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj"/>
+        <ProjectReference Include="..\..\Common\Tauron.Application.Common.Akka\Tauron.Application.Common.Akka.csproj" />
+        <ProjectReference Include="..\Tauron.Application.Workshop\Tauron.Application.Workshop.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -30,8 +38,8 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
 </Project>

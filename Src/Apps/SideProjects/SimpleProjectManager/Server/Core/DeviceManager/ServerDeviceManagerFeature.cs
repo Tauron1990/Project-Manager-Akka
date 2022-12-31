@@ -31,7 +31,9 @@ public sealed partial class
     }
 
     [LoggerMessage(EventId = 57, Level = LogLevel.Debug, Message = "New Device Registration Incomming from {path} with {name} and {id}")]
+    #pragma warning disable EPS05
     private static partial void NewDeviceRegistration(ILogger logger, DeviceId id, DeviceName name, ActorPath path);
+    #pragma warning restore EPS05
 
     [LoggerMessage(EventId = 58, Level = LogLevel.Warning, Message = "Duplicate Device {name} Registration From {path}")]
     private static partial void DuplicateDeviceRegistration(ILogger logger, DeviceId name, ActorPath path);
@@ -52,7 +54,7 @@ public sealed partial class
                 if(string.IsNullOrWhiteSpace(evt.Name.Value))
                 {
                     EmptyDeviceNameRegistration(Logger, pair.Sender.Path);
-                    pair.Sender.Tell(new DeviceInfoResponse(false, SimpleResult.Failure("Empty Device Name")));
+                    pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Failure("Empty Device Name")));
 
                     return state;
                 }
@@ -61,7 +63,7 @@ public sealed partial class
                 if(state.Devices.ContainsKey(evt.DeviceId))
                 {
                     DuplicateDeviceRegistration(Logger, evt.DeviceId, pair.Sender.Path);
-                    pair.Sender.Tell(new DeviceInfoResponse(true, SimpleResult.Failure("Duplicate Device Registration")));
+                    pair.Sender.Tell(new DeviceInfoResponse(Duplicate: true, Result: SimpleResult.Failure("Duplicate Device Registration")));
 
                     return state;
                 }
@@ -75,14 +77,14 @@ public sealed partial class
 
                     pair.Context.Watch(pair.Context.ActorOf(SingleDeviceFeature.New(evt, state.Events), evt.DeviceId.Value));
                     state.Events.Publish(new NewDeviceEvent(evt));
-                    pair.Sender.Tell(new DeviceInfoResponse(false, SimpleResult.Success()));
+                    pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Success()));
 
                     return newState;
                 }
                 catch (InvalidActorNameException exception)
                 {
                     InvalidActorName(Logger, exception, pair.Sender.Path);
-                    pair.Sender.Tell(new DeviceInfoResponse(false, SimpleResult.Failure(exception.Message)));
+                    pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Failure(exception.Message)));
 
                     return state;
                 }

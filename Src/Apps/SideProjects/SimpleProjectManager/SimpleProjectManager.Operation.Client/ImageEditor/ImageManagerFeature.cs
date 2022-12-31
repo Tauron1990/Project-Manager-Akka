@@ -228,7 +228,7 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
 
                     break;
                 case DirectoryInfo directory:
-                    directory.Delete(true);
+                    directory.Delete(recursive: true);
 
                     break;
             }

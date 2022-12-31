@@ -130,12 +130,12 @@ internal class ReaderWriterHandler : IDisposable
 
 
         _ewhWriterReadyToRead = new SWaitHadle(
-            false,
+            initialState: false,
             EventResetMode.ManualReset,
             $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToRead");
 
         _ewhWriterReadyToWrite = new SWaitHadle(
-            true,
+            initialState: true,
             EventResetMode.ManualReset,
             $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToWrite");
 
@@ -154,7 +154,7 @@ internal class ReaderWriterHandler : IDisposable
         else
         {
             string name = Path.Combine(Path.GetTempPath(), $"{_sm.UniqueHandlerName}{prefix}_SharmNet_MMF.mem");
-            _writerMmf = MemoryMappedFile.CreateFromFile(name, FileMode.OpenOrCreate, null, _sm.BufferCapacity, MemoryMappedFileAccess.ReadWrite);
+            _writerMmf = MemoryMappedFile.CreateFromFile(name, FileMode.OpenOrCreate, mapName: null, _sm.BufferCapacity, MemoryMappedFileAccess.ReadWrite);
         }
 
         _writerAccessor = _writerMmf.CreateViewAccessor(0, _sm.BufferCapacity);
@@ -592,12 +592,12 @@ internal class ReaderWriterHandler : IDisposable
         string prefix = _sm.InstanceType == EInstanceType.Slave ? "1" : "2";
 
         _ewhReaderReadyToRead = new SWaitHadle(
-            false,
+            initialState: false,
             EventResetMode.ManualReset,
             $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToRead");
 
         _ewhReaderReadyToWrite = new SWaitHadle(
-            true,
+            initialState: true,
             EventResetMode.ManualReset,
             $"{_sm.UniqueHandlerName}{prefix}_SharmNet_ReadyToWrite");
 
@@ -632,7 +632,7 @@ internal class ReaderWriterHandler : IDisposable
             _readerMmf = MemoryMappedFile.CreateFromFile(
                 fileName,
                 FileMode.OpenOrCreate,
-                null,
+                mapName: null,
                 _sm.BufferCapacity,
                 MemoryMappedFileAccess.ReadWrite);
         }
@@ -920,7 +920,7 @@ internal class ReaderWriterHandler : IDisposable
                             switch (msgType)
                             {
                                 case EMsgType.ErrorInRpc:
-                                    _sm.SharmIpc.InternalDataArrived(msgType, iResponseMsgId, null);
+                                    _sm.SharmIpc.InternalDataArrived(msgType, iResponseMsgId, bt: null);
 
                                     break;
 
@@ -940,11 +940,11 @@ internal class ReaderWriterHandler : IDisposable
                                         switch (msgType)
                                         {
                                             case EMsgType.RpcRequest:
-                                                SendMessage(EMsgType.ErrorInRpc, GetMessageId(), null, iMsgId);
+                                                SendMessage(EMsgType.ErrorInRpc, GetMessageId(), msg: null, iMsgId);
 
                                                 break;
                                             case EMsgType.RpcResponse:
-                                                _sm.SharmIpc.InternalDataArrived(EMsgType.ErrorInRpc, iResponseMsgId, null);
+                                                _sm.SharmIpc.InternalDataArrived(EMsgType.ErrorInRpc, iResponseMsgId, bt: null);
 
                                                 break;
                                         }
@@ -1104,7 +1104,7 @@ internal class ReaderWriterHandler : IDisposable
                         BitConverter.ToInt32(hdr, 9); //+4
                         iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
 
-                        _sm.SharmIpc.InternalDataArrived(msgType, iResponseMsgId, null);
+                        _sm.SharmIpc.InternalDataArrived(msgType, iResponseMsgId, bt: null);
                         jPos = 6;
 
                         break;
@@ -1138,13 +1138,13 @@ internal class ReaderWriterHandler : IDisposable
                             {
                                 case EMsgType.RpcRequest:
                                     jPos = 9;
-                                    SendMessage(EMsgType.ErrorInRpc, GetMessageId(), null, iMsgId);
+                                    SendMessage(EMsgType.ErrorInRpc, GetMessageId(), msg: null, iMsgId);
                                     jPos = 10;
 
                                     break;
                                 case EMsgType.RpcResponse:
                                     jPos = 11;
-                                    _sm.SharmIpc.InternalDataArrived(EMsgType.ErrorInRpc, iResponseMsgId, null);
+                                    _sm.SharmIpc.InternalDataArrived(EMsgType.ErrorInRpc, iResponseMsgId, bt: null);
                                     jPos = 12;
 
                                     break;

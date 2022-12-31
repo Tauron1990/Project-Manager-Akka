@@ -3,5 +3,5 @@
 public sealed record StopAllAppsResponse(bool Success) : OperationResponse(Success)
 {
     public StopAllAppsResponse()
-        : this(false) { }
+        : this(Success: false) { }
 }

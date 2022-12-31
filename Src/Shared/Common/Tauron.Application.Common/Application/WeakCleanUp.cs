@@ -27,7 +27,7 @@ public static class WeakCleanUp
 
     private static IList<WeakDelegate> Initialize()
     {
-        _timer = new Timer(InvokeCleanUp, null, TimeSpan.Zero, TimeSpan.FromMinutes(15));
+        _timer = new Timer(InvokeCleanUp, state: null, TimeSpan.Zero, TimeSpan.FromMinutes(15));
 
         return new List<WeakDelegate>();
     }
@@ -37,7 +37,7 @@ public static class WeakCleanUp
         lock (Actions)
         {
             var dead = new List<WeakDelegate>();
-            foreach (WeakDelegate weakDelegate in Actions.ToArray())
+            foreach (var weakDelegate in Actions.ToArray())
                 if(weakDelegate.IsAlive)
                     try
                     {

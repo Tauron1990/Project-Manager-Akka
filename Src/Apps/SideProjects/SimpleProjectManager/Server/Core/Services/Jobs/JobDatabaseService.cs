@@ -86,8 +86,8 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return result.Ok
             ? result.Outcome is bool isNew
                 ? new AttachResult(SimpleResult.Success(), isNew)
-                : new AttachResult(SimpleResult.Success(), true)
-            : new AttachResult(SimpleResult.Failure(result.Error ?? string.Empty), false);
+                : new AttachResult(SimpleResult.Success(), IsNew: true)
+            : new AttachResult(SimpleResult.Failure(result.Error ?? string.Empty), IsNew: false);
     }
 
     public virtual async Task<Jobs> GetActiveJobs(CancellationToken token)

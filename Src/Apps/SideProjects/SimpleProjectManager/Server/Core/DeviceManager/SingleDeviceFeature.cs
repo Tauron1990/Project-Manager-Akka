@@ -49,7 +49,7 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
 
         p.State.Handler.Publish(new ButtonStateUpdate(p.Event.DeviceName, p.Event.Identifer));
 
-        return p.State with { ButtonStates = p.State.ButtonStates.SetItem(p.Event.Identifer, false) };
+        return p.State with { ButtonStates = p.State.ButtonStates.SetItem(p.Event.Identifer, value: false) };
     }
 
     private State UpdateButton(StatePair<UpdateButtonState, State> arg)
@@ -80,7 +80,7 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         }
 
         IdNotFound(Logger, "Button", evt.DeviceName, evt.Identifer);
-        obj.Sender.Tell(new ButtonStateResponse(false));
+        obj.Sender.Tell(new ButtonStateResponse(CanClick: false));
     }
 
     private void FindSensorValue(StatePair<QuerySensorValue, State> arg)

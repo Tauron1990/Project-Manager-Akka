@@ -17,7 +17,7 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
     where TAggregate : AggregateRoot<TAggregate, TIdentity, TAggregateState>
     where TSnapshot : IAggregateSnapshot<TAggregate, TIdentity>
 {
-    protected InternalAggregateRoot(TIdentity id) : base(id, new AggregateRootSettings(TimeSpan.FromDays(7), true, true))
+    protected InternalAggregateRoot(TIdentity id) : base(id, new AggregateRootSettings(TimeSpan.FromDays(7), useDefaultEventRecover: true, useDefaultSnapshotRecover: true))
     {
         // ReSharper disable once VirtualMemberCallInConstructor
         #pragma warning disable MA0056
@@ -82,7 +82,8 @@ public abstract class InternalAggregateRoot<TAggregate, TIdentity, TAggregateSta
         return State.CreateSnapshot();
     }
 
-    protected virtual string? GetErrorMessage(AggregateError errorCode)
+    #pragma warning disable EPS02
+    protected virtual string? GetErrorMessage(in AggregateError errorCode)
         => null;
 
     protected static IValidator<TCarrier> CreateValidator<TCarrier, TData>(IValidator<TData> validator)

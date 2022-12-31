@@ -26,7 +26,7 @@ public sealed class CleanUpManager : ActorFeatureBase<CleanUpManager.CleanUpMana
                 repositoryConfiguration.GetInstance<CleanUpTime, string>(RepositoryKey),
                 repositoryConfiguration.GetInstance<ToDeleteRevision, string>(RepositoryKey),
                 storageProvider,
-                false));
+                IsRunning: false));
 
     protected override void ConfigImpl()
     {

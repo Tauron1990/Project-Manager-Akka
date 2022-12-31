@@ -5,5 +5,5 @@ namespace SimpleProjectManager.Operation.Client.Config;
 public sealed record DeviceData(bool Active, InterfaceId MachineInterface)
 {
     public DeviceData()
-        : this(false, InterfaceId.Empty) { }
+        : this(Active: false, InterfaceId.Empty) { }
 }

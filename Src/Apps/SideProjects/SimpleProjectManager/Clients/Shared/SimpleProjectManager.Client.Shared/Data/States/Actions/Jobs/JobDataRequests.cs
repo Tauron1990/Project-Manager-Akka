@@ -16,7 +16,7 @@ internal static class JobDataRequests
         JobSortOrderPair? pair = (await source(cancel).ConfigureAwait(false)).Pair;
 
         if(pair is null)
-            return new CurrentSelected(null, null);
+            return new CurrentSelected(Pair: null, JobData: null);
 
         JobData jobData = await jobDatabaseService.GetJobData(pair.Info.Project, cancel).ConfigureAwait(false);
 
@@ -34,16 +34,16 @@ internal static class JobDataRequests
 
                        if(result.IsError())
                        {
-                           input.OnCompled(false);
+                           input.OnCompled(obj: false);
 
                            return result;
                        }
 
-                       result = await service.ChangeOrder(new SetSortOrder(true, newData.Ordering), token).ConfigureAwait(false);
+                       result = await service.ChangeOrder(new SetSortOrder(IgnoreIfEmpty: true, newData.Ordering), token).ConfigureAwait(false);
 
                        if(result.IsError())
                        {
-                           input.OnCompled(false);
+                           input.OnCompled(obj: false);
 
                            return result;
                        }
@@ -56,7 +56,7 @@ internal static class JobDataRequests
                    catch (Exception e)
                    {
                        messageDispatcher.PublishError(e);
-                       input.OnCompled(false);
+                       input.OnCompled(obj: false);
 
                        throw;
                    }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
+using Vogen;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels.Devices;
 
@@ -13,9 +14,7 @@ public sealed class DevicesViewModel : ViewModelBase
 
     public DevicesViewModel(GlobalState state)
     {
-        Devices = state.Devices.CurrentDevices.Select(dd => dd.Select(p => new DevicePair(p.Value, p.Key)).ToArray());
-
-        this.WhenActivated(Init);
+        Devices = state.Devices.CurrentDevices.Select(dd => dd.Select(p => new DevicePair(p.Value, p.Key)).ToArray()); this.WhenActivated(Init);
     }
 
     public IObservable<DevicePair[]> Devices { get; }

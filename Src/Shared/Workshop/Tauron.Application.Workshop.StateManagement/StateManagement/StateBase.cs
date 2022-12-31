@@ -27,12 +27,12 @@ public abstract class StateBase<TData> : ICanQuery<TData>
         var source = _source;
         try
         {
-            return source == null ? null : (await source.GetData(query)).Data;
+            return source is null ? null : (await source.GetData(query).ConfigureAwait(false)).Data;
         }
         finally
         {
             if(source != null)
-                await source.OnCompled(query);
+                await source.OnCompled(query).ConfigureAwait(false);
         }
     }
 }

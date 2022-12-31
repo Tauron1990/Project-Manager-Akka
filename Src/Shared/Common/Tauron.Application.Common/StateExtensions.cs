@@ -17,6 +17,14 @@ public static class StateExtensions
         return new DisposableState<TData>(state, serial);
     }
 
+    public static IObservable<TData> ToObservable<TData>(this IState<TData> state, Action<Exception> onError)
+        => state.ToObservable(
+            ex =>
+            {
+                onError(ex);
+                return false;
+            });
+
     public static IObservable<TData> ToObservable<TData>(this IState<TData> state, Func<Exception, bool> decidePropagateErrors)
         => Observable.Create<TData>(
                 o =>

@@ -22,7 +22,7 @@ public static class ReflectionExtensions
         bool nonPublic,
         BindingFlags bindingflags) where TAttribute : Attribute
     {
-        if(type == null) throw new ArgumentNullException(nameof(type));
+        if(type is null) throw new ArgumentNullException(nameof(type));
 
         bindingflags |= BindingFlags.Public;
         if(nonPublic) bindingflags |= BindingFlags.NonPublic;
@@ -49,7 +49,7 @@ public static class ReflectionExtensions
         Type? targetType = type;
         while (targetType != null)
         {
-            foreach (MemberInfo mem in targetType.GetMembers(flags)) yield return mem;
+            foreach (var mem in targetType.GetMembers(flags)) yield return mem;
 
             targetType = targetType.BaseType;
         }
@@ -61,15 +61,15 @@ public static class ReflectionExtensions
         => FindMemberAttributes<TAttribute>(type, nonPublic, BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
     public static T[] GetAllCustomAttributes<T>(this ICustomAttributeProvider member) where T : class
-        => (T[])member.GetCustomAttributes(typeof(T), true);
+        => (T[])member.GetCustomAttributes(typeof(T), inherit: true);
 
 
     public static object[] GetAllCustomAttributes(this ICustomAttributeProvider member, Type type)
-        => member.GetCustomAttributes(type, true);
+        => member.GetCustomAttributes(type, inherit: true);
 
     public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider)
         where TAttribute : Attribute
-        => GetCustomAttribute<TAttribute>(provider, true);
+        => GetCustomAttribute<TAttribute>(provider, inherit: true);
 
     public static Option<TAttribute> GetCustomAttribute<TAttribute>(this ICustomAttributeProvider provider, bool inherit)
         where TAttribute : Attribute
@@ -81,16 +81,16 @@ public static class ReflectionExtensions
 
     public static IEnumerable<object> GetCustomAttributes(this ICustomAttributeProvider provider, params Type[] attributeTypes)
     {
-        if(provider == null) throw new ArgumentNullException(nameof(provider));
+        if(provider is null) throw new ArgumentNullException(nameof(provider));
 
         return from attributeType in attributeTypes
-               from attribute in provider.GetCustomAttributes(attributeType, false)
+               from attribute in provider.GetCustomAttributes(attributeType, inherit: false)
                select attribute;
     }
 
     public static Option<TType> GetInvokeMember<TType>(this MemberInfo info, object instance, params object[]? parameter)
     {
-        if(info == null) throw new ArgumentNullException(nameof(info));
+        if(info is null) throw new ArgumentNullException(nameof(info));
 
         parameter ??= Array.Empty<object>();
 
@@ -116,7 +116,7 @@ public static class ReflectionExtensions
 
     public static RuntimeMethodHandle GetMethodHandle(this MethodBase method)
     {
-        if(method == null) throw new ArgumentNullException(nameof(method));
+        if(method is null) throw new ArgumentNullException(nameof(method));
 
         var mi = method as MethodInfo;
 
@@ -145,13 +145,13 @@ public static class ReflectionExtensions
             ? method.GetParameterTypes()
             : method.GetParameterTypes().SkipLast(1);
 
-        return implementingType.GetProperty(method.Name[4..], DefaultBindingFlags, null, returnType, indexerTypes.ToArray(), null)
+        return implementingType.GetProperty(method.Name[4..], DefaultBindingFlags, binder: null, returnType, indexerTypes.ToArray(), modifiers: null)
            .OptionNotNull();
     }
 
     public static Option<PropertyInfo> GetPropertyFromMethod(this MethodBase method)
     {
-        if(method == null) throw new ArgumentNullException(nameof(method));
+        if(method is null) throw new ArgumentNullException(nameof(method));
 
         return !method.IsSpecialName
             ? default
@@ -160,7 +160,7 @@ public static class ReflectionExtensions
 
     public static Type GetSetInvokeType(this MemberInfo info)
     {
-        if(info == null) throw new ArgumentNullException(nameof(info));
+        if(info is null) throw new ArgumentNullException(nameof(info));
 
         return info switch
         {
@@ -173,24 +173,24 @@ public static class ReflectionExtensions
 
     public static bool HasAttribute<T>(this ICustomAttributeProvider member) where T : Attribute
     {
-        if(member == null) throw new ArgumentNullException(nameof(member));
+        if(member is null) throw new ArgumentNullException(nameof(member));
 
-        return member.IsDefined(typeof(T), true);
+        return member.IsDefined(typeof(T), inherit: true);
     }
 
     public static bool HasAttribute(this ICustomAttributeProvider member, Type type)
     {
-        if(member == null) throw new ArgumentNullException(nameof(member));
-        if(type == null) throw new ArgumentNullException(nameof(type));
+        if(member is null) throw new ArgumentNullException(nameof(member));
+        if(type is null) throw new ArgumentNullException(nameof(type));
 
-        return member.IsDefined(type, true);
+        return member.IsDefined(type, inherit: true);
     }
 
     public static bool HasMatchingAttribute<T>(this ICustomAttributeProvider member, T attributeToMatch)
         where T : Attribute
     {
-        if(member == null) throw new ArgumentNullException(nameof(member));
-        if(attributeToMatch == null) throw new ArgumentNullException(nameof(attributeToMatch));
+        if(member is null) throw new ArgumentNullException(nameof(member));
+        if(attributeToMatch is null) throw new ArgumentNullException(nameof(attributeToMatch));
 
         var attributes = member.GetAllCustomAttributes<T>();
 
@@ -199,7 +199,7 @@ public static class ReflectionExtensions
 
     public static Option<TType> InvokeFast<TType>(this MethodBase method, object? instance, params object?[] args)
     {
-        if(method == null) throw new ArgumentNullException(nameof(method));
+        if(method is null) throw new ArgumentNullException(nameof(method));
 
         return method switch
         {
@@ -220,7 +220,7 @@ public static class ReflectionExtensions
 
     public static TEnum ParseEnum<TEnum>(this string value)
     {
-        if(value == null) throw new ArgumentNullException(nameof(value));
+        if(value is null) throw new ArgumentNullException(nameof(value));
 
         return (TEnum)Enum.Parse(typeof(TEnum), value);
     }
@@ -288,7 +288,7 @@ public static class ReflectionExtensions
 
     public static bool TryParseEnum<TEnum>(this string value, out TEnum eEnum) where TEnum : struct
     {
-        if(value == null) throw new ArgumentNullException(nameof(value));
+        if(value is null) throw new ArgumentNullException(nameof(value));
 
         return Enum.TryParse(value, out eEnum);
     }

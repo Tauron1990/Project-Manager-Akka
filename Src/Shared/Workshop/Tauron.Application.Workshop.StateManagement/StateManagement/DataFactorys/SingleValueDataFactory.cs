@@ -49,9 +49,9 @@ public abstract class SingleValueDataFactory<TData> : AdvancedDataSourceFactory
 
         public async Task<TData> GetData(IQuery query)
         {
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
-            return await _value;
+            return await _value.ConfigureAwait(false);
         }
 
         public Task SetData(IQuery query, TData data)

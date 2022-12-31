@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using Akka.Actor;
 using JetBrains.Annotations;
@@ -35,7 +36,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
         get => _error;
         private set
         {
-            if(value == _error) return;
+            if(string.Equals(value, _error, StringComparison.Ordinal)) return;
 
             _error = value;
             OnPropertyChanged();
@@ -73,7 +74,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
 
     protected override void NoDataContextFound()
     {
-        Log.Debug("No DataContext Found for {Name}", Name);
+        Log.Debug(CultureInfo.InvariantCulture, "No DataContext Found for {Name}", Name);
     }
 
     protected override void ValidateCompled(ValidatingEvent msg)

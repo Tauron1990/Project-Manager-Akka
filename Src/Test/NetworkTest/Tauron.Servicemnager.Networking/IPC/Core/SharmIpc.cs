@@ -136,7 +136,7 @@ public class SharmIpc : IDisposable
                         rc.CallBack?.Invoke((false, null)); //timeout
 
             },
-            null,
+            state: null,
             10000,
             10000);
 
@@ -550,7 +550,7 @@ public class SharmIpc : IDisposable
         internal int TimeoutsMs = 30000;
 
         internal void Init_MRE()
-            => _mre = new ManualResetEvent(false);
+            => _mre = new ManualResetEvent(initialState: false);
 
         /// <summary>
         ///     Works faster with timer than WaitOneAsync
@@ -563,8 +563,8 @@ public class SharmIpc : IDisposable
 
             if(_mre != null)
                 _mre.Set();
-            else if(Amre != null)
-                Amre.Set();
+            else
+                Amre?.Set();
 
         }
 

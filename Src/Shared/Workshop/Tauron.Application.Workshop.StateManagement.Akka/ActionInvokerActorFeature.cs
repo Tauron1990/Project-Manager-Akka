@@ -2,7 +2,6 @@
 using System.Reactive.Linq;
 using Akka.Actor;
 using JetBrains.Annotations;
-using Tauron.Application.Workshop.StateManagement.Akka.Internal;
 using Tauron.Features;
 using Tauron.Operations;
 
@@ -63,7 +62,7 @@ public abstract class ActionInvokerActorFeature<TClassState> : ActorFeatureBase<
         where TState : class
         => new(
             ActionInvoker.GetState<TState>(name ?? string.Empty) ??
-            throw new ArgumentException("No such State Found"),
+            throw new ArgumentException("No such State Found", nameof(name)),
             this);
 
     public void DispatchAction(IStateAction action, bool? sendBack = true) => ActionInvoker.Run(action, sendBack);
@@ -106,32 +105,5 @@ public abstract class ActionInvokerActorFeature<TClassState> : ActorFeatureBase<
             evt = Event;
             state = State;
         }
-    }
-}
-
-[PublicAPI]
-public abstract class ActorStateBase : ReceiveActor
-{
-    protected override bool AroundReceive(Receive receive, object message)
-    {
-        if(message is StateActorMessage msg)
-        {
-            msg.Apply(this);
-
-            return true;
-        }
-
-        return base.AroundReceive(receive, message);
-    }
-}
-
-[PublicAPI]
-public abstract class ActorFeatureStateBase<TState> : ActorFeatureBase<TState>
-{
-    protected override void Config()
-    {
-        Receive<StateActorMessage>(obs => obs.Select(m => m.Event).SubscribeWithStatus(m => m.Apply(this)));
-
-        base.Config();
     }
 }

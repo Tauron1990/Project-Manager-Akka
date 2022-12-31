@@ -17,16 +17,16 @@ public sealed class MutationDataSource<TData> : IExtendedDataSource<MutatingCont
     }
 
     public async Task<MutatingContext<TData>> GetData(IQuery query)
-        => MutatingContext<TData>.New(await _original.GetData(query));
+        => MutatingContext<TData>.New(await _original.GetData(query).ConfigureAwait(false));
 
     public async Task SetData(IQuery query, MutatingContext<TData> data)
     {
-        (_, TData entity) = data;
+        TData entity = data.Data;
 
         // ReSharper disable once SuspiciousTypeConversion.Global
         if(entity is IChangeTrackable { IsChanged: false }) return;
 
-        await _original.SetData(query, entity);
+        await _original.SetData(query, entity).ConfigureAwait(false);
     }
 
     public Task OnCompled(IQuery query) => _original.OnCompled(query);

@@ -31,7 +31,7 @@ public class ReflectionSearchEngine
         var processors = new List<Type>();
 
         foreach (Type type in _types)
-            foreach (object customAttribute in type.GetCustomAttributes(false))
+            foreach (var customAttribute in type.GetCustomAttributes(inherit: false))
                 ProcessAttribute(builder, customAttribute, states, type, reducers, factorys, processors);
 
         if(factorys.Count != 0)
@@ -175,7 +175,7 @@ public class ReflectionSearchEngine
 
     private static void ProcessReducerMethods(Type reducer, Dictionary<Type, MethodInfo> methods)
     {
-        foreach (MethodInfo method in reducer.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
+        foreach (var method in reducer.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
         {
             if(!method.HasAttribute<ReducerAttribute>())
                 continue;
@@ -199,7 +199,9 @@ public class ReflectionSearchEngine
         [UsedImplicitly]
         // ReSharper disable once CognitiveComplexity
         // No Better Way?
+        #pragma warning disable MA0051
         private static ReducerBuilderBase? Create<TData, TAction>(MethodInfo info)
+            #pragma warning restore MA0051
         {
             Type returnType = info.ReturnType;
             var parms = info.GetParameterTypes().ToArray();

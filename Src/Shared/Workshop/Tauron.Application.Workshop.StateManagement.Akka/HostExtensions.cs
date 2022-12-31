@@ -13,7 +13,7 @@ public static class HostExtensions
             (_, cb) => cb.RegisterStateManager(
                 (b, context) =>
                 {
-                    foreach (Assembly assembly in assemblys)
+                    foreach (var assembly in assemblys)
                         b.AddFromAssembly(assembly, context);
                 }));
     }

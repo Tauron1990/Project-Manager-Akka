@@ -33,7 +33,7 @@ public sealed class DummyMachine : IMachine, IDisposable
     public DummyMachine(ILoggerFactory loggerFactory, OperationConfiguration operationConfiguration)
     {
         _deviceId = DeviceId.ForName($"{DummyId}--{operationConfiguration.Name.Value}");
-        _dummyOperator = new DummyOperator(StateChange, ValueChange, loggerFactory.CreateLogger<DummyOperator>());
+        _dummyOperator = new DummyOperator(_deviceId, StateChange, ValueChange, loggerFactory.CreateLogger<DummyOperator>());
     }
 
     public void Dispose()
@@ -79,9 +79,9 @@ public sealed class DummyMachine : IMachine, IDisposable
             new DeviceInformations(
                 _deviceId,
                 DeviceName.From("Dummy Operator"),
-                true,
+                HasLogs: true,
                 CreateGroup(),
-                _buttons.Select(p => p.Id).Select(id => new ButtonState(id, true)).ToImmutableList(),
+                _buttons.Select(p => p.Id).Select(id => new ButtonState(id, State: true)).ToImmutableList(),
                 ActorRefs.Nobody));
 
     public Task<DeviceManagerMessages.ISensorBox> UpdateSensorValue(DeviceSensor sensor)

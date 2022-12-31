@@ -48,11 +48,15 @@ public class DeviceController : Controller, IDeviceService
 
     [HttpGet]
     [Publish]
-    public Task<DateTime> CurrentLogs(CancellationToken token)
-        => _deviceService.CurrentLogs(token);
+    public Task<DateTime> CurrentLogs([FromQuery(Name = "device")]DeviceId id, CancellationToken token)
+        => _deviceService.CurrentLogs(id, token);
 
     [HttpGet]
-    public Task<Logs> GetBatches([FromQuery] DeviceId deviceId, [FromQuery] DateTime from, [FromQuery] DateTime to, CancellationToken token)
+    public Task<Logs> GetBatches(
+        [FromQuery(Name = "deviceid")] DeviceId deviceId, 
+        [FromQuery(Name = "from")] DateTime from, 
+        [FromQuery(Name = "to")] DateTime to, 
+        CancellationToken token)
         => _deviceService.GetBatches(deviceId, from, to, token);
 
     public Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token)

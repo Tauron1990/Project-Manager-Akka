@@ -1,6 +1,8 @@
 ﻿namespace Tauron.Application.Workshop.StateManagement.DataFactorys;
 
+#pragma warning disable MA0048
 public partial class MergeFactory
+    #pragma warning restore MA0048
 {
     public static AdvancedDataSourceFactory Merge(params AdvancedDataSourceFactory[] factories)
     {

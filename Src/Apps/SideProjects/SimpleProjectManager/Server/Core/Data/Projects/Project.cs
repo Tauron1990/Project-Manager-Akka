@@ -132,7 +132,8 @@ public sealed class Project : InternalAggregateRoot<Project, ProjectId, ProjectS
             });
     }
 
-    protected override string GetErrorMessage(AggregateError errorCode)
+    #pragma warning disable EPS06
+    protected override string? GetErrorMessage(in AggregateError errorCode)
     {
         if(errorCode == AggregateError.NoNewError)
             return "Der Job ist nicht neu";

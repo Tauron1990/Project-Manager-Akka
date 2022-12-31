@@ -13,7 +13,7 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
     public static DeviceInformations Empty => new(
         DeviceId.New,
         DeviceName.Empty,
-        false,
+        HasLogs: false,
         new DeviceUiGroup(
             string.Empty,
             ImmutableList<DeviceUiGroup>.Empty,

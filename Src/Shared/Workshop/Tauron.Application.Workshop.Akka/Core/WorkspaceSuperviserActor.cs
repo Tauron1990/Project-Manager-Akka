@@ -12,7 +12,7 @@ namespace Tauron.Application.Workshop.Core;
 public sealed partial class WorkspaceSuperviserActor : ObservableActor
 {
     private readonly Random _random = new();
-    private readonly Dictionary<string, SupervisorStrategy> _supervisorStrategies = new();
+    private readonly Dictionary<string, SupervisorStrategy> _supervisorStrategies = new(StringComparer.Ordinal);
     private ImmutableDictionary<IActorRef, Action> _intrest = ImmutableDictionary<IActorRef, Action>.Empty;
 
     public WorkspaceSuperviserActor()

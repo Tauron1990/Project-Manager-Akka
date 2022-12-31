@@ -16,7 +16,7 @@ public sealed record AppInfo(
         DateTime.MinValue,
         RepositoryName.Empty,
         ImmutableList<AppBinary>.Empty,
-        true,
+        Deleted: true,
         ProjectName.Empty);
 
     public AppInfo MarkDeleted() => this with { Deleted = true };

@@ -25,13 +25,13 @@ public sealed record OperatorData(
             FileOperationId.Empty,
             ActorRefs.Nobody,
             () => new StreamData(Stream.Null),
-            null,
+            Metadata: null,
             new InternalCrcStream(StreamData.Null),
-            null,
-            null,
-            false,
+            Error: null,
+            Completion: null,
+            SendBack: false,
             ActorRefs.Nobody,
-            null) { }
+            IndividualMessage: null) { }
 
     public OperatorData StartSending(DataTransferRequest id, IActorRef sender)
         => this with

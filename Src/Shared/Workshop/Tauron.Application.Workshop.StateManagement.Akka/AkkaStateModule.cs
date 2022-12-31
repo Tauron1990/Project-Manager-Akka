@@ -10,6 +10,7 @@ namespace Tauron.Application.Workshop.StateManagement.Akka;
 [PublicAPI]
 public class AkkaStateModule : IModule
 {
+    #pragma warning disable GU0011
     public void Load(IServiceCollection collection)
     {
         collection.AddTransient<IStateInstanceFactory, FeatureBasedStateFactory>();

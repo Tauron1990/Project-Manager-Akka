@@ -8,9 +8,11 @@ public sealed class IdentityModelBinder : IModelBinder
     {
         try
         {
-            string id = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstValue ?? string.Empty;
+            string? id = bindingContext.ValueProvider.GetValue(bindingContext.ModelName).FirstOrDefault(s => !string.IsNullOrWhiteSpace(s)) 
+                      ?? bindingContext.ValueProvider.GetValue(bindingContext.OriginalModelName).FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
             if(string.IsNullOrWhiteSpace(id))
             {
+
                 bindingContext.Result = ModelBindingResult.Failed();
 
                 return Task.CompletedTask;

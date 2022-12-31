@@ -34,7 +34,7 @@ public sealed class SharmComunicator : IDisposable
     {
         try
         {
-            using var mt = new Mutex(true, $"{id}SharmNet_MasterMutex", out bool created);
+            using var mt = new Mutex(initiallyOwned: true, $"{id}SharmNet_MasterMutex", out bool created);
 
             if(!created) return true;
 

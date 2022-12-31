@@ -21,7 +21,7 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
     private readonly MutatingEngine _engine;
     private readonly IMiddleware[] _middlewares;
     private readonly bool _sendBackSetting;
-    private readonly ConcurrentDictionary<string, ConcurrentBag<StateContainer>> _stateContainers = new();
+    private readonly ConcurrentDictionary<string, ConcurrentBag<StateContainer>> _stateContainers = new(StringComparer.Ordinal);
     private readonly StateContainer[] _states;
 
     internal RootManager(
@@ -45,10 +45,10 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
 
         _states = _stateContainers.SelectMany(b => b.Value).ToArray();
 
-        foreach (IMiddleware middleware in _middlewares)
+        foreach (var middleware in _middlewares)
             middleware.Initialize(this);
 
-        foreach (IMiddleware middleware in _middlewares)
+        foreach (var middleware in _middlewares)
             middleware.AfterInitializeAllMiddlewares();
     }
 
@@ -68,7 +68,7 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
         return null;
     }
 
-    public void Run(IStateAction action, bool? sendBack)
+    public void Run(IStateAction action, bool? sendBack = null)
     {
         if(_middlewares.Any(m => !m.MayDispatchAction(action)))
             return;
@@ -84,7 +84,7 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
                      sc
                          => sc.TryDipatch(action, resultInvoker.AddResult(), resultInvoker.WorkCompled())))
         {
-            if(dataMutation == null) continue;
+            if(dataMutation is null) continue;
 
             resultInvoker.PushWork();
             _engine.Mutate(dataMutation);

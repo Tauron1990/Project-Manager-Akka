@@ -7,15 +7,6 @@ using Tauron.Application.Workshop.StateManagement.StatePooling;
 
 namespace Tauron.Application.Workshop.StateManagement.Builder;
 
-public sealed record StateBuilderParameter(
-    MutatingEngine Engine, IServiceProvider? ServiceProvider, IActionInvoker Invoker, StatePool StatePool, DispatcherPool DispatcherPool,
-    IStateInstanceFactory[] InstanceFactoys);
-
-public abstract class StateBuilderBase
-{
-    public abstract (StateContainer State, string Key) Materialize(StateBuilderParameter parameter);
-}
-
 public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
     where TData : class, IStateEntity
 {
@@ -77,7 +68,7 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
     {
         (MutatingEngine engine, IServiceProvider? serviceProvider, IActionInvoker invoker, StatePool statePool, DispatcherPool dispatcherPool, var instanceFactories) = parameter;
 
-        if(State == null)
+        if(State is null)
             throw new InvalidOperationException("A State type or Instance Must be set");
 
         //var cacheKey = $"{State.Name}--{Guid.NewGuid():N}";
@@ -127,8 +118,8 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
     private ExtendedMutatingEngine<MutatingContext<TData>> CreateDataEngine(MutationDataSource<TData> dataSource, MutatingEngine engine, DispatcherPool dispatcherPool)
     {
         ExtendedMutatingEngine<MutatingContext<TData>> dataEngine;
-        if(string.IsNullOrWhiteSpace(_dispatcherKey) || _dispatcher == null)
-            dataEngine = _dispatcher == null
+        if(string.IsNullOrWhiteSpace(_dispatcherKey) || _dispatcher is null)
+            dataEngine = _dispatcher is null
                 ? MutatingEngine.From(dataSource, engine)
                 : MutatingEngine.From(dataSource, _dispatcher().Configurate(engine.DriverFactory));
         else

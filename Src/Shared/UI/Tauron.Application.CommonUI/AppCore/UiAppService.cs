@@ -29,24 +29,6 @@ public sealed class UiAppService : BackgroundService
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        void ShutdownApp()
-        {
-            if(_shutdown.GetAndSet(true)) return;
-
-            // ReSharper disable MethodSupportsCancellation
-            #pragma warning disable CA2016
-            Task.Run(
-                    async () =>
-                        #pragma warning restore CA2016
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(60));
-                        Process.GetCurrentProcess().Kill(false);
-                    })
-               .Ignore();
-            // ReSharper restore MethodSupportsCancellation
-            _system.Terminate()
-               .Ignore();
-        }
 
         void Runner()
         {
@@ -90,5 +72,24 @@ public sealed class UiAppService : BackgroundService
         uiThread.Start();
 
         return Task.CompletedTask;
+    }
+
+    private void ShutdownApp()
+    {
+        if(_shutdown.GetAndSet(newValue: true)) return;
+
+        // ReSharper disable MethodSupportsCancellation
+        #pragma warning disable CA2016
+        Task.Run(
+                async () =>
+                    #pragma warning restore CA2016
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(60)).ConfigureAwait(false);
+                    Process.GetCurrentProcess().Kill(entireProcessTree: false);
+                })
+           .Ignore();
+        // ReSharper restore MethodSupportsCancellation
+        _system.Terminate()
+           .Ignore();
     }
 }

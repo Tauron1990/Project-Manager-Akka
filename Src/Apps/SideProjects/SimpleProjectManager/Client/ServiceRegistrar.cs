@@ -42,5 +42,6 @@ public static class ServiceRegistrar
         services.AddTransient<DevicesViewModel>();
         services.AddTransient<SingleSensorViewModel>();
         services.AddTransient<SingleButtonViewModel>();
+        services.AddTransient<LogsDisplayViewModel>();
     }
 }

@@ -14,8 +14,8 @@ public sealed class TellAliveFeature : ActorFeatureBase<EmptyState>
     {
         Receive<QueryIsAlive>(
             obs => (from ob in obs
-                    from ident in ob.Sender.Ask<ActorIdentity>(new Identify(null), TimeSpan.FromSeconds(10))
-                    select (ob.Sender, Response: new IsAliveResponse(true)))
+                    from ident in ob.Sender.Ask<ActorIdentity>(new Identify(messageId: null), TimeSpan.FromSeconds(10))
+                    select (ob.Sender, Response: new IsAliveResponse(IsAlive: true)))
                .AutoSubscribe(d => d.Sender.Tell(d.Response)));
     }
 }

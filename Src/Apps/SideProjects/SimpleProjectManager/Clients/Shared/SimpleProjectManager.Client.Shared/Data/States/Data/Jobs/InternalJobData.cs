@@ -7,7 +7,7 @@ namespace SimpleProjectManager.Client.Shared.Data.States.Data;
 public sealed record InternalJobData(bool IsLoaded, JobSortOrderPair[] CurrentJobs, CurrentSelected? CurrentSelected)
 {
     public InternalJobData()
-        : this(false, Array.Empty<JobSortOrderPair>(), new CurrentSelected(null, null)) { }
+        : this(IsLoaded: false, Array.Empty<JobSortOrderPair>(), new CurrentSelected(Pair: null, JobData: null)) { }
 
     public bool Equals(InternalJobData? other)
     {

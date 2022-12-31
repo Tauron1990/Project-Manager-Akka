@@ -19,7 +19,7 @@ public class SimpleCommand : CommandBase
     }
 
     public SimpleCommand(Action<object?> execute)
-        : this(null, execute) { }
+        : this(canExecute: null, execute) { }
 
     public SimpleCommand(Func<bool>? canExecute, Action execute)
     {
@@ -29,16 +29,16 @@ public class SimpleCommand : CommandBase
     }
 
     public SimpleCommand(Action execute)
-        : this(null, execute) { }
+        : this(canExecute: null, execute) { }
 
-    public override bool CanExecute(object? parameter = null)
+    public override bool CanExecute(object? parameter)
     {
         parameter ??= _parameter;
 
         return _canExecute is null || _canExecute(parameter);
     }
 
-    public override void Execute(object? parameter = null)
+    public override void Execute(object? parameter)
     {
         parameter ??= _parameter;
         _execute(parameter);

@@ -1,5 +1,6 @@
 namespace SimpleProjectManager.Shared;
 
+#pragma warning disable MA0018
 public interface IStringValueType<TSelf>
     where TSelf : IStringValueType<TSelf>
 {

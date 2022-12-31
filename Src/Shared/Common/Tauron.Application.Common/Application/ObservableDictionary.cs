@@ -61,7 +61,7 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
         {
             Entry? entry = FindEntry(key, out int index);
 
-            if(entry == null)
+            if(entry is null)
             {
                 AddCore(key, value);
             }
@@ -409,7 +409,7 @@ public sealed class ObservableDictionary<TKey, TValue> : ObservableObject, IDict
         {
             int ver = Dictionary._version;
             var count = 0;
-            foreach (Entry? entry in Dictionary._entrys)
+            foreach (var entry in Dictionary._entrys)
             {
                 count++;
 

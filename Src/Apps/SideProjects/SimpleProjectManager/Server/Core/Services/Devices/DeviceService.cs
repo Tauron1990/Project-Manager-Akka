@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
@@ -16,7 +17,7 @@ public partial class DeviceService : IDeviceService, IDisposable
     private readonly IDisposable _subscription;
 
     //private IActorRef? _deviceManager;
-    private DateTime _lastLog = DateTime.MinValue;
+    private readonly ConcurrentDictionary<DeviceId, DateTime> _lastLogs = new();
 
     public DeviceService(ActorSystem actorSystem, DeviceEventHandler handler, ILogger<DeviceService> logger)
     {
@@ -29,8 +30,10 @@ public partial class DeviceService : IDeviceService, IDisposable
         _subscription = handler.Get().Subscribe(ProcessEvent);
     }
 
-    public virtual Task<DateTime> CurrentLogs(CancellationToken token)
-        => token.IsCancellationRequested ? Task.FromCanceled<DateTime>(token) : Task.FromResult(_lastLog);
+    public virtual Task<DateTime> CurrentLogs(DeviceId id, CancellationToken token)
+        => token.IsCancellationRequested 
+            ? Task.FromCanceled<DateTime>(token) 
+            : Task.FromResult(_lastLogs.GetOrAdd(id, _ =>DateTime.MinValue));
 
     public virtual async Task<DeviceList> GetAllDevices(CancellationToken token)
         => await Run(
@@ -132,10 +135,10 @@ public partial class DeviceService : IDeviceService, IDisposable
                 }
                 break;
             case NewBatchesArrived newBatchesArrived:
-                _lastLog = newBatchesArrived.Date;
+                _lastLogs.AddOrUpdate(newBatchesArrived.Device, static (_, arg) => arg, static (_, _, arg) => arg, newBatchesArrived.Date);
                 using (Computed.Invalidate())
                 {
-                    _ = CurrentLogs(CancellationToken.None);
+                    _ = CurrentLogs(newBatchesArrived.Device, CancellationToken.None);
                 }
                 break;
             case NewDeviceEvent newDeviceEvent:

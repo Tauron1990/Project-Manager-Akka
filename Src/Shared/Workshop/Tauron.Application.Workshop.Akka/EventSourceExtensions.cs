@@ -23,6 +23,7 @@ public static class EventSourceExtensions
 {
     public static void RespondOnEventSource<TData>(this IObservableActor actor, IEventSource<TData> eventSource, Action<TData> action)
     {
+        #pragma warning disable GU0011
         eventSource.RespondOn(ObservableActor.ExposedContext.Self);
         actor.Receive<TData>(obs => obs.SubscribeWithStatus(action));
     }

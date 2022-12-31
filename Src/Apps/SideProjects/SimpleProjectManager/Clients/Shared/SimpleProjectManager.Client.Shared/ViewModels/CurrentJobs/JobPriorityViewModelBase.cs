@@ -34,15 +34,15 @@ public abstract class JobPriorityViewModelBase : ViewModelBase
         ActivePairs = GetActivePairs();
 
         yield return GoUp = ReactiveCommand.Create(
-            CreateExecute(info => new SetSortOrder(false, info.Order.Increment())),
+            CreateExecute(info => new SetSortOrder(IgnoreIfEmpty: false, SortOrder: info.Order.Increment())),
             CreateCanExecute(_globalState, (pairs, pair) => pairs[0] != pair));
 
         yield return GoDown = ReactiveCommand.Create(
-            CreateExecute(info => new SetSortOrder(false, info.Order.Decrement())),
+            CreateExecute(info => new SetSortOrder(IgnoreIfEmpty: false, SortOrder: info.Order.Decrement())),
             CreateCanExecute(_globalState, (pairs, pair) => pairs[^1] != pair));
 
         yield return Priorize = ReactiveCommand.Create(
-            CreateExecute(info => new SetSortOrder(false, info.Order.Priority())),
+            CreateExecute(info => new SetSortOrder(IgnoreIfEmpty: false, SortOrder: info.Order.Priority())),
             CreateCanExecute(_globalState, (_, pair) => !pair.Order.IsPriority));
 
         Action<JobSortOrderPair?> CreateExecute(Func<JobSortOrderPair, SetSortOrder> executor)

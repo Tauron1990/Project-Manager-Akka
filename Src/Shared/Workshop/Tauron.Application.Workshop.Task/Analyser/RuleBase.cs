@@ -10,7 +10,7 @@ public abstract class RuleBase<TWorkshop, TData> : IRule<TWorkshop, TData>
 {
     private Action<RuleIssuesChanged<TWorkshop, TData>> _sender = _ => { };
 
-    public RuleBase(string name)
+    protected RuleBase(string name)
         => Name = name;
 
     public string Name { get; }

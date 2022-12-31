@@ -29,6 +29,7 @@ public abstract class ControlLogicBase<TControl> : IView
         BindLogic = new ControlBindLogic(userControl, model);
 
         // ReSharper disable once VirtualMemberCallInConstructor
+        #pragma warning disable MA0056
         WireUpLoaded();
         // ReSharper disable once VirtualMemberCallInConstructor
         WireUpUnloaded();
