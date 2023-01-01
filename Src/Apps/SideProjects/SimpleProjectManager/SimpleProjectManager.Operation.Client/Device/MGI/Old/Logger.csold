@@ -31,12 +31,6 @@ public class LogInfo
 	{
 		return TimeStamp + ";" + Application + ";" + Type + ";" + Content;
 	}
-	
-	public static string getTime()
-	{
-		DateTime now = DateTime.Now;
-		return now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + ":" + now.Millisecond.ToString("000");
-	}
 
 	public static LogInfo CreateError(string error)
 	{

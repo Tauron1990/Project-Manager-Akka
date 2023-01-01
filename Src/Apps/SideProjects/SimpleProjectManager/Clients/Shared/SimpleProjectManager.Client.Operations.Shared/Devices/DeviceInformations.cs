@@ -14,11 +14,7 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
         DeviceId.New,
         DeviceName.Empty,
         HasLogs: false,
-        new DeviceUiGroup(
-            string.Empty,
-            ImmutableList<DeviceUiGroup>.Empty,
-            ImmutableList<DeviceSensor>.Empty,
-            ImmutableList<DeviceButton>.Empty),
+        DeviceUi.Empty(),
         ImmutableList<ButtonState>.Empty,
         ActorRefs.Nobody);
 
@@ -31,11 +27,21 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
         {
             DeviceUiGroup group = stack.Pop();
 
-            foreach (DeviceUiGroup uiGroup in group.Groups)
+            foreach (DeviceUiGroup uiGroup in group.Ui)
                 stack.Push(uiGroup);
 
-            foreach (DeviceSensor sensor in group.Sensors)
-                yield return sensor;
+            switch (group.Type)
+            {
+                case UIType.SensorDouble:
+                    yield return new DeviceSensor(group.Name, group.Id, SensorType.Double);
+                    break;
+                case UIType.SensorNumber:
+                    yield return new DeviceSensor(group.Name, group.Id, SensorType.Double);
+                    break;
+                case UIType.SensorString:
+                    yield return new DeviceSensor(group.Name, group.Id, SensorType.String);
+                    break;
+            }
         }
     }
 
@@ -48,11 +54,13 @@ public sealed record DeviceInformations(DeviceId DeviceId, DeviceName Name, bool
         {
             DeviceUiGroup group = stack.Pop();
 
-            foreach (DeviceUiGroup uiGroup in group.Groups)
+            foreach (DeviceUiGroup uiGroup in group.Ui)
                 stack.Push(uiGroup);
 
-            foreach (DeviceButton button in group.DeviceButtons)
-                yield return (button, ButtonStates.FirstOrDefault(s => s.ButtonId == button.Identifer));
+            if(group.Type != UIType.Button) continue;
+
+            var button = new DeviceButton(group.Name, group.Id);
+            yield return (button, ButtonStates.FirstOrDefault(s => s.ButtonId == button.Identifer));
         }
     }
 }

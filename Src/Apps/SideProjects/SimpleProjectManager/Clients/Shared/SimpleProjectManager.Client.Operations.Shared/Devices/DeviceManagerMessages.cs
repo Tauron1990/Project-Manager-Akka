@@ -153,4 +153,6 @@ public static class DeviceManagerMessages
     public sealed record QueryUi(DeviceId DeviceName) : IDeviceCommand;
 
     public sealed record UiResponse(DeviceUiGroup Root);
+
+    public sealed record NewUIData(DeviceId DeviceName, DeviceUiGroup Ui) : IDeviceCommand;
 }

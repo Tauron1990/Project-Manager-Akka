@@ -126,48 +126,44 @@ public partial class DeviceService : IDeviceService, IDisposable
     // ReSharper disable once CognitiveComplexity
     private void ProcessEvent(IDeviceEvent evt)
     {
+        using ComputeContextScope scope = Computed.Invalidate();
+
         switch (evt)
         {
             case ButtonStateUpdate buttonStateUpdate:
-                using (Computed.Invalidate())
-                {
-                    _ = CanClickButton(buttonStateUpdate.Device, buttonStateUpdate.Identifer, CancellationToken.None);
-                }
+                _ = CanClickButton(buttonStateUpdate.Device, buttonStateUpdate.Identifer, CancellationToken.None);
                 break;
             case NewBatchesArrived newBatchesArrived:
                 _lastLogs.AddOrUpdate(newBatchesArrived.Device, static (_, arg) => arg, static (_, _, arg) => arg, newBatchesArrived.Date);
-                using (Computed.Invalidate())
-                {
-                    _ = CurrentLogs(newBatchesArrived.Device, CancellationToken.None);
-                }
+
+                _ = CurrentLogs(newBatchesArrived.Device, CancellationToken.None);
                 break;
             case NewDeviceEvent newDeviceEvent:
-                using (Computed.Invalidate())
-                {
-                    _ = GetAllDevices(CancellationToken.None);
-                    _ = GetRootUi(newDeviceEvent.Device, CancellationToken.None);
-                }
+
+                _ = GetAllDevices(CancellationToken.None);
+                _ = GetRootUi(newDeviceEvent.Device, CancellationToken.None);
+
                 break;
             case SensorUpdateEvent sensorUpdateEvent:
-                using (Computed.Invalidate())
-                {
-                    switch (sensorUpdateEvent.SensorType)
-                    {
-                        case SensorType.Double:
-                            _ = GetDoubleSensorValue(sensorUpdateEvent.Device, sensorUpdateEvent.Identifer, CancellationToken.None);
-                            break;
-                        case SensorType.String:
-                            _ = GetStringSensorValue(sensorUpdateEvent.Device, sensorUpdateEvent.Identifer, CancellationToken.None);
-                            break;
-                        case SensorType.Number:
-                            _ = GetIntSensorValue(sensorUpdateEvent.Device, sensorUpdateEvent.Identifer, CancellationToken.None);
-                            break;
-                    }
-                }
 
+                switch (sensorUpdateEvent.SensorType)
+                {
+                    case SensorType.Double:
+                        _ = GetDoubleSensorValue(sensorUpdateEvent.Device, sensorUpdateEvent.Identifer, CancellationToken.None);
+                        break;
+                    case SensorType.String:
+                        _ = GetStringSensorValue(sensorUpdateEvent.Device, sensorUpdateEvent.Identifer, CancellationToken.None);
+                        break;
+                    case SensorType.Number:
+                        _ = GetIntSensorValue(sensorUpdateEvent.Device, sensorUpdateEvent.Identifer, CancellationToken.None);
+                        break;
+                }
                 break;
             case DeviceRemoved:
                 _ = GetAllDevices(CancellationToken.None);
+                break;
+            case NewUIEvent newUI:
+                _ = GetRootUi(newUI.Device, CancellationToken.None);
                 break;
         }
     }

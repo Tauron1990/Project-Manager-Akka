@@ -3,4 +3,6 @@
 namespace SimpleProjectManager.Shared;
 
 [ValueObject(typeof(string))]
-public readonly partial struct DisplayName { }
+public readonly partial struct DisplayName
+{
+}

@@ -1,0 +1,55 @@
+using System.Collections.Immutable;
+using JetBrains.Annotations;
+
+namespace SimpleProjectManager.Shared.Services.Devices;
+
+[PublicAPI]
+public static class DeviceUi
+{
+    public static DeviceUiGroup Group(in DisplayName name, params DeviceUiGroup[] content) 
+        => Group(name, content.AsEnumerable());
+
+    public static DeviceUiGroup Tab(in DisplayName name, params DeviceUiGroup[] tabs)
+        => Tab(name, tabs.AsEnumerable());
+
+    public static DeviceUiGroup Group(in DisplayName name, IEnumerable<DeviceUiGroup> content) 
+        => new(name, UIType.Group, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty.AddRange(content));
+
+    public static DeviceUiGroup Tab(in DisplayName name, IEnumerable<DeviceUiGroup> tabs)
+        => new(name, UIType.Tab, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty.AddRange(tabs));
+
+    public static DeviceUiGroup Group(string name, params DeviceUiGroup[] content)
+        => Group(DisplayName.From(name), content);
+
+    public static DeviceUiGroup Tab(string name, params DeviceUiGroup[] tabs)
+        => Tab(DisplayName.From(name), tabs);
+
+    public static DeviceUiGroup Group(string name, IEnumerable<DeviceUiGroup> content) 
+        => Group(DisplayName.From(name), content);
+
+    public static DeviceUiGroup Tab(string name, IEnumerable<DeviceUiGroup> tabs)
+        => Tab(DisplayName.From(name), tabs);
+    
+    public static DeviceUiGroup Sensor(DeviceSensor sensor)
+        => new(sensor.DisplayName, GetUIType(sensor.SensorType), sensor.Identifer, ImmutableList<DeviceUiGroup>.Empty);
+
+    private static UIType GetUIType(SensorType sensorType)
+        => sensorType switch
+        {
+            SensorType.Double => UIType.SensorDouble,
+            SensorType.String => UIType.SensorString,
+            SensorType.Number => UIType.SensorNumber,
+            _ => throw new ArgumentOutOfRangeException(nameof(sensorType), sensorType, "Unsupportet Sensor Type Value"),
+        };
+
+    public static DeviceUiGroup Text(in DisplayName text) 
+        => new(text, UIType.Text, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty);
+    
+    public static DeviceUiGroup Text(string text) 
+        => Text(DisplayName.From(text));
+
+    public static DeviceUiGroup Button(DeviceButton button)
+        => new(button.DisplayName, UIType.Button, button.Identifer, ImmutableList<DeviceUiGroup>.Empty);
+
+    public static DeviceUiGroup Empty() => new(DisplayName.From(""), UIType.Group, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty);
+}

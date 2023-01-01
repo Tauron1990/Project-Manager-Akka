@@ -36,11 +36,19 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         Receive<UpdateButtonState>(obs => obs.Select(UpdateButton));
         Receive<ButtonClick>(obs => obs.Select(ClickButton));
         Receive<Terminated>(obs => obs.ToUnit(p => p.Context.Stop(p.Self)));
-
+        Receive<NewUIData>(obs => obs.Select(NewUI));
+        
         if(!CurrentState.Info.HasLogs) return;
 
         IActorRef? loggerActor = Context.ActorOf(LoggerActor.Create(Context.System, CurrentState.Info.DeviceId), $"Logger--{Guid.NewGuid():N}");
         Receive<QueryLoggerBatch>(obs => obs.ToUnit(p => loggerActor.Forward(p.Event)));
+    }
+
+    private static State NewUI(StatePair<NewUIData, State> arg)
+    {
+        arg.State.Handler.Publish(new NewUIEvent(arg.Event.DeviceName));
+
+        return arg.State with { Info = arg.State.Info with { RootUi = arg.Event.Ui } };
     }
 
     private static State ClickButton(StatePair<ButtonClick, State> p)

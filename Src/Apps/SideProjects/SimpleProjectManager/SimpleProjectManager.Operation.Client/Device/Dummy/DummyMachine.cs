@@ -5,6 +5,7 @@ using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
+using Stl.Fusion;
 
 namespace SimpleProjectManager.Operation.Client.Device.Dummy;
 
@@ -84,6 +85,9 @@ public sealed class DummyMachine : IMachine, IDisposable
                 _buttons.Select(p => p.Id).Select(id => new ButtonState(id, State: true)).ToImmutableList(),
                 ActorRefs.Nobody));
 
+    public IState<DeviceUiGroup>? UIUpdates()
+        => null;
+
     public Task<DeviceManagerMessages.ISensorBox> UpdateSensorValue(DeviceSensor sensor)
         => Task.FromResult(_sensorBoxes.GetValueOrDefault(sensor.Identifer) ?? DeviceManagerMessages.SensorBox.CreateDefault(SensorType.String));
 
@@ -107,33 +111,21 @@ public sealed class DummyMachine : IMachine, IDisposable
 
     private DeviceUiGroup CreateGroup()
     {
-        var root = new DeviceUiGroup("Root", ImmutableList<DeviceUiGroup>.Empty, ImmutableList<DeviceSensor>.Empty, ImmutableList<DeviceButton>.Empty);
+        DeviceUiGroup ui = DeviceUi.Tab(
+            "Root",
+            _pairs.GroupBy(p => p.Category)
+               .Select(
+                    p => DeviceUi.Group(
+                        p.Key.Value, 
+                        p.SelectMany(GetPairUi)))
+        );
+            
+        IEnumerable<DeviceUiGroup> GetPairUi(ButtonSensorPair arg)
+        {
+            yield return DeviceUi.Sensor(arg.Sensor);
+            yield return DeviceUi.Button(arg.Button);
+        }
 
-        foreach (var grouping in _pairs.GroupBy(p => p.Category))
-            if(grouping.Key == "Test")
-                root = Fill(root, grouping);
-            else
-                root = root with
-                       {
-                           Groups = root.Groups.Add(
-                               Fill(
-                                   new DeviceUiGroup(
-                                       grouping.Key.Value,
-                                       ImmutableList<DeviceUiGroup>.Empty,
-                                       ImmutableList<DeviceSensor>.Empty,
-                                       ImmutableList<DeviceButton>.Empty),
-                                   grouping)),
-                       };
-
-        return root;
-
-        DeviceUiGroup Fill(DeviceUiGroup uiGroup, IEnumerable<ButtonSensorPair> pairs)
-            => pairs.Aggregate(
-                uiGroup,
-                (current, sensorPair) => current with
-                                         {
-                                             DeviceButtons = current.DeviceButtons.Add(sensorPair.Button),
-                                             Sensors = current.Sensors.Add(sensorPair.Sensor),
-                                         });
+        return ui;
     }
 }
