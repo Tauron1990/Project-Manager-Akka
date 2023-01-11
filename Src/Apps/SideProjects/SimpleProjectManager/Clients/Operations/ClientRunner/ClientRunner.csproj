@@ -18,7 +18,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\SimpleProjectManager.Operation.Client\SimpleProjectManager.Operation.Client.csproj"/>
+        <ProjectReference Include="..\..\..\SimpleProjectManager.Operation.Client\SimpleProjectManager.Operation.Client.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -34,13 +34,13 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
-        <PackageReference Include="Spectre.Console.Cli" Version="0.45.0"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
+        <PackageReference Include="Spectre.Console.Cli" Version="0.46.0" />
     </ItemGroup>
 
 </Project>

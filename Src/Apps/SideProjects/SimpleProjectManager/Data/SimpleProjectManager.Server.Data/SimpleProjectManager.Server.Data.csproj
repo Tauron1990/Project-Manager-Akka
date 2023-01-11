@@ -17,12 +17,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\..\..\Shared\Data\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj"/>
-        <ProjectReference Include="..\..\Shared\SimpleProjectManager.Shared.csproj"/>
+        <ProjectReference Include="..\..\..\..\..\Shared\Data\Tauron.Akkatecture.Projections\Tauron.Akkatecture.Projections.csproj" />
+        <ProjectReference Include="..\..\Shared\SimpleProjectManager.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="AutoMapper" Version="12.0.0"/>
+        <PackageReference Include="AutoMapper" Version="12.0.0" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -31,43 +31,43 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="ExpressionTreeToString" Version="3.4.71"/>
+        <PackageReference Include="ExpressionTreeToString" Version="3.4.71" />
         <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
-        <PackageReference Include="Vogen" Version="3.0.8"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
+        <PackageReference Include="Vogen" Version="3.0.9" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="DataConverters\ComplexExpression.cs"/>
-        <None Include="DataConverters\ComplexExpression.cs"/>
-        <Compile Remove="DataConverters\ConverterDictionary.cs"/>
-        <None Include="DataConverters\ConverterDictionary.cs"/>
-        <Compile Remove="DataConverters\ConverterResult.cs"/>
-        <None Include="DataConverters\ConverterResult.cs"/>
-        <Compile Remove="DataConverters\EntryKey.cs"/>
-        <None Include="DataConverters\EntryKey.cs"/>
-        <Compile Remove="DataConverters\ExpressionDictionary.cs"/>
-        <None Include="DataConverters\ExpressionDictionary.cs"/>
-        <Compile Remove="DataConverters\IConverterExpression.cs"/>
-        <None Include="DataConverters\IConverterExpression.cs"/>
-        <Compile Remove="DataConverters\SingleValueExpression.cs"/>
-        <None Include="DataConverters\SingleValueExpression.cs"/>
-        <Compile Remove="DataConverters\UnitNetData.cs"/>
-        <None Include="DataConverters\UnitNetData.cs"/>
-        <Compile Remove="DataConverters\UnitsNetExpression.cs"/>
-        <None Include="DataConverters\UnitsNetExpression.cs"/>
-        <Compile Remove="DataConverters\VogenExpression.cs"/>
-        <None Include="DataConverters\VogenExpression.cs"/>
-        <Compile Remove="DataConverter.cs"/>
-        <None Include="DataConverter.cs"/>
+        <Compile Remove="DataConverters\ComplexExpression.cs" />
+        <None Include="DataConverters\ComplexExpression.cs" />
+        <Compile Remove="DataConverters\ConverterDictionary.cs" />
+        <None Include="DataConverters\ConverterDictionary.cs" />
+        <Compile Remove="DataConverters\ConverterResult.cs" />
+        <None Include="DataConverters\ConverterResult.cs" />
+        <Compile Remove="DataConverters\EntryKey.cs" />
+        <None Include="DataConverters\EntryKey.cs" />
+        <Compile Remove="DataConverters\ExpressionDictionary.cs" />
+        <None Include="DataConverters\ExpressionDictionary.cs" />
+        <Compile Remove="DataConverters\IConverterExpression.cs" />
+        <None Include="DataConverters\IConverterExpression.cs" />
+        <Compile Remove="DataConverters\SingleValueExpression.cs" />
+        <None Include="DataConverters\SingleValueExpression.cs" />
+        <Compile Remove="DataConverters\UnitNetData.cs" />
+        <None Include="DataConverters\UnitNetData.cs" />
+        <Compile Remove="DataConverters\UnitsNetExpression.cs" />
+        <None Include="DataConverters\UnitsNetExpression.cs" />
+        <Compile Remove="DataConverters\VogenExpression.cs" />
+        <None Include="DataConverters\VogenExpression.cs" />
+        <Compile Remove="DataConverter.cs" />
+        <None Include="DataConverter.cs" />
     </ItemGroup>
 
 </Project>

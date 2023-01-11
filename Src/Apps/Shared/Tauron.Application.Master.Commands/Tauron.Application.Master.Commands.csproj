@@ -7,14 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="Projections\**"/>
-        <EmbeddedResource Remove="Projections\**"/>
-        <None Remove="Projections\**"/>
+        <Compile Remove="Projections\**" />
+        <EmbeddedResource Remove="Projections\**" />
+        <None Remove="Projections\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.DistributedData" Version="1.4.47"/>
-        <PackageReference Include="Akka.Streams" Version="1.4.47"/>
+        <PackageReference Include="Akka.DistributedData" Version="1.4.48" />
+        <PackageReference Include="Akka.Streams" Version="1.4.48" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -27,18 +27,18 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Common\Tauron.Application.Common.csproj"/>
-        <ProjectReference Include="..\..\..\Shared\External\Akka.Cluster.Utility\Akka.Cluster.Utility.csproj"/>
-        <ProjectReference Include="..\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+        <ProjectReference Include="..\..\..\Shared\External\Akka.Cluster.Utility\Akka.Cluster.Utility.csproj" />
+        <ProjectReference Include="..\Tauron.Application.AkkNode.Services\Tauron.Application.AkkNode.Services.csproj" />
     </ItemGroup>
 
 </Project>

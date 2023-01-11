@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Client.Shared.Devices;
@@ -15,8 +16,9 @@ public partial class UIGroupDisplay
     [Parameter]
     public DeviceId? DeviceId { get; set; }
 
-    private IEnumerable<ImmutableList<TData>> GroupToThree<TData>(IEnumerable<TData> enumerable)
+    private IEnumerable<(int Count, ImmutableList<TData> List)> GroupToThree<TData>(IEnumerable<TData> enumerable)
     {
+        int count = 0;
         var list = ImmutableList<TData>.Empty;
 
         foreach (TData data in enumerable)
@@ -26,11 +28,13 @@ public partial class UIGroupDisplay
             if(list.Count != 3)
                 continue;
 
-            yield return list;
+            count++;
+            yield return (count, list);
 
             list = ImmutableList<TData>.Empty;
         }
 
-        yield return list;
+        count++;
+        yield return (count, list);
     }
 }

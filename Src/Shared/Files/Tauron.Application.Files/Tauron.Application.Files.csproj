@@ -7,17 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="Serialization\**"/>
-        <EmbeddedResource Remove="Serialization\**"/>
-        <None Remove="Serialization\**"/>
+        <Compile Remove="Serialization\**" />
+        <EmbeddedResource Remove="Serialization\**" />
+        <None Remove="Serialization\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="SerializerFactory.cs"/>
+        <Compile Remove="SerializerFactory.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="SerializerFactory.cs"/>
+        <None Include="SerializerFactory.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -33,16 +33,16 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="1.0.757">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Common\Tauron.Application.Common\Tauron.Application.Common.csproj"/>
+        <ProjectReference Include="..\..\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
     </ItemGroup>
 
 </Project>

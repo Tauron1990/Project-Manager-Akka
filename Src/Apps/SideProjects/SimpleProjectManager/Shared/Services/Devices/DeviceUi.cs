@@ -6,6 +6,20 @@ namespace SimpleProjectManager.Shared.Services.Devices;
 [PublicAPI]
 public static class DeviceUi
 {
+    public static DeviceButton ToButton(DeviceUiGroup group) => new(group.Name, group.Id);
+
+    public static DeviceSensor ToSensor(DeviceUiGroup group)
+        => new(
+            group.Name,
+            group.Id,
+            group.Type switch
+            {
+                UIType.SensorString => SensorType.String,
+                UIType.SensorDouble => SensorType.Double,
+                UIType.SensorNumber => SensorType.Number,
+                _ => throw new InvalidOperationException("UI is no Sensor"),
+            });
+    
     public static DeviceUiGroup Group(in DisplayName name, params DeviceUiGroup[] content) 
         => Group(name, content.AsEnumerable());
 

@@ -95,7 +95,7 @@ public abstract class VersionedTypeDefinitionService<TTypeCheck, TAttribute, TDe
             var assemblies = definitions
                .Select(definition => definition.Type.GetTypeInfo().Assembly.GetName().Name)
                .Distinct(StringComparer.Ordinal)
-               .OrderBy(name => name)
+               .OrderBy(name => name, StringComparer.Ordinal)
                .ToList();
 
             var logs =
