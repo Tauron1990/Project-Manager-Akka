@@ -20,29 +20,41 @@ public static class DeviceUi
                 _ => throw new InvalidOperationException("UI is no Sensor"),
             });
     
-    public static DeviceUiGroup Group(in DisplayName name, params DeviceUiGroup[] content) 
-        => Group(name, content.AsEnumerable());
-
-    public static DeviceUiGroup Tab(in DisplayName name, params DeviceUiGroup[] tabs)
-        => Tab(name, tabs.AsEnumerable());
-
-    public static DeviceUiGroup Group(in DisplayName name, IEnumerable<DeviceUiGroup> content) 
-        => new(name, UIType.Group, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty.AddRange(content));
-
     public static DeviceUiGroup Tab(in DisplayName name, IEnumerable<DeviceUiGroup> tabs)
         => new(name, UIType.Tab, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty.AddRange(tabs));
+    
+    public static DeviceUiGroup Tab(in DisplayName name, params DeviceUiGroup[] tabs)
+        => Tab(name, tabs.AsEnumerable());
+    
+    public static DeviceUiGroup Tab(string name, params DeviceUiGroup[] tabs)
+        => Tab(DisplayName.From(name), tabs);
+    
+    public static DeviceUiGroup Tab(string name, IEnumerable<DeviceUiGroup> tabs)
+        => Tab(DisplayName.From(name), tabs);
+    
+    public static DeviceUiGroup Group(in DisplayName name, params DeviceUiGroup[] content) 
+        => Group(name, content.AsEnumerable());
 
     public static DeviceUiGroup Group(string name, params DeviceUiGroup[] content)
         => Group(DisplayName.From(name), content);
 
-    public static DeviceUiGroup Tab(string name, params DeviceUiGroup[] tabs)
-        => Tab(DisplayName.From(name), tabs);
-
     public static DeviceUiGroup Group(string name, IEnumerable<DeviceUiGroup> content) 
         => Group(DisplayName.From(name), content);
+    
+    public static DeviceUiGroup Group(in DisplayName name, IEnumerable<DeviceUiGroup> content) 
+        => new(name, UIType.Group, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty.AddRange(content));
+    
+    public static DeviceUiGroup GroupVertical(in DisplayName name, params DeviceUiGroup[] content) 
+        => GroupVertical(name, content.AsEnumerable());
 
-    public static DeviceUiGroup Tab(string name, IEnumerable<DeviceUiGroup> tabs)
-        => Tab(DisplayName.From(name), tabs);
+    public static DeviceUiGroup GroupVertical(string name, params DeviceUiGroup[] content)
+        => GroupVertical(DisplayName.From(name), content);
+
+    public static DeviceUiGroup GroupVertical(string name, IEnumerable<DeviceUiGroup> content) 
+        => GroupVertical(DisplayName.From(name), content);
+    
+    public static DeviceUiGroup GroupVertical(in DisplayName name, IEnumerable<DeviceUiGroup> content) 
+        => new(name, UIType.GroupVertical, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty.AddRange(content));
     
     public static DeviceUiGroup Sensor(DeviceSensor sensor)
         => new(sensor.DisplayName, GetUIType(sensor.SensorType), sensor.Identifer, ImmutableList<DeviceUiGroup>.Empty);

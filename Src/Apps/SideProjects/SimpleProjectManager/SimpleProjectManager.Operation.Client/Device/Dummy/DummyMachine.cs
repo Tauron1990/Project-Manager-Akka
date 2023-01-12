@@ -115,7 +115,7 @@ public sealed class DummyMachine : IMachine, IDisposable
             "Root",
             _pairs.GroupBy(p => p.Category)
                .Select(
-                    p => DeviceUi.Group(
+                    p => DeviceUi.GroupVertical(
                         p.Key.Value, 
                         p.SelectMany(GetPairUi)))
         );

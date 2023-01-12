@@ -45,7 +45,6 @@
 
     <ItemGroup>
       <Compile Remove="Device\MGI\ToPort\Logger.cs" />
-      <None Include="Device\MGI\Old\Logger.cs" />
     </ItemGroup>
 
 </Project>

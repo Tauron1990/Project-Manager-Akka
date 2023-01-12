@@ -16,6 +16,22 @@
                 }
             </MudTabs>
             break;
+        case UIType.GroupVertical:
+            @if(ShowCategory)
+            {
+                <MudItem lg="12">
+                    <MudText Typo="Typo.h4">@UiGroup.Name</MudText>
+                </MudItem>
+            }
+            <MudGrid>
+                @foreach (var group in UiGroup.Ui)
+                {
+                    <MudItem lg="12">
+                        <UIGroupDisplayCarrier UiGroup="group" DeviceId="DeviceId"/>
+                    </MudItem>
+                }
+            </MudGrid>
+        break;
         case UIType.Group:
             <MudGrid>
                 @if(ShowCategory)
@@ -29,34 +45,34 @@
                     @switch (group.List.Count)
                     {
                         case 2:
-                            {
-                                DeviceUiGroup element1 = group.List[0];
-                                DeviceUiGroup element2 = group.List[1];
-                                
-                                <MudItem @key="element1.Id" lg="6">
-                                    <UIGroupDisplayCarrier UiGroup="element1" DeviceId="DeviceId"/>
-                                </MudItem>
-                                <MudItem @key="element2.Id" lg="6">
-                                    <UIGroupDisplayCarrier UiGroup="element2" DeviceId="DeviceId"/>
-                                </MudItem>
-                            }
+                        {
+                            DeviceUiGroup element1 = group.List[0];
+                            DeviceUiGroup element2 = group.List[1];
+
+                            <MudItem @key="element1.Id" lg="6">
+                                <UIGroupDisplayCarrier UiGroup="element1" DeviceId="DeviceId"/>
+                            </MudItem>
+                            <MudItem @key="element2.Id" lg="6">
+                                <UIGroupDisplayCarrier UiGroup="element2" DeviceId="DeviceId"/>
+                            </MudItem>
+                        }
                             break;
                         case 3:
-                            {
-                                DeviceUiGroup element1 = group.List[0];
-                                DeviceUiGroup element2 = group.List[1];
-                                DeviceUiGroup element3 = group.List[2];
-                                
-                                <MudItem @key="element1.Id" lg="4">
-                                    <UIGroupDisplayCarrier UiGroup="element1" DeviceId="DeviceId"/>
-                                </MudItem>
-                                <MudItem @key="element2.Id" lg="4">
-                                    <UIGroupDisplayCarrier UiGroup="element2" DeviceId="DeviceId"/>
-                                </MudItem>
-                                <MudItem @key="element3.Id" lg="4">
-                                    <UIGroupDisplayCarrier UiGroup="element3" DeviceId="DeviceId"/>
-                                </MudItem>
-                            }
+                        {
+                            DeviceUiGroup element1 = group.List[0];
+                            DeviceUiGroup element2 = group.List[1];
+                            DeviceUiGroup element3 = group.List[2];
+
+                            <MudItem @key="element1.Id" lg="4">
+                                <UIGroupDisplayCarrier UiGroup="element1" DeviceId="DeviceId"/>
+                            </MudItem>
+                            <MudItem @key="element2.Id" lg="4">
+                                <UIGroupDisplayCarrier UiGroup="element2" DeviceId="DeviceId"/>
+                            </MudItem>
+                            <MudItem @key="element3.Id" lg="4">
+                                <UIGroupDisplayCarrier UiGroup="element3" DeviceId="DeviceId"/>
+                            </MudItem>
+                        }
                             break;
                         default:
                             @foreach (var element in group.List)
