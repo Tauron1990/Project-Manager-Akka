@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using Akka.MGIHelper.Core.FanControl.Bus;
 using SimpleProjectManager.Operation.Client.Device.MGI.UVLamp.Events;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.UVLamp
@@ -31,7 +30,7 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.UVLamp
 
         public void Dispose() => _webClient.Dispose();
 
-        public async Task<TrackingEvent> Handle(TickEvent msg, MessageBus messageBus)
+        public async Task<TrackingEvent> Handle(TickEvent msg)
         {
             try
             {
