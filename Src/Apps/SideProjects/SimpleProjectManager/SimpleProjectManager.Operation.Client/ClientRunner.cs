@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
 using SimpleProjectManager.Operation.Client.Device;
+using SimpleProjectManager.Operation.Client.Device.MGI.UVLamp;
 using SimpleProjectManager.Operation.Client.ImageEditor;
 using SimpleProjectManager.Operation.Client.Setup;
 using SimpleProjectManager.Shared.ServerApi;
@@ -31,7 +32,14 @@ public sealed class ClientRunner
         await setup.RunSetup(configuration).ConfigureAwait(false);
 
         return Host.CreateDefaultBuilder(configuration.Args)
-           .ConfigureAppConfiguration((_, b) => b.AddInMemoryCollection(new[] { KeyValuePair.Create("actorsystem", "SimpleProjectManager-Server") }!))
+           .ConfigureHostConfiguration(b => b
+                                         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                                         .AddInMemoryCollection(new[]
+                                                                {
+                                                                    KeyValuePair.Create("actorsystem", "SimpleProjectManager-Server"),
+                                                                }!)
+                                      )
+           .ConfigureServices((hb, sc) => sc.Configure<MgiOptions>("MGIConfig", hb.Configuration))
            .ConfigureServices(ApplyFusionServices)
            .ConfigurateNode(ApplyClientServices)
            .Build();
