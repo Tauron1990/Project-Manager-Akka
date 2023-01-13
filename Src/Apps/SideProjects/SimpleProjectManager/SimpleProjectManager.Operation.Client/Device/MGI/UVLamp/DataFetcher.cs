@@ -26,7 +26,7 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.UVLamp
 
 
         public DataFetcher(MgiOptions mgiOptions)
-            => _mgiOptions = mgiOptions;
+            => _mgiOptions = mgiOptions ;
 
         public void Dispose() => _webClient.Dispose();
 
