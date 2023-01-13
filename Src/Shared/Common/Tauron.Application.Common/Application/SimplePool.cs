@@ -4,53 +4,42 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application;
 
-public sealed record PoolConfig<TToPool>(int MaximumSize, bool UseDispose, Func<TToPool> Factory)
-{
-    public static PoolConfig<TToPool> Default 
-        => new(0, UseDispose: true, () =>
-                                    {
-                                        if(FastReflection.Shared.GetCreator(typeof(TToPool), Type.EmptyTypes)?.Invoke(Array.Empty<object>()) is not TToPool data)
-                                            throw new InvalidOperationException("Pool Element not Created");
-
-                                        return data;
-                                    });
-}
-
 [PublicAPI]
 public sealed class SimplePool<TToPool>
 {
-    private PoolConfig<TToPool> _config;
     private readonly ConcurrentQueue<TToPool> _pool = new();
+    private PoolConfig<TToPool> _config;
+
+    public SimplePool(PoolConfig<TToPool> config)
+        => _config = config;
 
     public int Count => _pool.Count;
 
     public bool IsFull => _config.MaximumSize > 0 && _pool.Count > _config.MaximumSize;
-    
-    public SimplePool(PoolConfig<TToPool> config)
-        => _config = config;
 
     public void RefConfig(Func<PoolConfig<TToPool>, PoolConfig<TToPool>> configChange)
     {
         _config = configChange(_config);
 
-        if (_config.MaximumSize <= 0 || _pool.IsEmpty || _pool.Count < _config.MaximumSize) return;
+        if(_config.MaximumSize <= 0 || _pool.IsEmpty || _pool.Count < _config.MaximumSize) return;
 
         do
         {
-            if (!_pool.TryDequeue(out _))
+            if(!_pool.TryDequeue(out _))
                 break;
         } while (_pool.Count > _config.MaximumSize);
     }
 
     public TToPool Rent()
-        => _pool.TryDequeue(out var pooledObject) ? pooledObject : _config.Factory();
+        => _pool.TryDequeue(out TToPool? pooledObject) ? pooledObject : _config.Factory();
 
     public void Return(TToPool pooledObject)
     {
         if(_config.UseDispose && pooledObject is IDisposable disposable)
-                disposable.Dispose();
-        
+            disposable.Dispose();
+
         if(IsFull) return;
+
         _pool.Enqueue(pooledObject);
     }
 

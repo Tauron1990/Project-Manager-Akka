@@ -11,6 +11,8 @@ namespace SimpleProjectManager.Server.Core.Projections;
 
 public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializeProjection
 {
+    public ProjectProjectionManager(ILoggerFactory loggerFactory) : base(loggerFactory) { }
+
     public void Initialize(ActorSystem system)
     {
         ImmutableListSerializer<ProjectFileId>.Register();
@@ -27,7 +29,12 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
                             {
                                 projection.Id = evt.AggregateIdentity;
                                 projection.JobName = evt.AggregateEvent.Name;
-                                projection.Ordering = new SortOrder(evt.AggregateIdentity, 0, false);
+                                projection.Ordering = new SortOrder
+                                                      {
+                                                          Id = evt.AggregateIdentity,
+                                                          SkipCount = 0,
+                                                          IsPriority = false,
+                                                      };
                             }));
                 map.Map<ProjectDeadLineChangedEvent>(
                     b =>
@@ -38,12 +45,12 @@ public sealed class ProjectProjectionManager : ProjectionManagerBase, IInitializ
 
                 map.Map<ProjectFilesAttachedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
-                       .Using((projection, evt) => projection.ProjectFiles = projection.ProjectFiles.AddRange(evt.AggregateEvent.Files)));
+                       .Using((projection, evt) => evt.AggregateEvent.Files.ForEach(projection.ProjectFiles.Add)));
 
                 map.Map<ProjectFilesRemovedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
-                       .Using((projection, evt) => projection.ProjectFiles = projection.ProjectFiles.RemoveRange(evt.AggregateEvent.Files)));
-                
+                       .Using((projection, evt) => evt.AggregateEvent.Files.ForEach(d => projection.ProjectFiles.Remove(d))));
+
                 map.Map<ProjectStatusChangedEvent>(
                     b => b.AsUpdateOf(e => e.AggregateIdentity)
                        .Using((projection, evt) => projection.Status = evt.AggregateEvent.NewStatus));

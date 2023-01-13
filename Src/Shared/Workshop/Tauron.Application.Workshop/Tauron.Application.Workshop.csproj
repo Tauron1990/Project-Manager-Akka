@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
+        <LangVersion>11</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -23,8 +24,12 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="FluentValidation" Version="10.3.6" />
-        <PackageReference Include="Gu.Analyzers" Version="2.0.0">
+        <PackageReference Include="FluentValidation" Version="11.4.0" />
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -33,7 +38,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+        <ProjectReference Include="..\..\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
     </ItemGroup>
 
 </Project>

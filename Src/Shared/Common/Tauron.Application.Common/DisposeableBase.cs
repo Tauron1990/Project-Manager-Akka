@@ -23,7 +23,7 @@ public abstract class DisposeableBase : IDisposable
 
     protected void ThrowDispose()
     {
-        if (IsDisposed)
+        if(IsDisposed)
             throw new ObjectDisposedException(nameof(GetType));
     }
 
@@ -33,7 +33,7 @@ public abstract class DisposeableBase : IDisposable
 
     protected void Dispose(bool disposing)
     {
-        if (Interlocked.Exchange(ref _isDisposed, 1) == 1)
+        if(Interlocked.Exchange(ref _isDisposed, 1) == 1)
             return;
 
         DisposeCore(disposing);

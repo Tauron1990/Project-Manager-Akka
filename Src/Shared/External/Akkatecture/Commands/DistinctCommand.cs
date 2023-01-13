@@ -45,7 +45,7 @@ public abstract class DistinctCommand<TAggregate, TIdentity> : ICommand<TAggrega
     protected DistinctCommand(
         TIdentity aggregateId)
     {
-        if (aggregateId == null)
+        if(aggregateId == null)
             throw new ArgumentNullException(nameof(aggregateId));
 
         _lazySourceId = new Lazy<ISourceId>(CalculateSourceId, LazyThreadSafetyMode.PublicationOnly);
@@ -61,7 +61,7 @@ public abstract class DistinctCommand<TAggregate, TIdentity> : ICommand<TAggrega
 
     private CommandId CalculateSourceId()
     {
-        var bytes = GetSourceIdComponents().SelectMany(data => data).ToArray();
+        byte[] bytes = GetSourceIdComponents().SelectMany(data => data).ToArray();
 
         return CommandId.NewDeterministic(
             GuidFactories.Deterministic.Namespaces.Commands,

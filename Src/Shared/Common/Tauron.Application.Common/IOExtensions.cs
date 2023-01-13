@@ -14,71 +14,71 @@ public static class IoExtensions
 {
     public static string PathShorten(this string path, int length)
     {
-        var pathParts = path.Split('\\');
+        string[] pathParts = path.Split('\\');
         var pathBuild = new StringBuilder(path.Length);
-        var lastPart = pathParts[^1];
+        string lastPart = pathParts[^1];
         var prevPath = "";
 
         //Erst prüfen ob der komplette String evtl. bereits kürzer als die Maximallänge ist
-        if (path.Length >= length) return path;
+        if(path.Length >= length) return path;
 
         for (var i = 0; i < pathParts.Length - 1; i++)
         {
             pathBuild.Append(pathParts[i] + @"\");
 
-            if ((pathBuild + @"...\" + lastPart).Length >= length) return prevPath;
+            if((pathBuild + @"...\" + lastPart).Length >= length) return prevPath;
 
             prevPath = pathBuild + @"...\" + lastPart;
         }
 
         return prevPath;
     }
-    
+
     public static IEnumerable<string> EnumerateTextLinesIfExis(this IFile file)
     {
-        if (!file.Exist) yield break;
+        if(!file.Exist) yield break;
 
         using var reader = new StreamReader(file.Open(FileAccess.Read));
 
         while (true)
         {
-            var line = reader.ReadLine();
+            string? line = reader.ReadLine();
 
-            if (line is null) yield break;
+            if(line is null) yield break;
 
             yield return line;
         }
     }
-    
+
     public static IEnumerable<string> EnumerateTextLines(this TextReader reader)
     {
         while (true)
         {
-            var line = reader.ReadLine();
+            string? line = reader.ReadLine();
 
-            if (line == null) yield break;
+            if(line == null) yield break;
 
             yield return line;
         }
     }
-    
+
     public static void Clear(this IDirectory dic)
     {
-        if (dic is null) throw new ArgumentNullException(nameof(dic));
+        if(dic is null) throw new ArgumentNullException(nameof(dic));
 
-        if (!dic.Exist) return;
+        if(!dic.Exist) return;
 
         if(dic is IHasFileAttributes dicAttr)
             dicAttr.Attributes = FileAttributes.Normal;
 
-        foreach (var file in dic.Files)
+        foreach (IFile file in dic.Files)
         {
-            if (file is IHasFileAttributes fileAttributes)
+            if(file is IHasFileAttributes fileAttributes)
                 fileAttributes.Attributes = FileAttributes.Normal;
             file.Delete();
         }
 
-        foreach (var directory in dic.Directories)
+        foreach (IDirectory directory in dic.Directories)
         {
             Clear(directory);
             directory.Delete();
@@ -90,7 +90,7 @@ public static class IoExtensions
 
     public static TextReader OpenRead(this IFile file)
         => new StreamReader(file.Open(FileAccess.Read));
-    
+
     /*public static void AddFilesFromDictionary(this ZipArchive destination, string sourceDirectoryName)
     {
         var stack = new Stack<FileSystemInfo>();

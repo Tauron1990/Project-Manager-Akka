@@ -20,20 +20,6 @@ using EventEnvelope = Akka.Persistence.Query.EventEnvelope;
 namespace Tauron.Akkatecture.Projections;
 
 [PublicAPI]
-public sealed class EventReaderException : EventArgs
-{
-    public EventReaderException(string tag, Exception exception)
-    {
-        Tag = tag;
-        Exception = exception;
-    }
-
-    public string Tag { get; }
-
-    public Exception Exception { get; }
-}
-
-[PublicAPI]
 public abstract class AggregateEventReader
 {
     public event EventHandler<EventReaderException>? OnReadError;
@@ -71,9 +57,9 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
     {
         string ExtractInfo() => subscriptionId[(subscriptionId.IndexOf('@') + 1)..];
 
-        if (subscriptionId.StartsWith("Type"))
+        if(subscriptionId.StartsWith("Type", StringComparison.Ordinal))
             return MakeAggregateSubscription(lastProcessedCheckpoint, subscriber, Type.GetType(ExtractInfo())!);
-        if (subscriptionId.StartsWith("Tag"))
+        if(subscriptionId.StartsWith("Tag", StringComparison.Ordinal))
             return MakeTagAggregateSubscription(lastProcessedCheckpoint, subscriber, ExtractInfo());
 
         throw new ArgumentException($"Invalid Subscription Id Format: {subscriptionId}", nameof(subscriptionId));
@@ -83,8 +69,8 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
         in long? lastProcessedCheckpoint, Subscriber subscriber,
         Type aggregate)
     {
-        var builder = typeof(SubscriptionBuilder<>);
-        var genericType = builder.MakeGenericType(typeof(TJournal), aggregate);
+        Type builder = typeof(SubscriptionBuilder<>);
+        Type genericType = builder.MakeGenericType(typeof(TJournal), aggregate);
         var subscriberInst =
             (SubscriptionBuilder)FastReflection.Shared.FastCreateInstance(
                 genericType,
@@ -135,11 +121,13 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
             _runner?.Wait(TimeSpan.FromSeconds(20));
         }
 
+        #pragma warning disable MA0051
         internal IDisposable CreateSubscription(in long? lastProcessedCheckpoint, Action<string, Exception> errorHandler)
+            #pragma warning restore MA0051
         {
             _errorHandler = errorHandler;
 
-            var (uniqueKillSwitch, source) = CreateSource(Offset.Sequence(lastProcessedCheckpoint ?? 0))
+            (UniqueKillSwitch? uniqueKillSwitch, var source) = CreateSource(lastProcessedCheckpoint is null ? Offset.NoOffset() : Offset.Sequence(lastProcessedCheckpoint.Value))
                .Select(ee => (ee.Event as IDomainEvent, ee.Offset))
                .Where(de => de.Item1 != null)
                .Batch(
@@ -149,7 +137,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                .Select(
                     de =>
                     {
-                        var (domainEvent, offset) = de.Last();
+                        (IDomainEvent domainEvent, Offset offset) = de.Last();
 
                         return new Transaction
                                {
@@ -162,7 +150,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                                           .Select(
                                                pair =>
                                                {
-                                                   var (evt, _) = pair;
+                                                   IDomainEvent evt = pair.Item1;
 
                                                    return new LiquidProjections.EventEnvelope
                                                           {
@@ -170,9 +158,9 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                                                               Headers = evt
                                                                  .Metadata
                                                                  .Select(p => Tuple.Create<string, object>(p.Key, p.Value))
-                                                                 .ToDictionary(t => t.Item1, t => t.Item2)
+                                                                 .ToDictionary(t => t.Item1, t => t.Item2, StringComparer.Ordinal),
                                                           };
-                                               }))
+                                               })),
                                };
                     })
                .Batch(
@@ -193,7 +181,6 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
             _cancelable = uniqueKillSwitch;
 
 
-
             var sinkQueue = source.RunWith(
                 Sink.Queue<ImmutableList<Transaction>>()
                    .WithAttributes(new Attributes(new Attributes.InputBuffer(2, 2))),
@@ -207,21 +194,18 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
         private async Task Run(ISinkQueue<ImmutableList<Transaction>> queue)
         {
             while (!_isCancel.Value)
-            {
                 try
                 {
-                    var data = await queue.PullAsync();
+                    var data = await queue.PullAsync().ConfigureAwait(false);
 
-                    if (data.HasValue)
-                    {
+                    if(data.HasValue)
                         await _subscriber.HandleTransactions(
                             data.Value,
                             new SubscriptionInfo
                             {
-                                Id = data.Value.Last().StreamId,
-                                Subscription = this
-                            });
-                    }
+                                Id = data.Value[^1].StreamId,
+                                Subscription = this,
+                            }).ConfigureAwait(false);
                     else
                         break;
                 }
@@ -229,7 +213,6 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                 {
                     _errorHandler?.Invoke(_exceptionInfo, e);
                 }
-            }
         }
 
         protected abstract Source<EventEnvelope, NotUsed> CreateSource(Offset offset);
@@ -261,7 +244,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                .Select(
                     x =>
                     {
-                        var domainEvent = Mapper.FromJournal(x.Event, string.Empty).Events.Single();
+                        object? domainEvent = Mapper.FromJournal(x.Event, string.Empty).Events.Single();
 
                         return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
                     });
@@ -285,8 +268,9 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
             _journalId = journalId;
         }
 
-        protected override Source<EventEnvelope, NotUsed> CreateSource(Offset offset) => Consumer.Create(_system)
-           .Using<TJournal>(_journalId)
-           .EventsFromAggregate<TAggregate>(offset);
+        protected override Source<EventEnvelope, NotUsed> CreateSource(Offset offset) =>
+            Consumer.Create(_system)
+               .Using<TJournal>(_journalId)
+               .EventsFromAggregate<TAggregate>(offset);
     }
 }

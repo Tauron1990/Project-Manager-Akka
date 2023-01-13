@@ -3,9 +3,9 @@ using Akka.Actor;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Tauron.TAkka;
 using Tauron.Application.CommonUI.Model;
 using Tauron.Application.CommonUI.UI;
+using Tauron.TAkka;
 
 namespace Tauron.Application.CommonUI;
 
@@ -13,7 +13,7 @@ namespace Tauron.Application.CommonUI;
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterView<TView, TModel>(this IServiceCollection builder)
-        where TView : class, IView 
+        where TView : class, IView
         where TModel : UiActor
     {
         AutoViewLocation.AddPair(typeof(TView), typeof(TModel));

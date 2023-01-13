@@ -1,5 +1,4 @@
-﻿
-using Tauron.Application.Workshop.Driver;
+﻿using Tauron.Application.Workshop.Driver;
 
 namespace Tauron.Application.Workshop.StateManagement.Dispatcher;
 

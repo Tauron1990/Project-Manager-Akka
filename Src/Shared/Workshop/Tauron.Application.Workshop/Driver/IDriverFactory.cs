@@ -10,7 +10,7 @@ public interface IDriverFactory
     Action<IDataMutation> CreateMutator();
 
     Action<RegisterRule<TWorkspace, TData>> CreateAnalyser<TWorkspace, TData>(
-        TWorkspace workspace, IObserver<RuleIssuesChanged<TWorkspace, TData>> observer) 
+        TWorkspace workspace, IObserver<RuleIssuesChanged<TWorkspace, TData>> observer)
         where TData : class where TWorkspace : WorkspaceBase<TData>;
 
     void CreateProcessor(Type processor, string name);

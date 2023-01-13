@@ -1,25 +1,10 @@
-﻿using Akka.Actor;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using Tauron.TAkka;
 using Tauron.Application.CommonUI.Helper;
 using Tauron.Application.CommonUI.Model;
+using Tauron.TAkka;
 
 namespace Tauron.Application.CommonUI;
-
-[PublicAPI]
-public sealed class ModelProperty
-{
-    public ModelProperty(IActorRef model, UIPropertyBase property)
-    {
-        Model = model;
-        Property = property;
-    }
-
-    public IActorRef Model { get; }
-
-    public UIPropertyBase Property { get; }
-}
 
 [PublicAPI]
 public static class UiActorExtensions

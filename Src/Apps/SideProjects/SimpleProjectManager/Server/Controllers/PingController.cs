@@ -3,10 +3,11 @@ using SimpleProjectManager.Shared.ServerApi;
 
 namespace SimpleProjectManager.Server.Controllers;
 
-[ApiController, Route(ApiPaths.PingApi)]
+[ApiController]
+[Route(ApiPaths.PingApi)]
 public class PingController : Controller
 {
     [HttpGet]
-    public string GetPing()
-        => "ok";
+    public PingResult GetPing()
+        => PingResult.IsOk;
 }

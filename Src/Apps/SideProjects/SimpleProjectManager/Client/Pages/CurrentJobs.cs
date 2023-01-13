@@ -1,27 +1,80 @@
-﻿using System.Reactive.Disposables;
+﻿using System.Reactive;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using ReactiveUI;
+using SimpleProjectManager.Client.Shared.Data.States.Actions;
+using Tauron;
+using Tauron.Application.Blazor;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Pages;
 
 public partial class CurrentJobs
 {
+    private CompositeDisposable _compositeDisposable = new();
     private MudCommandButton? _newJob;
 
     private MudCommandButton? NewJob
-    
+
     {
         get => _newJob;
         set => this.RaiseAndSetIfChanged(ref _newJob, value);
     }
 
-    protected override void InitializeModel()
+    [Parameter]
+    public PairSelection PreSelected { get; set; }
+
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                this.BindCommand(ViewModel, m => m.NewJob, v => v.NewJob)
-                   .DisposeWith(dispo);
-            });
+        _compositeDisposable = new CompositeDisposable();
+
+        yield return _compositeDisposable;
+        yield return this.BindCommand(ViewModel, m => m.NewJob, v => v.NewJob);
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Task.Run(
+                async () =>
+                {
+                    if(PreSelected == PairSelection.Nothing) return;
+
+                    await GlobalState.Jobs.IsLoaded.Where(l => l).Take(1).FirstOrDefaultAsync();
+
+                    GlobalState.Dispatch(new SelectNewPairAction(PreSelected));
+                })
+           .Ignore();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(firstRender)
+            GlobalState.Jobs.CurrentlySelectedPair
+               .ObserveOn(RxApp.MainThreadScheduler)
+               .SelectMany(
+                    async d =>
+                    {
+                        try
+                        {
+                            if(d?.Order is null)
+                                return Unit.Default;
+
+                            await JsRuntime.InvokeVoidAsync("window.applyUrl", $"/CurrentJobs/{d.Order.Id.Value}");
+
+                            return Unit.Default;
+                        }
+                        catch (Exception exception)
+                        {
+                            EventAggregator.PublishError(exception);
+
+                            return Unit.Default;
+                        }
+                    })
+               .Subscribe()
+               .DisposeWith(_compositeDisposable);
+        base.OnAfterRender(firstRender);
     }
 }

@@ -69,10 +69,10 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
     private void Handle(ClusterActorDiscoveryMessage.ActorUp actorUp)
     {
-        var (actorRef, _) = actorUp;
+        IActorRef actorRef = actorUp.Actor;
         _log.Info($"Table.ActorUp (Actor={actorRef.Path})");
 
-        if (_table != null)
+        if(_table != null)
         {
             _log.Error($"But I already have table. (Actor={_table.Path})");
 
@@ -84,10 +84,10 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
     private void Handle(ClusterActorDiscoveryMessage.ActorDown actorDown)
     {
-        var (actorRef, _) = actorDown;
+        IActorRef actorRef = actorDown.Actor;
         _log.Info($"Table.ActorDown (Actor={actorRef.Path})");
 
-        if (_table != null && _table.Equals(actorRef) == false)
+        if(_table != null && !_table.Equals(actorRef))
         {
             _log.Error($"But I have a different table. (Actor={_table.Path})");
 
@@ -98,22 +98,22 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
         CancelAllPendingAddRequests();
 
-        foreach (var (_, actor) in _actorMap) actor.Tell(_downMessage ?? PoisonPill.Instance);
+        foreach ((TKey _, IActorRef actor) in _actorMap) actor.Tell(_downMessage ?? PoisonPill.Instance);
 
         // NOTE: should we clear actor map or let them to be removed ?
     }
 
     private void Handle(DistributedActorTableMessage<TKey>.Add add)
     {
-        var (id, actor) = add;
-        if (_table is null || _stopping)
+        (TKey id, IActorRef? actor) = add;
+        if(_table is null || _stopping)
         {
             Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
 
             return;
         }
 
-        if (actor is null)
+        if(actor is null)
         {
             _log.Error($"Invalid null actor. (ID={id})");
             Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
@@ -121,7 +121,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
             return;
         }
 
-        if (_actorMap.ContainsKey(id))
+        if(_actorMap.ContainsKey(id))
         {
             _log.Error($"Duplicate ID in local container. (ID={id})");
             Sender.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: false));
@@ -140,7 +140,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
     private void Handle(DistributedActorTableMessage<TKey>.Remove remove)
     {
-        if (_actorMap.TryGetValue(remove.Id, out var actor) == false)
+        if(_actorMap.TryGetValue(remove.Id, out IActorRef? actor) == false)
         {
             _log.Error($"Cannot remove an actor that doesn't exist. (Id={remove.Id} Sender={Sender})");
 
@@ -157,7 +157,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
     private void Handle(DistributedActorTableMessage<TKey>.Internal.Create create)
     {
-        if (_table is null || _stopping)
+        if(_table is null || _stopping)
             return;
 
         // if (_actorFactory == null)
@@ -168,7 +168,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         // }
 
         IActorRef actor;
-        var (id, args) = create;
+        (TKey id, object[]? args) = create;
         try
         {
             actor = _actorFactory.CreateActor(Context, id, args);
@@ -176,7 +176,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
         catch (Exception exception)
         {
             _log.Error(exception, $"Exception in creating actor (Id={id})");
-            Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.CreateReply(id, null));
+            Sender.Tell(new DistributedActorTableMessage<TKey>.Internal.CreateReply(id, Actor: null));
 
             return;
         }
@@ -191,22 +191,22 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
     private void Handle(DistributedActorTableMessage<TKey>.Internal.AddReply addReply)
     {
-        var (id, actor, added) = addReply;
+        (TKey id, IActorRef? actor, bool added) = addReply;
 
-        if (_addingMap.TryGetValue(id, out var requester) == false)
+        if(_addingMap.TryGetValue(id, out IActorRef? requester) == false)
             // already removed locally
             return;
 
         _addingMap.Remove(id);
 
-        if (added)
+        if(added)
         {
             requester.Tell(new DistributedActorTableMessage<TKey>.AddReply(id, actor, Added: true));
         }
         else
         {
             _actorMap.Remove(id);
-            if (actor is not null)
+            if(actor is not null)
                 _actorInverseMap.Remove(actor);
             Context.Unwatch(actor);
             _watchingActorCount -= 1;
@@ -217,7 +217,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
     private void CancelAllPendingAddRequests()
     {
-        foreach (var (id, actor) in _addingMap)
+        foreach ((TKey id, IActorRef actor) in _addingMap)
         {
             _actorMap.Remove(id);
             _actorInverseMap.Remove(actor);
@@ -232,15 +232,15 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
     private void Handle(DistributedActorTableMessage<TKey>.Internal.GracefulStop gracefulStop)
     {
-        if (_stopping)
+        if(_stopping)
             return;
 
         _stopping = true;
 
         CancelAllPendingAddRequests();
 
-        if (_actorMap.Count > 0)
-            foreach (var (_, actor) in _actorMap)
+        if(_actorMap.Count > 0)
+            foreach ((TKey _, IActorRef actor) in _actorMap)
                 actor.Tell(gracefulStop.StopMessage ?? PoisonPill.Instance);
         else
             Context.Stop(Self);
@@ -248,16 +248,16 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
     private void Handle(Terminated terminated)
     {
-        if (_actorInverseMap.TryGetValue(terminated.ActorRef, out var id) == false)
+        if(_actorInverseMap.TryGetValue(terminated.ActorRef, out TKey? id) == false)
             return;
 
         _actorMap.Remove(id);
         _actorInverseMap.Remove(terminated.ActorRef);
         _watchingActorCount -= 1;
 
-        if (_stopping)
+        if(_stopping)
         {
-            if (_watchingActorCount == 0)
+            if(_watchingActorCount == 0)
                 Context.Stop(Self);
         }
         else
@@ -272,7 +272,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
 
         public void Initialize(object[]? args)
         {
-            if (args != null)
+            if(args != null)
                 _actor = args[0];
         }
 
@@ -285,7 +285,7 @@ public class DistributedActorTableContainer<TKey> : ReceiveActor
             {
                 Props props => props,
                 Type type => Props.Create(type, args),
-                _ => null
+                _ => null,
             };
         }
     }

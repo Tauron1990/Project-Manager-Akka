@@ -1,21 +1,21 @@
 ﻿@page "/NewJob"
-
 @using MudBlazor.Utilities
-@inherits NonAutoRenderingView<NewJobViewModel>
+@using SimpleProjectManager.Client.Shared.ViewModels.EditJob
+@inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.Pages.NewJobViewModel>
 
 <PageTitle>Neuer Auftrag</PageTitle>
 
-@if (ViewModel is not null)
+@if(ViewModel is not null)
 {
-    @if (ViewModel.IsCommiting)
+    @if(ViewModel.IsCommiting)
     {
         <CenterElement>
             <MudProgressCircular Indeterminate="true"/>
         </CenterElement>
     }
-    
+
     <MudElement HtmlTag="div" Style="@(new StyleBuilder().AddStyle("display", "none", ViewModel.IsCommiting).ToString())">
-        <JobEditor Title="Neuer Auftrag" Commit="ViewModel.Commit" CanCancel="true" Cancel="ViewModel.Cancel" Configuration="@JobEditorConfiguration.NewJobConfig"
+        <JobEditor Title="Neuer Auftrag" Commit="_commit!" CanCancel="true" Cancel="_cancel!" Configuration="@JobEditorConfiguration.NewJobConfig"
                    CustomViewModel="ViewModel.EditorModel"/>
     </MudElement>
 }

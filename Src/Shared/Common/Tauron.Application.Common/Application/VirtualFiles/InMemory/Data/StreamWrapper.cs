@@ -7,12 +7,12 @@ namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
 public class StreamWrapper : Stream
 {
-    private readonly MemoryStream _memoryStream;
     private readonly FileAccess _access;
+    private readonly MemoryStream _memoryStream;
     private readonly Action _modifyAction;
 
     private bool _modify;
-        
+
     public StreamWrapper(MemoryStream memoryStream, FileAccess access, Action modifyAction)
     {
         _memoryStream = memoryStream;
@@ -21,9 +21,37 @@ public class StreamWrapper : Stream
         _modifyAction = modifyAction;
     }
 
+    public override bool CanTimeout => _memoryStream.CanTimeout;
+
+    public override int WriteTimeout
+    {
+        get => _memoryStream.WriteTimeout;
+        set => _memoryStream.WriteTimeout = value;
+    }
+
+    public override int ReadTimeout
+    {
+        get => _memoryStream.ReadTimeout;
+        set => _memoryStream.ReadTimeout = value;
+    }
+
+    public override bool CanRead => _access.HasFlag(FileAccess.Read);
+
+    public override bool CanSeek => _memoryStream.CanSeek;
+
+    public override bool CanWrite => _access.HasFlag(FileAccess.Write);
+
+    public override long Length => _memoryStream.Length;
+
+    public override long Position
+    {
+        get => _memoryStream.Position;
+        set => _memoryStream.Position = value;
+    }
+
     protected override void Dispose(bool disposing)
     {
-        if (_modify) _modifyAction();
+        if(_modify) _modifyAction();
     }
 
     public override void Flush()
@@ -59,18 +87,10 @@ public class StreamWrapper : Stream
     public override int ReadByte()
         => _memoryStream.ReadByte();
 
-    public override bool CanTimeout => _memoryStream.CanTimeout;
-
     public override void WriteByte(byte value)
     {
         _modify = true;
         _memoryStream.WriteByte(value);
-    }
-
-    public override int WriteTimeout
-    {
-        get => _memoryStream.WriteTimeout;
-        set => _memoryStream.WriteTimeout = value;
     }
 
     public override void CopyTo(Stream destination, int bufferSize)
@@ -79,12 +99,6 @@ public class StreamWrapper : Stream
     public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
         => _memoryStream.CopyToAsync(destination, bufferSize, cancellationToken);
 
-    public override int ReadTimeout
-    {
-        get => _memoryStream.ReadTimeout; 
-        set => _memoryStream.ReadTimeout = value;
-    }
-
     public override Task FlushAsync(CancellationToken cancellationToken)
         => _memoryStream.FlushAsync(cancellationToken);
 
@@ -92,31 +106,19 @@ public class StreamWrapper : Stream
         => _memoryStream.ReadAsync(buffer, cancellationToken);
 
     public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-        => _memoryStream.ReadAsync(buffer,offset, count, cancellationToken);
+        => _memoryStream.ReadAsync(buffer, offset, count, cancellationToken);
 
     public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
         _modify = true;
+
         return _memoryStream.WriteAsync(buffer, offset, count, cancellationToken);
     }
 
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
     {
         _modify = true;
+
         return _memoryStream.WriteAsync(buffer, cancellationToken);
-    }
-
-    public override bool CanRead => _access.HasFlag(FileAccess.Read);
-
-    public override bool CanSeek => _memoryStream.CanSeek;
-
-    public override bool CanWrite => _access.HasFlag(FileAccess.Write);
-
-    public override long Length => _memoryStream.Length;
-
-    public override long Position
-    {
-        get => _memoryStream.Position;
-        set => _memoryStream.Position = value;
     }
 }

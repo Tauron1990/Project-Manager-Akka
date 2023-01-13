@@ -7,31 +7,37 @@ namespace Tauron.Application.VirtualFiles.InMemory;
 
 public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDirectory>
 {
+    public InMemoryFileSystem(ISystemClock clock, PathInfo start)
+        : base(
+            sys => CreateContext(sys, start, clock),
+            ReadyFeatures & ~(FileSystemFeature.Moveable | FileSystemFeature.Delete)) { }
+
+    private static FileSystemFeature ReadyFeatures
+        => FileSystemFeature.Create | FileSystemFeature.Delete | FileSystemFeature.Extension | FileSystemFeature.Moveable |
+           FileSystemFeature.Read | FileSystemFeature.Write | FileSystemFeature.RealTime;
+
+    public override PathInfo Source => Context.OriginalPath;
 
     internal TResult? MoveElement<TResult, TElement>(string name, PathInfo path, TElement element, Func<DirectoryContext, PathInfo, TElement, TResult> factory)
         where TElement : IDataElement
         where TResult : class
     {
-        var relative = GenericPathHelper.ToRelativePath(path);
-        var tempdic = GetDirectory(relative);
+        PathInfo relative = GenericPathHelper.ToRelativePath(path);
+        IDirectory tempdic = GetDirectory(relative);
         InMemoryDirectory dic;
 
-        if (tempdic == this)
+        if(tempdic == this)
             dic = Context;
         else
             dic = (InMemoryDirectory)tempdic;
 
         element.Name = name;
-        
-        return dic.TryAddElement(name, element) 
-            ? factory(dic.DirectoryContext, GenericPathHelper.Combine(dic.OriginalPath, name), element) 
+
+        return dic.TryAddElement(name, element)
+            ? factory(dic.DirectoryContext, GenericPathHelper.Combine(dic.OriginalPath, name), element)
             : null;
     }
 
-    private static FileSystemFeature ReadyFeatures
-        => FileSystemFeature.Create | FileSystemFeature.Delete | FileSystemFeature.Extension | FileSystemFeature.Moveable |
-           FileSystemFeature.Read | FileSystemFeature.Write | FileSystemFeature.RealTime;
-    
     private static InMemoryDirectory CreateContext(IFileSystemNode system, PathInfo startPath, ISystemClock clock)
     {
         var root = new InMemoryRoot();
@@ -45,13 +51,6 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
 
         return new InMemoryDirectory(dicContext, ReadyFeatures);
     }
-
-    public InMemoryFileSystem(ISystemClock clock, PathInfo start)
-        : base(
-            sys => CreateContext(sys, start, clock),
-            ReadyFeatures & ~(FileSystemFeature.Moveable | FileSystemFeature.Delete)) { }
-
-    public override PathInfo Source => Context.OriginalPath;
 
     protected override void DisposeImpl()
     {

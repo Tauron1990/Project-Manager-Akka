@@ -60,7 +60,7 @@ public abstract class BindingDecoratorBase : MarkupExtension
         dp = null;
 
         //create a binding and assign it to the target
-        if (!(provider?.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget service)) return false;
+        if(!(provider?.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget service)) return false;
 
         //we need dependency objects / properties
         target = service.TargetObject as DependencyObject;
@@ -229,7 +229,7 @@ public abstract class BindingDecoratorBase : MarkupExtension
     }
 
     // ReSharper disable once ReturnTypeCanBeNotNullable
-    [DefaultValue(null)] 
+    [DefaultValue(null)]
     public Collection<ValidationRule>? ValidationRules => Binding.ValidationRules;
 
     [DefaultValue(null)]

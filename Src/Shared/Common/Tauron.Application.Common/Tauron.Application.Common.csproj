@@ -1,18 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <RootNamespace>Tauron</RootNamespace>
         <Nullable>enable</Nullable>
-        <LangVersion>10</LangVersion>
+        <LangVersion>11</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <NoWarn>1701;1702; 8669;AV1562;AV1210;AV1500;AV1532;AV1535;AV1008;AV1561;AV2210</NoWarn>
+        <NoWarn>1701;1702; 8669;AV1562;AV1210;AV1500;AV1532;AV1535;AV1008;AV1561;AV2210;IL2121;GU0009;GU0007</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <NoWarn>1701;1702;AV1562;AV1210;AV1500;AV1532;AV1535;AV1008;AV1561;AV2210</NoWarn>
+        <NoWarn>1701;1702;AV1562;AV1210;AV1500;AV1532;AV1535;AV1008;AV1561;AV2210;IL2121;GU0009;GU0007</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -54,19 +54,26 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="FastExpressionCompiler" Version="3.2.1" />
-        <PackageReference Include="Gu.Analyzers" Version="2.0.0">
+        <PackageReference Include="FastExpressionCompiler" Version="3.3.3" />
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
-        <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
-        <PackageReference Include="Scrutor" Version="3.3.0" />
+        <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+        <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.1" />
+        <PackageReference Include="OneOf" Version="3.0.223" />
+        <PackageReference Include="OneOf.SourceGenerator" Version="3.0.223" />
+        <PackageReference Include="Scrutor" Version="4.2.0" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl" Version="2.2.6" />
+        <PackageReference Include="Stl.Fusion" Version="4.2.4" />
         <PackageReference Include="System.Reactive" Version="5.0.0" />
+        <PackageReference Include="UnitsNet" Version="4.150.0" />
     </ItemGroup>
 
 </Project>

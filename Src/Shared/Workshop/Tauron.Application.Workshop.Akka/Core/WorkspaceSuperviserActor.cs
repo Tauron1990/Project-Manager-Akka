@@ -3,15 +3,16 @@ using Akka.Actor;
 using Akka.Actor.Internal;
 using Akka.DependencyInjection;
 using Akka.Util;
-using Tauron.TAkka;
+using Microsoft.Extensions.Logging;
 using Tauron.Application.Workshop.Mutation;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Workshop.Core;
 
-public sealed class WorkspaceSuperviserActor : ObservableActor
+public sealed partial class WorkspaceSuperviserActor : ObservableActor
 {
     private readonly Random _random = new();
-    private readonly Dictionary<string, SupervisorStrategy> _supervisorStrategies = new();
+    private readonly Dictionary<string, SupervisorStrategy> _supervisorStrategies = new(StringComparer.Ordinal);
     private ImmutableDictionary<IActorRef, Action> _intrest = ImmutableDictionary<IActorRef, Action>.Empty;
 
     public WorkspaceSuperviserActor()
@@ -23,8 +24,9 @@ public sealed class WorkspaceSuperviserActor : ObservableActor
                 wi =>
                 {
                     ImmutableInterlocked.AddOrUpdate(
-                        ref _intrest, 
-                        wi.Target, _ => wi.OnRemove, 
+                        ref _intrest,
+                        wi.Target,
+                        _ => wi.OnRemove,
                         (_, action) => action.Combine(wi.OnRemove) ?? wi.OnRemove);
                     Context.Watch(wi.Target);
                 }));
@@ -32,12 +34,15 @@ public sealed class WorkspaceSuperviserActor : ObservableActor
             obs => obs.SubscribeWithStatus(
                 t =>
                 {
-                    if (!_intrest.TryGetValue(t.ActorRef, out var action)) return;
+                    if(!_intrest.TryGetValue(t.ActorRef, out Action? action)) return;
 
                     action();
                     _intrest = _intrest.Remove(t.ActorRef);
                 }));
     }
+
+    [LoggerMessage(EventId = 40, Level = LogLevel.Error, Message = "Error on Create an new Actor with Type {typeName}")]
+    private static partial void CreateActorError(ILogger logger, Exception ex, string typeName);
 
     private void CreateActor(SuperviseActorBase obj)
     {
@@ -49,21 +54,21 @@ public sealed class WorkspaceSuperviserActor : ObservableActor
             while (!Context.Child(name).Equals(ActorRefs.Nobody))
                 name = obj.Name + "-" + _random.Next();
 
-            if (obj.SupervisorStrategy != null)
+            if(obj.SupervisorStrategy != null)
                 _supervisorStrategies.Add(name, obj.SupervisorStrategy);
 
             props = obj.Props(Context);
-            var newActor = Context.ActorOf(props, name);
+            IActorRef? newActor = Context.ActorOf(props, name);
 
-            if (Sender.IsNobody()) return;
+            if(Sender.IsNobody()) return;
 
             Sender.Tell(new NewActor(newActor));
         }
         catch (Exception e)
         {
-            Log.Error(e, "Error on Create an new Actor {TypeName}", props?.TypeName ?? "Unkowen");
+            CreateActorError(Log, e, props?.TypeName ?? "Unkowen");
 
-            if (Sender.IsNobody()) return;
+            if(Sender.IsNobody()) return;
 
             Sender.Tell(new NewActor(ActorRefs.Nobody));
         }
@@ -102,7 +107,7 @@ public sealed class WorkspaceSuperviserActor : ObservableActor
 
         public override ISurrogate ToSurrogate(ActorSystem system) => throw new NotSupportedException(nameof(WorkspaceSupervisorStrategy));
 
-        private SupervisorStrategy Get(IActorRef child) => _custom.TryGetValue(child.Path.Name, out var sup) ? sup : _def;
+        private SupervisorStrategy Get(IActorRef child) => _custom.TryGetValue(child.Path.Name, out SupervisorStrategy? sup) ? sup : _def;
     }
 
     internal abstract class SuperviseActorBase

@@ -8,11 +8,11 @@ namespace SimpleProjectManager.Client.Shared.CriticalErrors;
 
 public partial class CriticalErrorDispaly
 {
-    private bool _firstExpanded = true;
+    //private bool _firstExpanded = true;
     private MudCommandButton? _hide;
 
     [Parameter]
-    
+
     public CriticalError? Error { get; set; }
 
     public MudCommandButton? Hide
@@ -21,12 +21,9 @@ public partial class CriticalErrorDispaly
         set => this.RaiseAndSetIfChanged(ref _hide, value);
     }
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                this.BindCommand(ViewModel, m => m.Hide, v => v.Hide).DisposeWith(dispo);
-            });
+        yield return this.WhenActivated(
+            dispo => { this.BindCommand(ViewModel, m => m.Hide, v => v.Hide).DisposeWith(dispo); });
     }
 }

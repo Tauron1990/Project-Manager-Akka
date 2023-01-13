@@ -1,0 +1,43 @@
+@using SimpleProjectManager.Shared.Services.Devices
+@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.Devices.LogsDisplayViewModel>
+
+<ObservableCollectionView SourceParameter="ViewModel?.Entrys">
+    <EmptyRender>
+        <MudText Align="Align.Center">Keine Log Dateien</MudText>
+    </EmptyRender>
+    <ListRender>
+        <MudTabs Rounded="true">
+        @foreach (var group in context)
+        {
+            <MudTabPanel Text="@group.Key" @key="group.Key">
+                <MudDataGrid T="LogData" Virtualize="true" Items="group.Logs" Dense="true" SortMode="SortMode.Single">
+                    <Columns>
+                        <HierarchyColumn T="LogData" ButtonDisabledFunc="data => data.Data.IsEmpty"/>
+                        <Column T="LogData" Field="LogLevel" Title="Level" ShowFilterIcon="true"
+                                Groupable="true" Sortable="true" SortBy="data => data.LogLevel"/>
+                        <Column T="LogData" Field="Occurance" Title="Zeit" Groupable="false"
+                                Sortable="true" SortBy="data => data.Occurance"/>
+                        <Column T="LogData" Field="Message" Title="Nachricht" Groupable="false" Sortable="false"/>
+                    </Columns>
+                    <ChildRowContent Context="logContent">
+                        <MudCard>
+                            <MudCardHeader>
+                                <MudText Typo="Typo.h6">Eigenschaften</MudText>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                @foreach (var prop in logContent.Item.Data)
+                                {
+                                    <MudText @key="prop.Key">Name: @prop.Key; Inhalt: @prop.Value.Value</MudText>
+                                }
+                            </MudCardContent>
+                        </MudCard>
+                    </ChildRowContent>
+                    <PagerContent>
+                        <MudDataGridPager T="LogData"/>
+                    </PagerContent>
+                </MudDataGrid>
+            </MudTabPanel>
+        }
+        </MudTabs>
+    </ListRender>
+</ObservableCollectionView>

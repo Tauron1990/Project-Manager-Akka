@@ -63,7 +63,9 @@ public sealed class DialogCoordinator : IDialogCoordinator, IDialogCoordinatorUI
     //    return window.ShowDialog();
     //}
 
+    #pragma warning disable MA0046
     private event Action<object>? ShowDialogEvent;
 
     private event Action? HideDialogEvent;
+    #pragma warning restore MA0046
 }

@@ -1,20 +1,20 @@
 ﻿@using Stl.Fusion.Extensions
 @inherits ComputedStateComponent<DateTime>
-@inject IFusionTime _fusionTime
+@inject IFusionTime FusionTime
 
 @code {
-    protected override async Task<DateTime> ComputeState(CancellationToken cancellationToken) => await _fusionTime.GetUtcNow(TimeSpan.FromMilliseconds(200));
+    protected override async Task<DateTime> ComputeState(CancellationToken cancellationToken) => await FusionTime.GetUtcNow(TimeSpan.FromMilliseconds(200));
 }
 
 @{
-    var time = State.ValueOrDefault;
+    DateTime time = State.ValueOrDefault;
 }
 
-@if (time == DateTime.MinValue)
-    {
-        <MudText>Fehler beim abrufen der Zeit</MudText>
-    }
-    else
-    {
-        <MudText>@time.ToLocalTime().ToString("G")</MudText>
-    }
+@if(time == DateTime.MinValue)
+{
+    <MudText>Fehler beim abrufen der Zeit</MudText>
+}
+else
+{
+    <MudText>@time.ToLocalTime().ToString("G")</MudText>
+}

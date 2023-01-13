@@ -33,7 +33,7 @@ public class JobSchedulerSettings
 
     public JobSchedulerSettings(Config config)
     {
-        var schedulerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        Config? schedulerConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
         schedulerConfig = schedulerConfig.GetConfig(_section);
 
         JournalPluginId = schedulerConfig.GetString("journal-plugin-id");

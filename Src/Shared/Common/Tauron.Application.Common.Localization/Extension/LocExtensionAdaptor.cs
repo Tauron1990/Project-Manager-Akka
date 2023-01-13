@@ -21,7 +21,7 @@ public sealed class LocExtensionAdaptor
 
     public void Request(string name, Action<Option<object>> valueResponse, CultureInfo? info = null)
     {
-        var hook = EventActor.CreateSelfKilling(_system, null);
+        IEventActor hook = EventActor.CreateSelfKilling(_system, null);
         hook.Register(HookEvent.Create<LocCoordinator.ResponseLocValue>(res => valueResponse(res.Result))).Ignore();
         hook.Send(
             _extension.LocCoordinator,
@@ -38,7 +38,10 @@ public sealed class LocExtensionAdaptor
     #pragma warning disable AV1755
     public async Task<Option<object>> RequestTask(string name, CultureInfo? info = null)
         #pragma warning restore AV1755
-        => (await _extension.LocCoordinator.Ask<LocCoordinator.ResponseLocValue>(new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture))).Result;
+        => (await _extension.LocCoordinator
+               .Ask<LocCoordinator.ResponseLocValue>(new LocCoordinator.RequestLocValue(name, info ?? CultureInfo.CurrentUICulture))
+               .ConfigureAwait(false))
+           .Result;
 
     #pragma warning disable AV1551
     public Option<string> RequestString(string name, CultureInfo? info = null)

@@ -37,6 +37,7 @@ public class Scheduled<TJob, TIdentity> : SchedulerEvent<TJob, TIdentity>
         => Entry = entry ?? throw new ArgumentNullException(nameof(entry));
 
     public Schedule<TJob, TIdentity> Entry { get; }
+
     public override JobEventType GetEventType()
         => JobEventType.Schedule;
 

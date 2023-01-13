@@ -8,14 +8,14 @@ public static class InternalHostMessages
     {
         AppManager,
         AppRegistry,
-        Installer
+        Installer,
     }
 
     public interface IHostApiCommand
     {
         CommandType Type { get; }
 
-        string Target { get; }
+        HostName Target { get; }
 
         OperationResponse CreateDefaultFailed();
     }
@@ -25,7 +25,7 @@ public static class InternalHostMessages
     //    TType Failed();
     //}
 
-    public abstract record CommandBase<TResult>(string Target, [property: JsonIgnore] CommandType Type) : IHostApiCommand
+    public abstract record CommandBase<TResult>(HostName Target, [property: JsonIgnore] CommandType Type) : IHostApiCommand
         where TResult : OperationResponse, new()
     {
         OperationResponse IHostApiCommand.CreateDefaultFailed()
@@ -34,5 +34,5 @@ public static class InternalHostMessages
 
     public sealed record GetHostName;
 
-    public sealed record GetHostNameResult(string Name);
+    public sealed record GetHostNameResult(HostName Name);
 }

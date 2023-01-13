@@ -48,7 +48,7 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
 
     protected JobScheduler()
     {
-        if (this is not TJobScheduler)
+        if(this is not TJobScheduler)
             throw new InvalidOperationException(
                 $"JobScheduler for Job of Name={Name} specifies Type={typeof(TJobScheduler).PrettyPrint()} as generic argument, it should be its own type.");
 
@@ -56,7 +56,9 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
         State = SchedulerState<TJob, TIdentity>.New;
 
 
+        #pragma warning disable MA0056
         PersistenceId = $"{Name}-scheduler";
+        #pragma warning restore MA0056
         JournalPluginId = Settings.JournalPluginId;
         SnapshotPluginId = Settings.SnapshotPluginId;
 
@@ -95,24 +97,24 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
 
     private bool Execute(Tick<TJob, TIdentity> tick)
     {
-        var now = Context.System.Scheduler.Now.UtcDateTime;
+        DateTime now = Context.System.Scheduler.Now.UtcDateTime;
 
         foreach (var schedule in State.Entries.Values.Where(schedule => ShouldTriggerSchedule(schedule, now)))
         {
             _jobDefinitionService.Load(schedule.Job.GetType());
-            var jobDefinition = _jobDefinitionService.GetDefinition(schedule.Job.GetType());
+            JobDefinition jobDefinition = _jobDefinitionService.GetDefinition(schedule.Job.GetType());
             Log.Info(
                 "JobScheduler for Job of Name={0}; sending job of Definition={1} to JobRunner.",
                 Name,
                 jobDefinition);
 
-            var manager = Context.ActorSelection(Context.Parent.Path.Parent);
+            ActorSelection? manager = Context.ActorSelection(Context.Parent.Path.Parent);
             manager.Tell(schedule.Job, ActorRefs.NoSender);
 
             Emit(new Finished<TJob, TIdentity>(schedule.JobId, now), ApplySchedulerEvent);
 
             var next = schedule.WithNextTriggerDate(now);
-            if (next != null)
+            if(next != null)
                 Emit(new Scheduled<TJob, TIdentity>(next), ApplySchedulerEvent);
         }
 
@@ -121,9 +123,9 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
 
     protected bool Execute(Schedule<TJob, TIdentity> command)
     {
-        var sender = Sender;
+        IActorRef? sender = Sender;
         _jobDefinitionService.Load(command.Job.GetType());
-        var jobDefinition = _jobDefinitionService.GetDefinition(command.Job.GetType());
+        JobDefinition jobDefinition = _jobDefinitionService.GetDefinition(command.Job.GetType());
         try
         {
             Emit(
@@ -132,7 +134,7 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
                 {
                     ApplySchedulerEvent(schedulerEvent);
 
-                    if (!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
+                    if(!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
 
                     Log.Info(
                         "JobScheduler for Job of Name={0}, Definition={1}, and Id={2}; has been successfully scheduled to run at TriggerDate={3}.",
@@ -144,7 +146,7 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
         }
         catch (Exception error)
         {
-            if (!sender.IsNobody() && command.Nack != null) sender.Tell(command.Nack);
+            if(!sender.IsNobody() && command.Nack != null) sender.Tell(command.Nack);
 
             Log.Error(
                 error,
@@ -159,9 +161,9 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
 
     protected bool Execute(Cancel<TJob, TIdentity> command)
     {
-        var sender = Sender;
-        var jobId = command.JobId;
-        var now = Context.System.Scheduler.Now.UtcDateTime;
+        IActorRef? sender = Sender;
+        TIdentity jobId = command.JobId;
+        DateTime now = Context.System.Scheduler.Now.UtcDateTime;
         try
         {
             Emit(
@@ -169,7 +171,7 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
                 schedulerEvent =>
                 {
                     ApplySchedulerEvent(schedulerEvent);
-                    if (!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
+                    if(!sender.IsNobody() && command.Ack != null) sender.Tell(command.Ack);
                     Log.Info(
                         "JobScheduler for Job of Name={0}, and Id={1}; has been successfully cancelled.",
                         Name,
@@ -178,7 +180,7 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
         }
         catch (Exception error)
         {
-            if (!sender.IsNobody() && command.Nack != null) sender.Tell(command.Nack);
+            if(!sender.IsNobody() && command.Nack != null) sender.Tell(command.Nack);
 
             Log.Error(error, "JobScheduler for Job of Name={0}, and Id={1}; has failed to cancel.", Name, jobId);
         }
@@ -233,14 +235,14 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
 
     private bool Recover(SnapshotOffer offer)
     {
-        if (offer.Snapshot is SchedulerState<TJob, TIdentity> state) State = state;
+        if(offer.Snapshot is SchedulerState<TJob, TIdentity> state) State = state;
 
         return true;
     }
 
     protected virtual bool ShouldTriggerSchedule(Schedule<TJob, TIdentity> schedule, DateTime now)
     {
-        var shouldTrigger = schedule.TriggerDate <= now;
+        bool shouldTrigger = schedule.TriggerDate <= now;
 
         return shouldTrigger;
     }
@@ -252,9 +254,9 @@ public class JobScheduler<TJobScheduler, TJob, TIdentity> : ReceivePersistentAct
             Scheduled<TJob, TIdentity> scheduled => State.AddEntry(scheduled.Entry),
             Finished<TJob, TIdentity> completed => State.RemoveEntry(completed.JobId),
             Cancelled<TJob, TIdentity> cancelled => State.RemoveEntry(cancelled.JobId),
-            _ => throw new ArgumentException(nameof(schedulerEvent))
+            _ => throw new ArgumentException("Invalid Event Type", nameof(schedulerEvent)),
         };
-            
+
         Context.System.EventStream.Publish(schedulerEvent);
     }
 

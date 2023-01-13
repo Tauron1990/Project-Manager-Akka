@@ -1,46 +1,47 @@
 ﻿using MudBlazor;
 using MudBlazor.Services;
 using ReactiveUI;
+using SimpleProjectManager.Client.Shared.ViewModels;
+using SimpleProjectManager.Client.Shared.ViewModels.Devices;
+using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using SimpleProjectManager.Client.ViewModels;
+using SimpleProjectManager.Client.ViewModels.Devices;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
-using Tauron.Application;
+using Tauron;
 
 namespace SimpleProjectManager.Client;
 
-public class ServiceRegistrar
+#pragma warning disable GU0011
+
+public static class ServiceRegistrar
 {
     public static void RegisterServices(IServiceCollection services)
     {
         services.UseMicrosoftDependencyResolver(); //Splat config
-        var resolver = Locator.CurrentMutable;
+        IMutableDependencyResolver resolver = Locator.CurrentMutable;
         resolver.InitializeSplat();
         resolver.InitializeReactiveUI();
 
+        services.RegisterModule<ViewModelModule>();
+
         services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
-        services.AddSingleton<IEventAggregator, EventAggregator>();
-        services.AddTransient<PageNavigation>();
-        services.AddTransient<UploadTransaction>();
-        
-        services.AddSingleton<JobsViewModel>();
-        services.AddScoped<FileDetailDisplayViewModel>();
-        services.AddScoped<JobDetailDisplayViewModel>();
-        services.AddScoped<JobPriorityViewModel>();
-        services.AddScoped<JobSidebarViewModel>();
-        services.AddScoped<CurrentJobsViewModel>();
 
-        services.AddScoped<EditJobViewModel>();
-        services.AddScoped<JobEditorViewModel>();
-        services.AddScoped<FileUploaderViewModel>();
-        services.AddScoped<NewJobViewModel>();
-        services.AddScoped<NewJobViewModel>();
-        services.AddScoped<DashboardViewModel>();
+        services.AddTransient<FileDetailDisplayViewModel>();
+        services.AddTransient<JobPriorityViewModel>();
 
-        services.AddScoped<CriticalErrorsViewModel>();
-        services.AddScoped<CriticalErrorViewModel>();
+        services.AddTransient<JobEditorViewModel>();
+        services.AddTransient<JobEditorViewModelBase>(s => s.GetRequiredService<JobEditorViewModel>());
 
-        services.AddScoped<PendingTaskDisplayViewModel>();
+        services.AddTransient<FileUploaderViewModel>();
+        services.AddTransient<FileUploaderViewModelBase>(s => s.GetRequiredService<FileUploaderViewModel>());
 
-        services.AddScoped<FileManagerViewModel>();
+        services.AddTransient<CriticalErrorViewModel>();
+
+        services.AddTransient<DeviceDisplayViewModel>();
+        services.AddTransient<DevicesViewModel>();
+        services.AddTransient<SingleSensorViewModel>();
+        services.AddTransient<SingleButtonViewModel>();
+        services.AddTransient<LogsDisplayViewModel>();
     }
 }

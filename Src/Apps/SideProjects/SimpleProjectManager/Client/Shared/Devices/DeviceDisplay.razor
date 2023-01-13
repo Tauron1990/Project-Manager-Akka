@@ -1,0 +1,21 @@
+﻿@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.Devices.DeviceDisplayViewModel>
+
+@if(ToDisplay is null)
+{
+    <CenterElement>
+        <MudText>Kein Maschiene Ausgewählt</MudText>
+    </CenterElement>
+}
+else
+{
+    <StateAwaiter State="ViewModel?.Ui">
+        <MudTabs Rounded="true" Elevation="2" PanelClass="pa-6">
+            <MudTabPanel Text="Steuerung">
+                <UIGroupDisplay UiGroup="context.UI" ShowCategory="false" DeviceId="context.Id"/>
+            </MudTabPanel>
+            <MudTabPanel Text="Logs">
+                <LogsDisplay DeviceId="context.Id"/>
+            </MudTabPanel>
+        </MudTabs>
+    </StateAwaiter>
+}

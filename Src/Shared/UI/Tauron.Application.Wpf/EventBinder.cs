@@ -36,15 +36,15 @@ public static class EventBinder
 
     private static void OnEventsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (DesignerProperties.GetIsInDesignMode(d)) return;
+        if(DesignerProperties.GetIsInDesignMode(d)) return;
 
-        var ele = ElementMapper.Create(d);
+        IUIObject ele = ElementMapper.Create(d);
         var rootOption = ControlBindLogic.FindRoot(ele.AsOption());
         rootOption.Run(
             root => BindInternal(e.OldValue as string, e.NewValue as string, root, ele),
             () =>
             {
-                if (d is FrameworkElement)
+                if(d is FrameworkElement)
                     ControlBindLogic.MakeLazy(
                         (IUIElement)ele,
                         e.NewValue as string,
@@ -57,10 +57,10 @@ public static class EventBinder
         string? oldValue, string? newValue, IBinderControllable binder,
         IUIObject affectedPart)
     {
-        if (oldValue != null)
+        if(oldValue != null)
             binder.CleanUp(EventBinderPrefix + oldValue);
 
-        if (newValue == null) return;
+        if(newValue == null) return;
 
         binder.Register(EventBinderPrefix + newValue, new EventLinker { Commands = newValue }, affectedPart);
     }
@@ -75,13 +75,13 @@ public static class EventBinder
         protected override void CleanUp()
         {
             Log.Debug("Clean Up Event {Events}", Commands);
-            foreach (var linker in _linkers) linker.Dispose();
+            foreach (InternalEventLinker linker in _linkers) linker.Dispose();
             _linkers.Clear();
         }
 
         protected override void Bind(object context)
         {
-            if (Commands is null)
+            if(Commands is null)
             {
                 Log.Error("EventBinder: No Command Setted: {Context}", context);
 
@@ -90,7 +90,7 @@ public static class EventBinder
 
             Log.Debug("Bind Events {Name}", Commands);
 
-            var vals = Commands.Split(':');
+            string[] vals = Commands.Split(':');
             var events = new Dictionary<string, string>();
 
             try
@@ -102,16 +102,16 @@ public static class EventBinder
                 Log.Error("EventBinder: EventPairs not Valid: {Commands}", Commands);
             }
 
-            var host = AffectedObject;
+            IUIObject host = AffectedObject;
 
-            if (context is not IViewModel dataContext) return;
+            if(context is not IViewModel dataContext) return;
 
-            var hostType = host.Object.GetType();
+            Type hostType = host.Object.GetType();
 
-            foreach (var (@event, command) in events)
+            foreach ((string @event, string command) in events)
             {
-                var info = hostType.GetEvent(@event);
-                if (info is null)
+                EventInfo? info = hostType.GetEvent(@event);
+                if(info is null)
                 {
                     Log.Error("EventBinder: No event Found: {HostType}|{Key}", hostType, @event);
 
@@ -158,7 +158,7 @@ public static class EventBinder
             {
                 InternalLog.Debug("Remove Event Handler {Name}", _targetName);
 
-                if (_host == null || _delegate == null) return;
+                if(_host == null || _delegate == null) return;
 
                 _event?.RemoveEventHandler(_host, _delegate);
                 _delegate = null;
@@ -166,13 +166,13 @@ public static class EventBinder
 
             private bool EnsureCommandStade()
             {
-                if (_command != null) return true;
+                if(_command != null) return true;
 
                 _command = d =>
                            {
                                void Invoker() => _dataContext.Actor.Tell(new ExecuteEventEvent(d, _targetName));
 
-                               if (_dataContext.IsInitialized)
+                               if(_dataContext.IsInitialized)
                                    Invoker();
                                else
                                    _dataContext.AwaitInit(Invoker);
@@ -186,7 +186,7 @@ public static class EventBinder
             [UsedImplicitly]
             private void Handler(object sender, EventArgs e)
             {
-                if (!_isDirty && !EnsureCommandStade())
+                if(!_isDirty && !EnsureCommandStade())
                 {
                     Dispose();
 
@@ -207,11 +207,11 @@ public static class EventBinder
             {
                 InternalLog.Debug("Initialize Event Handler {Name}", _targetName);
 
-                if (_isDirty || _event == null) return;
+                if(_isDirty || _event == null) return;
 
-                var eventTyp = _event?.EventHandlerType;
+                Type? eventTyp = _event?.EventHandlerType;
 
-                if (_host == null || eventTyp == null) return;
+                if(_host == null || eventTyp == null) return;
 
                 _delegate = Delegate.CreateDelegate(eventTyp, this, Method);
                 _event?.AddEventHandler(_host, _delegate);

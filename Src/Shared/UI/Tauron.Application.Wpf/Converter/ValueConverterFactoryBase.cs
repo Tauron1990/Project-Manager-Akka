@@ -56,14 +56,14 @@ public abstract class ValueConverterFactoryBase : MarkupExtension
         public virtual object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             //if (value is TDest && typeof(TSource) != typeof(TDest)) return value;
-            if (value is not TSource source) return null;
+            if(value is not TSource source) return null;
 
             return Convert(source);
         }
 
         public virtual object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!CanConvertBack || value is not TDest dest) return null;
+            if(!CanConvertBack || value is not TDest dest) return null;
 
             return ConvertBack(dest);
         }

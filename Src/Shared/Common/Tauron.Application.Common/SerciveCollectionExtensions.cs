@@ -30,25 +30,25 @@ public static class SerciveCollectionExtensions
 {
     public static IServiceCollection ScanModules(this IServiceCollection collection, IEnumerable<Assembly> assemblies)
     {
-        foreach (var module in from lib in assemblies
-                               from type in lib.ExportedTypes
-                               where type.IsAssignableTo(typeof(IModule))
-                               let inst = TryActivate(type)
-                               where inst is not null
-                               select inst)
-        {
+        foreach (IModule? module in from lib in assemblies
+                                    from type in lib.ExportedTypes
+                                    where type.IsAssignableTo(typeof(IModule))
+                                    let inst = TryActivate(type)
+                                    where inst is not null
+                                    select inst)
             module.Load(collection);
-        }
 
         return collection;
     }
-    
+
     public static IServiceCollection ScanModules(this IServiceCollection collection, Predicate<Assembly>? predicate = null)
-        => ScanModules(collection, from lib in DependencyContext.Default.RuntimeLibraries
-                                   from name in lib.GetDefaultAssemblyNames(DependencyContext.Default)
-                                   let assembly = TryLoad(name)
-                                   where assembly is not null && (predicate?.Invoke(assembly) ?? true)
-                                   select assembly);
+        => ScanModules(
+            collection,
+            from lib in DependencyContext.Default.RuntimeLibraries
+            from name in lib.GetDefaultAssemblyNames(DependencyContext.Default)
+            let assembly = TryLoad(name)
+            where assembly is not null && (predicate?.Invoke(assembly) ?? true)
+            select assembly);
 
     private static IModule? TryActivate(Type type)
     {
@@ -57,7 +57,7 @@ public static class SerciveCollectionExtensions
             return Activator.CreateInstance(type) as IModule;
         }
         catch (Exception e) when (
-                e is ArgumentException or NotSupportedException or TargetInvocationException
+            e is ArgumentException or NotSupportedException or TargetInvocationException
                 or MethodAccessException or MemberAccessException or MissingMethodException)
         {
             return null;
@@ -70,15 +70,15 @@ public static class SerciveCollectionExtensions
         {
             return Assembly.Load(name);
         }
-        catch (Exception e) when(e is ArgumentException or FileNotFoundException or FileLoadException or BadImageFormatException)
+        catch (Exception e) when (e is ArgumentException or FileNotFoundException or FileLoadException or BadImageFormatException)
         {
             return null;
         }
     }
-    
+
     public static IServiceCollection RegisterModule<TModule>(this IServiceCollection collection)
-        where TModule : class, IModule
-        => RegisterModule(collection, Activator.CreateInstance<TModule>());
+        where TModule : class, IModule, new()
+        => RegisterModule(collection, new TModule());
 
     public static IServiceCollection RegisterModule(this IServiceCollection collection, IModule module)
     {
@@ -86,7 +86,14 @@ public static class SerciveCollectionExtensions
 
         return collection;
     }
-    
+
+    public static IServiceCollection RegisterModules(this IServiceCollection collection, params IModule[] modules)
+    {
+        foreach (var module in modules) module.Load(collection);
+
+        return collection;
+    }
+
     public static IServiceCollection WhenNotRegistered<TService>(this IServiceCollection collection, Action<IServiceCollection> register)
     {
         if(collection.Any(s => s.ServiceType == typeof(TService))) return collection;

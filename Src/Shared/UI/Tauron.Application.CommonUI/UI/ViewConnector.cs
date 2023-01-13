@@ -25,11 +25,11 @@ public sealed class ViewConnector : ModelConnectorBase<ViewConnector>
 
     protected override void PropertyChangedHandler(PropertyChangedEvent obj)
     {
-        if (View == null) return;
+        if(View == null) return;
 
         var converter = new ViewModelConverter();
 
-        if (obj is not { Value: IViewModel viewModel }) return;
+        if(obj is not { Value: IViewModel viewModel }) return;
 
         var viewTask = _dispatcher.InvokeAsync(() => converter.Convert(viewModel) as IView);
 

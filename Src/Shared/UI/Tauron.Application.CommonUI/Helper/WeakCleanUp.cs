@@ -1,91 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
-using Akka.Util;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.CommonUI.Helper;
-
-[PublicAPI]
-public sealed class WeakDelegate : IInternalWeakReference, IEquatable<WeakDelegate>
-{
-    private readonly MethodInfo _method;
-
-    private readonly WeakReference? _reference;
-
-    public WeakDelegate(Delegate @delegate)
-    {
-        _method = @delegate.Method;
-
-        if (!_method.IsStatic) _reference = new WeakReference(@delegate.Target);
-    }
-
-    public WeakDelegate(MethodInfo methodInfo, object target)
-    {
-        _method = methodInfo;
-        _reference = new WeakReference(target);
-    }
-
-    public bool Equals(WeakDelegate? other)
-    {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
-
-        return other._reference?.Target == _reference?.Target && other._method == _method;
-    }
-
-    public bool IsAlive => _reference == null || _reference.IsAlive;
-
-    public static bool operator ==(WeakDelegate? left, WeakDelegate? right)
-    {
-        var leftnull = ReferenceEquals(left, null);
-        var rightNull = ReferenceEquals(right, null);
-
-        return !leftnull ? left!.Equals(right!) : rightNull;
-    }
-
-    public static bool operator !=(WeakDelegate? left, WeakDelegate? right)
-    {
-        var leftnull = ReferenceEquals(left, null);
-        var rightNull = ReferenceEquals(right, null);
-
-        if (!leftnull) return !left!.Equals(right!);
-
-        return !rightNull;
-    }
-
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(null, obj)) return false;
-        if (ReferenceEquals(this, obj)) return true;
-
-        return obj is WeakDelegate @delegate && Equals(@delegate);
-    }
-
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            var target = _reference?.Target;
-
-            return ((target != null ? target.GetHashCode() : 0) * 397)
-                 ^ _method.GetHashCode();
-        }
-    }
-
-    public Option<object> Invoke(params object[] parms)
-    {
-        if (_method.IsStatic)
-            return _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(null, parms).OptionNotNull();
-
-        var target = _reference?.Target;
-
-        return target == null
-            ? Option<object>.None
-            : _method.GetMethodInvoker(() => _method.GetParameterTypes()).Invoke(target, parms).OptionNotNull();
-    }
-}
 
 [PublicAPI]
 public static class WeakCleanUp
@@ -106,7 +24,7 @@ public static class WeakCleanUp
 
     private static List<WeakDelegate> Initialize()
     {
-        _timer = new Timer(InvokeCleanUp, null, TimeSpan.Zero, TimeSpan.FromMinutes(15));
+        _timer = new Timer(InvokeCleanUp, state: null, TimeSpan.Zero, TimeSpan.FromMinutes(15));
 
         return new List<WeakDelegate>();
     }
@@ -117,9 +35,7 @@ public static class WeakCleanUp
         {
             var dead = new List<WeakDelegate>();
             foreach (var weakDelegate in Actions.ToArray())
-            {
                 InvokeDelegate(weakDelegate, dead);
-            }
 
             dead.ForEach(del => Actions.Remove(del));
         }
@@ -138,7 +54,7 @@ public static class WeakCleanUp
                 }
                 catch (Exception e)
                 {
-                    if (e.IsCriticalException()) throw;
+                    if(e.IsCriticalException()) throw;
                 }
 
                 break;

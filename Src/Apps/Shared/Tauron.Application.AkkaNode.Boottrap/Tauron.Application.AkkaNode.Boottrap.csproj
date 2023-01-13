@@ -1,10 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <AssemblyName>Tauron.Application.AkkaNode.Bootstrap</AssemblyName>
         <RootNamespace>Tauron.Application.AkkaNode.Bootstrap</RootNamespace>
+        <LangVersion>11</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <NoWarn>1701;1702;EPS02</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <NoWarn>1701;1702;EPS02</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,14 +21,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="base.conf">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.31" />
+        <PackageReference Include="Akka.Cluster.Hosting" Version="1.0.1" />
+        <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.48" />
+        <PackageReference Include="Akka.Hosting" Version="1.0.1" />
         <PackageReference Include="Akka.Logger.NLog" Version="1.4.10" />
+        <PackageReference Include="Akka.Serialization.Hyperion" Version="1.4.48" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -28,7 +34,11 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="2.0.0">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -38,7 +48,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
-        <ProjectReference Include="..\Servicemnager.Networking\Servicemnager.Networking.csproj" />
+        <ProjectReference Include="..\..\..\Test\NetworkTest\Tauron.Servicemnager.Networking\Tauron.Servicemnager.Networking.csproj" />
         <ProjectReference Include="..\Tauron.Application.Master.Commands\Tauron.Application.Master.Commands.csproj" />
     </ItemGroup>
 

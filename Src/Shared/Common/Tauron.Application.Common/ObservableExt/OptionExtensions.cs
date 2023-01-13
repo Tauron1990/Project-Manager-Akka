@@ -12,7 +12,7 @@ public static class OptionExtensions
 {
     public static Option<TSource> Where<TSource>(this Option<TSource> source, Func<TSource, bool> predicate)
     {
-        if (predicate is null)
+        if(predicate is null)
             throw new ArgumentNullException(nameof(predicate));
 
         return source.FlatSelect(sourceValue => predicate(sourceValue) ? sourceValue.AsOption() : Option<TSource>.None);
@@ -20,7 +20,7 @@ public static class OptionExtensions
 
     public static Option<TResult> Select<TSource, TResult>(this Option<TSource> source, Func<TSource, TResult> selector)
     {
-        if (selector is null)
+        if(selector is null)
             throw new ArgumentNullException(nameof(selector));
 
         return source.Select(selector);
@@ -29,10 +29,10 @@ public static class OptionExtensions
     public static Option<TResult> SelectMany<TSource, TCollection, TResult>(
         this Option<TSource> source, Func<TSource, Option<TCollection>> optionSelector, Func<TSource, TCollection, TResult> resultSelector)
     {
-        if (optionSelector is null)
+        if(optionSelector is null)
             throw new ArgumentNullException(nameof(optionSelector));
 
-        if (resultSelector is null)
+        if(resultSelector is null)
             throw new ArgumentNullException(nameof(resultSelector));
 
         return source.FlatSelect(sourceValue => optionSelector(sourceValue).Select(collection => resultSelector(sourceValue, collection)));
@@ -41,10 +41,10 @@ public static class OptionExtensions
     public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(
         this IObservable<TSource> source, Func<TSource, Option<TCollection>> optionSelector, Func<TSource, TCollection, TResult> resultSelector)
     {
-        if (optionSelector == null)
+        if(optionSelector == null)
             throw new ArgumentNullException(nameof(optionSelector));
 
-        if (resultSelector == null)
+        if(resultSelector == null)
             throw new ArgumentNullException(nameof(resultSelector));
 
         return from sourceInst in source
@@ -59,10 +59,10 @@ public static class OptionExtensions
     public static IEnumerable<TResult> SelectMany<TSource, TCollection, TResult>(
         this IEnumerable<TSource> source, Func<TSource, Option<TCollection>> optionSelector, Func<TSource, TCollection, TResult> resultSelector)
     {
-        if (optionSelector is null)
+        if(optionSelector is null)
             throw new ArgumentNullException(nameof(optionSelector));
 
-        if (resultSelector is null)
+        if(resultSelector is null)
             throw new ArgumentNullException(nameof(resultSelector));
 
         return from sourceInst in source
@@ -74,7 +74,7 @@ public static class OptionExtensions
 
     public static void Run<TType>(this ref Option<TType> option, Action<TType> onSuccess, Action onEmpty)
     {
-        if (option.HasValue)
+        if(option.HasValue)
             onSuccess(option.Value);
         else
             onEmpty();
@@ -82,7 +82,7 @@ public static class OptionExtensions
 
     public static void OnEmpty<TType>(this Option<TType> option, Action onEmpty)
     {
-        if (!option.HasValue)
+        if(!option.HasValue)
             onEmpty();
     }
 
@@ -99,7 +99,7 @@ public static class OptionExtensions
             => _option.FlatSelect(
                 type =>
                 {
-                    if (type is TResult result)
+                    if(type is TResult result)
                         return result.AsOption();
 
                     return Option<TResult>.None;

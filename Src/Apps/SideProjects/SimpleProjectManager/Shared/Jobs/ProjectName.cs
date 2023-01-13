@@ -1,17 +1,19 @@
-﻿using Akkatecture.ValueObjects;
+﻿using System.Globalization;
+using Akkatecture.ValueObjects;
 
 namespace SimpleProjectManager.Shared;
 
+#pragma warning disable MA0097
 public sealed class ProjectName : SingleValueObject<string>
+    #pragma warning restore MA0097
 {
+    public static readonly ProjectName Empty = new(string.Empty);
     public ProjectName(string value) : base(NormalizeName(value)) { }
 
     private static string NormalizeName(string input)
     {
-        var result = input.ToUpper();
+        string result = input.ToUpper(CultureInfo.InvariantCulture);
 
-        return result.StartsWith("BM") ? result : input;
+        return result.StartsWith("BM", StringComparison.Ordinal) ? result : input;
     }
-
-    public static readonly ProjectName Empty = new(string.Empty);
 }

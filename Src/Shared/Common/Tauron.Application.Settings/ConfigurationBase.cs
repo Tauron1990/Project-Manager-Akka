@@ -20,14 +20,12 @@ public abstract class ConfigurationBase : ObservableObject
 
     private bool _isBlocked;
 
-    protected ILogger Logger { get; }
-    
     protected ConfigurationBase(IDefaultActorRef<SettingsManager> actor, string scope, ILogger logger)
     {
         _actor = actor;
         Logger = logger;
 
-        if (actor is EmptyActor<SettingsManager>)
+        if(actor is EmptyActor<SettingsManager>)
         {
             _scope = string.Empty;
             _loader = Task.CompletedTask;
@@ -35,9 +33,11 @@ public abstract class ConfigurationBase : ObservableObject
         else
         {
             _scope = scope;
-            _loader = Task.Run(async () => await LoadValues());
+            _loader = Task.Run(async () => await LoadValues().ConfigureAwait(false));
         }
     }
+
+    protected ILogger Logger { get; }
 
     public IDisposable BlockSet()
     {
@@ -47,7 +47,7 @@ public abstract class ConfigurationBase : ObservableObject
     }
 
     private async Task LoadValues()
-        => _dic = await _actor.Ask<ImmutableDictionary<string, string>>(new RequestAllValues(_scope));
+        => _dic = await _actor.Ask<ImmutableDictionary<string, string>>(new RequestAllValues(_scope)).ConfigureAwait(false);
 
     protected TValue? GetValue<TValue>(Func<string, TValue> converter, TValue? defaultValue = default, [CallerMemberName] string? name = null)
     {
@@ -55,9 +55,9 @@ public abstract class ConfigurationBase : ObservableObject
         {
             _loader.Wait();
 
-            if (string.IsNullOrEmpty(name)) return default!;
+            if(string.IsNullOrEmpty(name)) return default!;
 
-            return _dic.TryGetValue(name, out var value) ? converter(value) : defaultValue;
+            return _dic.TryGetValue(name, out string? value) ? converter(value) : defaultValue;
         }
         catch (Exception e)
         {
@@ -69,10 +69,10 @@ public abstract class ConfigurationBase : ObservableObject
 
     protected void SetValue(string value, [CallerMemberName] string? name = null)
     {
-        if (_isBlocked)
+        if(_isBlocked)
             return;
 
-        if (string.IsNullOrEmpty(name)) return;
+        if(string.IsNullOrEmpty(name)) return;
 
         _dic = _dic.SetItem(value, name);
 

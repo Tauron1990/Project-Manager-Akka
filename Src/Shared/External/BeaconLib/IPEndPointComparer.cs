@@ -12,12 +12,12 @@ namespace BeaconLib
         {
             int RunCompare()
             {
-                if (secund is null)
+                if(secund is null)
                     return 1;
 
-                var compare = string.Compare(first.Address.ToString(), secund.Address.ToString(), StringComparison.Ordinal);
+                int compare = string.Compare(first.Address.ToString(), secund.Address.ToString(), StringComparison.Ordinal);
 
-                if (compare != 0) return compare;
+                if(compare != 0) return compare;
 
                 return secund.Port - first.Port;
             }

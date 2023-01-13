@@ -31,7 +31,7 @@ public sealed class SettingFile : ReceiveActor
     {
         try
         {
-            if (!_isLoaded)
+            if(!_isLoaded)
             {
                 _log.Info("Load Settings Value");
                 _data = _provider.Load();

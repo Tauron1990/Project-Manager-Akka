@@ -1,6 +1,5 @@
 ﻿using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Akka.Actor;
 using Akka.Actor.Internal;
 using JetBrains.Annotations;
@@ -24,21 +23,21 @@ public sealed class ActorScheduler : LocalScheduler
 
     public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime, Func<IScheduler, TState, IDisposable> action)
     {
-        var target = Scheduler.Normalize(dueTime);
+        TimeSpan target = Scheduler.Normalize(dueTime);
 
         SingleAssignmentDisposable disposable = new();
 
         void TryRun()
         {
-            if (disposable.IsDisposed) return;
+            if(disposable.IsDisposed) return;
 
             disposable.Disposable = action(this, state);
         }
 
-        if (target == TimeSpan.Zero)
+        if(target == TimeSpan.Zero)
         {
-            var currentCell = InternalCurrentActorCellKeeper.Current;
-            if (currentCell != null && currentCell.Self.Equals(_targetActor))
+            ActorCell? currentCell = InternalCurrentActorCellKeeper.Current;
+            if(currentCell != null && currentCell.Self.Equals(_targetActor))
                 TryRun();
             else
                 _targetActor.Tell(new ObservableActor.TransmitAction(TryRun));
@@ -61,13 +60,4 @@ public sealed class ActorScheduler : LocalScheduler
 
         return disposable;
     }
-}
-
-public static class ActorSchedulerExtensions
-{
-    public static IObservable<TType> ObserveOnSelf<TType>(this IObservable<TType> observable)
-        => observable.ObserveOn(ActorScheduler.CurrentSelf);
-
-    public static IObservable<TType> ObserveOn<TType>(this IObservable<TType> observable, IActorRef target)
-        => observable.ObserveOn(ActorScheduler.From(target));
 }

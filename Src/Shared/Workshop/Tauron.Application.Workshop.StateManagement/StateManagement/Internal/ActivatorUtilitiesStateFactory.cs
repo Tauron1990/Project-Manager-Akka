@@ -8,6 +8,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal;
 public sealed class ActivatorUtilitiesStateFactory : IStateInstanceFactory
 {
     public int Order => int.MaxValue - 1;
+
     public bool CanCreate(Type state)
         => true;
 

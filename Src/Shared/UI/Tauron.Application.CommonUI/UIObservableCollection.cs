@@ -26,27 +26,27 @@ public class UIObservableCollection<TType> : ObservableCollection<TType>
 
     public void AddRange(IEnumerable<TType> enumerable)
     {
-        if (enumerable == null) throw new ArgumentNullException(nameof(enumerable));
+        if(enumerable == null) throw new ArgumentNullException(nameof(enumerable));
 
-        foreach (var item in enumerable) Add(item);
+        foreach (TType item in enumerable) Add(item);
     }
 
     public IDisposable BlockChangedMessages() => new DispoableBlocker(this);
 
     protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
     {
-        if (_isBlocked) return;
+        if(_isBlocked) return;
 
-        if (InternalUISynchronize.CheckAccess())
+        if(InternalUISynchronize.CheckAccess())
             base.OnCollectionChanged(e);
         InternalUISynchronize.Post(() => base.OnCollectionChanged(e));
     }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
-        if (_isBlocked) return;
+        if(_isBlocked) return;
 
-        if (InternalUISynchronize.CheckAccess()) base.OnPropertyChanged(e);
+        if(InternalUISynchronize.CheckAccess()) base.OnPropertyChanged(e);
         else InternalUISynchronize.Post(() => base.OnPropertyChanged(e));
     }
 

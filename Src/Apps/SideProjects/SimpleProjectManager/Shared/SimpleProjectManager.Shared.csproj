@@ -1,23 +1,57 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <PublishTrimmed>false</PublishTrimmed>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <PublishTrimmed>false</PublishTrimmed>
+        <LangVersion>11</LangVersion>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="10.3.6" />
-    <PackageReference Include="Stl.Fusion" Version="2.2.6" />
-    <PackageReference Include="Stl.Fusion.Client" Version="2.2.6" />
-  </ItemGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <NoWarn>1701;1702;MA0097</NoWarn>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture\Akkatecture.csproj" />
-  </ItemGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <NoWarn>1701;1702;MA0097</NoWarn>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <SupportedPlatform Include="browser" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="AutoFixture.Community.ImmutableCollections" Version="1.0.0" />
+        <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="ErrorProne.NET.Structs" Version="0.1.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="FluentValidation" Version="11.4.0" />
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="RestEase" Version="1.6.1" />
+        <PackageReference Include="RestEase.SourceGenerator" Version="1.6.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
+        <PackageReference Include="Stl.Fusion.Client" Version="4.2.4" />
+        <PackageReference Include="System.Text.Json" Version="7.0.1" />
+        <PackageReference Include="Vogen" Version="3.0.9" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <SupportedPlatform Include="browser" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
+    </ItemGroup>
 </Project>

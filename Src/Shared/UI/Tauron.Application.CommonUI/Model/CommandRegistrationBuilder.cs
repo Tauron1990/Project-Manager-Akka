@@ -84,13 +84,13 @@ public sealed class CommandRegistrationBuilder
 
     public UIProperty<ICommand>? ThenRegister(string name)
     {
-        if (_command == null) return null;
+        if(_command == null) return null;
 
         var canExec = _canExecute.Count switch
         {
             0 => null,
             1 => _canExecute[0],
-            _ => _canExecute.Select(obs => obs.StartWith(false)).CombineLatest(list => list.All(b => b))
+            _ => _canExecute.Select(obs => obs.StartWith(false)).CombineLatest(list => list.All(b => b)),
         };
 
         return _register(name, (Action<object?>)_command, canExec);

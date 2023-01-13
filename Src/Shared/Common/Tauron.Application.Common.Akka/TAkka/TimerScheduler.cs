@@ -13,7 +13,7 @@ public sealed class TimerScheduler : SchedulerBase, IDateTimeOffsetNowTimeProvid
 {
     private static readonly Stopwatch Stopwatch = new();
 
-    private readonly ConcurrentDictionary<string, Registration> _registrations = new();
+    private readonly ConcurrentDictionary<string, Registration> _registrations = new(StringComparer.Ordinal);
     private readonly BlockingCollection<(Action, IDisposable)> _toRun = new();
     private int _isDiposed;
 
@@ -23,7 +23,7 @@ public sealed class TimerScheduler : SchedulerBase, IDateTimeOffsetNowTimeProvid
         Task.Factory.StartNew(
             () =>
             {
-                foreach (var action in _toRun.GetConsumingEnumerable())
+                foreach ((Action, IDisposable) action in _toRun.GetConsumingEnumerable())
                     try
                     {
                         action.Item1();
@@ -82,11 +82,11 @@ public sealed class TimerScheduler : SchedulerBase, IDateTimeOffsetNowTimeProvid
 
     private void AddGeneric(Action runner, TimeSpan delay, TimeSpan interval, ICancelable? cancelable)
     {
-        if (_isDiposed == 1) return;
+        if(_isDiposed == 1) return;
 
         var id = Guid.NewGuid().ToString();
 
-        if (_registrations.ContainsKey(id))
+        if(_registrations.ContainsKey(id))
             throw new InvalidOperationException("Guid Duplicate key in Scheduler");
 
         var dispoise = new Disposer();
@@ -96,7 +96,7 @@ public sealed class TimerScheduler : SchedulerBase, IDateTimeOffsetNowTimeProvid
             {
                 try
                 {
-                    if (_toRun.IsAddingCompleted) return;
+                    if(_toRun.IsAddingCompleted) return;
 
                     _toRun.Add((runner, dispoise));
                 }
@@ -151,7 +151,7 @@ public sealed class TimerScheduler : SchedulerBase, IDateTimeOffsetNowTimeProvid
 
         private void Run(object? state)
         {
-            if (_cancelable?.IsCancellationRequested == true)
+            if(_cancelable?.IsCancellationRequested == true)
             {
                 _timer.Dispose();
                 _remove(_id);

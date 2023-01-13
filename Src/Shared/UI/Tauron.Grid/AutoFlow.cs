@@ -1,11 +1,10 @@
-﻿namespace Tauron.Grid
+﻿namespace Tauron.Grid;
+
+public enum AutoFlow
 {
-    public enum AutoFlow
-    {
-        None,
-        Row,
-        Column,
-        RowDense,
-        ColumnDense
-    }
+    None,
+    Row,
+    Column,
+    RowDense,
+    ColumnDense
 }

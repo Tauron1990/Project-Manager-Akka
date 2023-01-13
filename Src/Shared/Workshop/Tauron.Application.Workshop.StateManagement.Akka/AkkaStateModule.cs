@@ -6,9 +6,11 @@ using Tauron.Application.Workshop.StateManagement.Builder;
 
 namespace Tauron.Application.Workshop.StateManagement.Akka;
 
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces), PublicAPI]
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
+[PublicAPI]
 public class AkkaStateModule : IModule
 {
+    #pragma warning disable GU0011
     public void Load(IServiceCollection collection)
     {
         collection.AddTransient<IStateInstanceFactory, FeatureBasedStateFactory>();

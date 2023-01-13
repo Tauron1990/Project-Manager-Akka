@@ -29,6 +29,7 @@ public abstract class ControlLogicBase<TControl> : IView
         BindLogic = new ControlBindLogic(userControl, model);
 
         // ReSharper disable once VirtualMemberCallInConstructor
+        #pragma warning disable MA0056
         WireUpLoaded();
         // ReSharper disable once VirtualMemberCallInConstructor
         WireUpUnloaded();
@@ -67,7 +68,7 @@ public abstract class ControlLogicBase<TControl> : IView
     {
         Logger.Debug("Control Loaded {Element}", UserControl.GetType());
 
-        if (!Model.IsInitialized)
+        if(!Model.IsInitialized)
         {
             var parentOption = ControlBindLogic.FindParentDatacontext(UserControl);
             parentOption.Run(

@@ -1,0 +1,47 @@
+﻿@inherits NonAutoRenderingView<DevicesViewModel>
+
+@inject ILogger<DeviceDisplay> _Logger
+
+<MudGrid>
+    <ObservableRenderer Observable="ViewModel?.Devices">
+        <ValueRenderer>
+
+            @if(context.Length == 0)
+            {
+                <MudItem lg="4"/>
+                <MudItem lg="4">
+                    <MudAlert Dense="true" Severity="Severity.Info" Variant="Variant.Outlined">Kein Maschienen Gefunden</MudAlert>
+                </MudItem>
+                <MudItem lg="4"/>
+            }
+            else if(context.Length == 1)
+            {
+                SelectedPair = context[0];
+                <MudItem lg="12">
+                    <MudText>@context[0].Name.Value</MudText>
+                </MudItem>
+            }
+            else
+            {
+                <MudItem lg="12">
+                    <MudSelect @bind-Value="SelectedPair" Dense="true">
+                        @foreach (DevicePair? item in context)
+                        {
+                            <MudSelectItem @key="item.Id" Value="item">@item.Name.Value</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            }
+            @if(context.Length == 0)
+            {
+                <MudItem lg="12"/>
+            }
+            else
+            {
+                <MudItem lg="12">
+                    <DeviceDisplay ToDisplay="SelectedPair"/>
+                </MudItem>
+            }
+        </ValueRenderer>
+    </ObservableRenderer>
+</MudGrid>

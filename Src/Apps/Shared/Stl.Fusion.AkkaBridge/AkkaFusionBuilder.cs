@@ -48,6 +48,7 @@ namespace Stl.Fusion.AkkaBridge
                 var clientAccessor = (IServiceAccessor)c.GetRequiredService(serviceAccessorType);
                 var client = clientAccessor.Service;
 
+                
                 // 4. Create Replica Client
                 var replicaProxyGenerator = c.GetRequiredService<IReplicaServiceProxyGenerator>();
                 var replicaProxyType = replicaProxyGenerator.GetProxyType(serviceType, isCommandService);

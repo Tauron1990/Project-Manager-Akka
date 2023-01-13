@@ -1,19 +1,28 @@
 ﻿using System;
 using System.Linq;
 using System.Reactive.Linq;
+using Microsoft.Extensions.Logging;
 using SharpRepository.Repository;
 using Tauron.Application.VirtualFiles;
 using Tauron.Features;
 
 namespace Tauron.Application.AkkaNode.Services.CleanUp;
 
-public sealed class CleanUpOperator : ActorFeatureBase<CleanUpOperator.State>
+public sealed partial class CleanUpOperator : ActorFeatureBase<CleanUpOperator.State>
 {
+    private ILogger _logger = null!;
+
     public static IPreparedFeature New(IRepository<CleanUpTime, string> cleanUp, IRepository<ToDeleteRevision, string> revisions, IDirectory bucket)
         => Feature.Create(() => new CleanUpOperator(), _ => new State(cleanUp, revisions, bucket));
 
+    [LoggerMessage(EventId = 21, Level = LogLevel.Error, Message = "Error on Clean up Database")]
+    private partial void CleanUpError(Exception error);
+
     protected override void ConfigImpl()
-        => Receive<StartCleanUp>(
+    {
+        _logger = Logger;
+
+        Receive<StartCleanUp>(
             obs => obs.Take(1)
                .Select(s => new { s.State, Data = s.State.CleanUp.Get(CleanUpManager.TimeKey) })
                .Where(d => d.Data.Last + d.Data.Interval < DateTime.Now)
@@ -36,7 +45,8 @@ public sealed class CleanUpOperator : ActorFeatureBase<CleanUpOperator.State>
                         batch.Commit();
                     })
                .Finally(() => Context.Stop(Self))
-               .Subscribe(_ => { }, ex => Log.Error(ex, "Error on Clean up Database")));
+               .Subscribe(_ => { }, CleanUpError));
+    }
 
     public sealed record State(IRepository<CleanUpTime, string> CleanUp, IRepository<ToDeleteRevision, string> Revisions, IDirectory Bucked);
 }

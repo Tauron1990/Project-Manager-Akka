@@ -14,7 +14,7 @@ public sealed class WorkDistributorDispatcher : ActorBase
 
     protected override bool Receive(object message)
     {
-        if (message is IDataMutation mutation)
+        if(message is IDataMutation mutation)
         {
             _mutator.PushWork(mutation);
 
@@ -45,7 +45,7 @@ public sealed class WorkDistributorDispatcher : ActorBase
             try
             {
                 Log.Info("Mutation Begin: {Name}", mutation.Name);
-                await mutation.Run();
+                await mutation.Run().ConfigureAwait(false);
                 Log.Info("Mutation Finisht: {Name}", mutation.Name);
             }
             catch (Exception e)

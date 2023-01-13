@@ -32,23 +32,22 @@ public sealed class FileEntry : DataElementBase
 
     public FileEntry Init(string name, MemoryStream stream, ISystemClock clock)
     {
-        if (string.IsNullOrWhiteSpace(name))
+        if(string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Name dhould not be null", nameof(name));
-            
+
         Name = name;
         Data = stream;
-        CreationDate = clock.UtcNow.LocalDateTime;
-        ModifyDate = clock.UtcNow.LocalDateTime; 
-            
+        ModifyDate = clock.UtcNow.LocalDateTime;
+
         return this;
     }
-        
+
     public override void Dispose()
     {
         base.Dispose();
-            
+
         Data?.Dispose();
-            
+
         Data = null;
         Name = string.Empty;
     }

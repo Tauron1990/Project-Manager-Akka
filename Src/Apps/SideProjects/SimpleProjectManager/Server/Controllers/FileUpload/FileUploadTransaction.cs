@@ -1,12 +1,10 @@
-﻿using System.Collections.Concurrent;
-using SimpleProjectManager.Client.ViewModels;
+﻿using SimpleProjectManager.Client.Shared.Data.Files;
+using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Server.Core.Services;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Server.Controllers.FileUpload;
-
-public sealed record FileUploadContext(UploadFiles Files, ConcurrentBag<ProjectFileId> Ids);
 
 public class FileUploadTransaction : SimpleTransaction<FileUploadContext>
 {
@@ -22,23 +20,25 @@ public class FileUploadTransaction : SimpleTransaction<FileUploadContext>
 
     private async ValueTask<Rollback<FileUploadContext>> UploadTempFile(Context<FileUploadContext> transactionContext, IFormFile file)
     {
-        if(file.Length > FileUploaderViewModel.MaxSize)
+        if(file.Length > MaxSize.MaxFileSize)
             throw new InvalidOperationException($"Die Datei {file.FileName} ist zu groß");
-        if (FileUploaderViewModel.AllowedContentTypes.All(s => file.ContentType != s))
+        if(FilesState.AllowedContentTypes.All(s => new FileMime(file.ContentType) != s))
             throw new InvalidOperationException($"Die Datei {file.FileName} kann nicht Hochgeladen werden. Nur Tiff, zip und Pdf sinf erlaubt");
 
-        var ((files, ids), _, token) = transactionContext;
-        
-        var name = file.FileName;
+        #pragma warning disable GU0017
+        ((UploadFiles files, var ids), _, CancellationToken token) = transactionContext;
+        #pragma warning restore GU0017
+
+        string name = file.FileName;
         var projectName = new ProjectName(files.JobName);
-        
-        var id = ProjectFileId.For(projectName, new FileName(name));
 
-        var preRegister = await _contentManager.PreRegisterFile(file.OpenReadStream, id, name, files.JobName, token);
+        ProjectFileId id = ProjectFileId.For(projectName, new FileName(name));
 
-        if (!string.IsNullOrWhiteSpace(preRegister)) throw new InvalidOperationException(preRegister);
+        SimpleResult preRegister = await _contentManager.PreRegisterFile(file.OpenReadStream, id, name, files.JobName, token).ConfigureAwait(false);
 
-        var result = await _fileService.RegisterFile(
+        if(preRegister.IsError()) throw new InvalidOperationException(preRegister.GetErrorString());
+
+        SimpleResult result = await _fileService.RegisterFile(
             new ProjectFileInfo(
                 id,
                 projectName,
@@ -46,12 +46,13 @@ public class FileUploadTransaction : SimpleTransaction<FileUploadContext>
                 new FileSize(file.Length),
                 FileType.OtherFile,
                 new FileMime(file.ContentType)),
-            token);
+            token).ConfigureAwait(false);
 
-        if(!string.IsNullOrWhiteSpace(result))
-            throw new InvalidOperationException(result);
+        if(result.IsError())
+            throw result.GetException();
 
         ids.Add(id);
-        return async _ => await _contentManager.DeleteFile(id, default);
+
+        return async _ => await _contentManager.DeleteFile(id, default).ConfigureAwait(false);
     }
 }

@@ -1,23 +1,9 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Operations;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting.Commands;
-
-public sealed record ApiParameter(TimeSpan Timeout, CancellationToken CancellationToken, Action<string> Messages)
-{
-    public ApiParameter(TimeSpan timeout)
-        : this(timeout, CancellationToken.None, _ => { }) { }
-
-    public ApiParameter(TimeSpan timeout, Action<string> messages)
-        : this(timeout, CancellationToken.None, messages) { }
-
-    public ApiParameter(TimeSpan timeout, CancellationToken token)
-        : this(timeout, token, _ => { }) { }
-}
 
 [PublicAPI]
 public abstract class SenderBase<TThis, TQueryType, TCommandType> : ISender

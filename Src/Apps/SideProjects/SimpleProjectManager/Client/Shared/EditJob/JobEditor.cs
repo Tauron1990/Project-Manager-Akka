@@ -1,9 +1,12 @@
 ﻿using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 using ReactiveUI;
+using SimpleProjectManager.Client.Shared.Data.JobEdit;
+using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using SimpleProjectManager.Client.ViewModels;
-using Tauron.Application.Blazor.Commands;
 using Tauron;
+using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.EditJob;
 
@@ -11,6 +14,7 @@ public partial class JobEditor
 {
     private MudCommandButton? _cancelButton;
     private MudCommandButton? _commitButton;
+    private MudForm? _editorForm;
 
     [Parameter]
     public string Title { get; set; } = string.Empty;
@@ -23,7 +27,7 @@ public partial class JobEditor
 
     [Parameter]
     public bool CanCancel { get; set; }
-    
+
     [Parameter]
     public JobEditorConfiguration Configuration { get; set; } = JobEditorConfiguration.Default;
 
@@ -38,7 +42,7 @@ public partial class JobEditor
     public JobEditorData? Data { get; set; }
 
     [Parameter]
-    public JobEditorViewModel? CustomViewModel { get; set; }
+    public JobEditorViewModelBase? CustomViewModel { get; set; }
 
     private MudCommandButton? CancelButton
     {
@@ -53,19 +57,22 @@ public partial class JobEditor
     }
 
     protected override JobEditorViewModel CreateModel()
-        => CustomViewModel ?? base.CreateModel();
+        => CustomViewModel as JobEditorViewModel ?? base.CreateModel();
 
-    protected override void InitializeModel()
+    protected override void OnAfterRender(bool firstRender)
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                if(ViewModel is null) return;
+        if(firstRender)
+            _editorForm?.Validate();
+        base.OnAfterRender(firstRender);
+    }
 
-                ViewModel.Data?.Changed.Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore()).DisposeWith(dispo);
+    protected override IEnumerable<IDisposable> InitializeModel()
+    {
+        if(ViewModel is null) yield break;
 
-                this.BindCommand(ViewModel, m => m.Cancel, v => v.CancelButton).DisposeWith(dispo);
-                this.BindCommand(ViewModel, m => m.Commit, v => v.CommitButton).DisposeWith(dispo);
-            });
+        yield return ViewModel.Data?.Changed.Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore()) ?? Disposable.Empty;
+
+        yield return this.BindCommand(ViewModel, m => m.Cancel, v => v.CancelButton);
+        yield return this.BindCommand(ViewModel, m => m.Commit, v => v.CommitButton);
     }
 }

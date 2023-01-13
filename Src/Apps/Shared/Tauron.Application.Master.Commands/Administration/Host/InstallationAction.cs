@@ -3,5 +3,5 @@
 public enum InstallationAction
 {
     Install,
-    Uninstall
+    Uninstall,
 }

@@ -8,9 +8,9 @@ namespace Tauron.Application.Workshop.StateManagement.Akka.Builder;
 public sealed class ConsistentHashDispatcherConfiguration : DispatcherPoolConfigurationBase<IConsistentHashDispatcherPoolConfiguration>,
     IConsistentHashDispatcherPoolConfiguration
 {
-    private int? _vNotes;
     private ConsistentHashMapping _mapping = msg => msg.GetHashCode();
-    
+    private int? _vNotes;
+
     public IConsistentHashDispatcherPoolConfiguration WithVirtualNodesFactor(int vnodes)
     {
         _vNotes = vnodes;
@@ -30,8 +30,8 @@ public sealed class ConsistentHashDispatcherConfiguration : DispatcherPoolConfig
 
     private sealed class ActualDispatcher : IStateDispatcherConfigurator
     {
-        private readonly Func<Props, Props>? _custom;
         private readonly ConsistentHashMapping _consistentHashMapping;
+        private readonly Func<Props, Props>? _custom;
         private readonly string? _dispatcher;
         private readonly int _instances;
         private readonly Resizer? _resizer;
@@ -51,25 +51,25 @@ public sealed class ConsistentHashDispatcherConfiguration : DispatcherPoolConfig
             _consistentHashMapping = consistentHashMapping;
         }
 
+        public IDriverFactory Configurate(IDriverFactory factory)
+            => AkkaDriverFactory.Get(factory).CustomMutator(Configurate);
+
         private Props Configurate(Props mutator)
         {
-            var router = new ConsistentHashingPool(_instances)
+            ConsistentHashingPool? router = new ConsistentHashingPool(_instances)
                .WithSupervisorStrategy(_supervisorStrategy)
                .WithHashMapping(_consistentHashMapping);
 
-            if (_resizer != null)
+            if(_resizer != null)
                 router = router.WithResizer(_resizer);
-            if (!string.IsNullOrWhiteSpace(_dispatcher))
+            if(!string.IsNullOrWhiteSpace(_dispatcher))
                 router = router.WithDispatcher(_dispatcher);
-            if (_vNotes != null)
+            if(_vNotes != null)
                 router = router.WithVirtualNodesFactor(_vNotes.Value);
 
             mutator = mutator.WithRouter(router);
 
             return _custom != null ? _custom(mutator) : mutator;
         }
-        
-        public IDriverFactory Configurate(IDriverFactory factory)
-            => AkkaDriverFactory.Get(factory).CustomMutator(Configurate);
     }
 }

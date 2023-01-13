@@ -7,7 +7,7 @@ namespace Tauron.Application.Workshop.StateManagement.Builder;
 public interface IStateInstanceFactory
 {
     int Order { get; }
-    
+
     bool CanCreate(Type state);
 
     IStateInstance? Create<TData>(Type state, IServiceProvider? serviceProvider, ExtendedMutatingEngine<MutatingContext<TData>> dataEngine, IActionInvoker invoker);

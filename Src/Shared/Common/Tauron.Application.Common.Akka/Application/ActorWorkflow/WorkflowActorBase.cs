@@ -6,21 +6,6 @@ using Tauron.Application.Workflow;
 namespace Tauron.Application.ActorWorkflow;
 
 [PublicAPI]
-public abstract class LambdaWorkflowActor<TContext> : WorkflowActorBase<LambdaStep<TContext>, TContext>
-    where TContext : IWorkflowContext
-{
-    protected virtual void WhenStep(
-        StepId id, Action<LambdaStepConfiguration<TContext>> config,
-        Action<StepConfiguration<LambdaStep<TContext>, TContext>>? con = null)
-    {
-        var stepConfig = new LambdaStepConfiguration<TContext>();
-        config.Invoke(stepConfig);
-        var concon = WhenStep(id, stepConfig.Build());
-        con?.Invoke(concon);
-    }
-}
-
-[PublicAPI]
 public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimers
     where TStep : IStep<TContext> where TContext : IWorkflowContext
 {
@@ -50,7 +35,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
 
     protected override bool Receive(object message)
     {
-        if (_running)
+        if(_running)
             return _waiting ? Singnaling(message) : Running(message);
 
         return Initializing(message);
@@ -60,7 +45,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
     {
         try
         {
-            if (msg is TimeoutMarker)
+            if(msg is TimeoutMarker)
             {
                 _errorMessage = "Timeout";
                 Finish(isok: false);
@@ -68,11 +53,11 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
                 return true;
             }
 
-            if (!_signals.TryGetValue(msg.GetType(), out var del)) return false;
+            if(!_signals.TryGetValue(msg.GetType(), out Delegate? del)) return false;
 
             Timers.Cancel(_timeout);
 
-            if (del.DynamicInvoke(RunContext, msg) is not StepId id)
+            if(del.DynamicInvoke(RunContext, msg) is not StepId id)
                 throw new InvalidOperationException("Invalid Call of Signal Delegate");
 
             Self.Tell(new ChainCall(id).WithBase(_lastCall), _starterSender);
@@ -100,7 +85,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
                 return true;
         }
 
-        if (!_starter.TryGetValue(msg.GetType(), out var del)) return false;
+        if(!_starter.TryGetValue(msg.GetType(), out Delegate? del)) return false;
 
         del.DynamicInvoke(msg);
 
@@ -125,7 +110,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
             {
                 ChainCall chain => ProcessChainCall(chain),
                 LoopElement(var stepRev, var chainCall) => ProcessLoopElement(stepRev, chainCall),
-                _ => false
+                _ => false,
             };
         }
         catch (Exception exception)
@@ -140,15 +125,15 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
 
     private bool ProcessLoopElement(StepRev<TStep, TContext> stepRev, ChainCall chainCall)
     {
-        var loopId = stepRev.Step.NextElement(RunContext);
+        StepId loopId = stepRev.Step.NextElement(RunContext);
 
-        if (loopId != StepId.LoopEnd)
+        if(loopId != StepId.LoopEnd)
             Self.Forward(new LoopElement(stepRev, chainCall));
 
-        if (loopId == StepId.LoopContinue)
+        if(loopId == StepId.LoopContinue)
             return true;
 
-        if (loopId.Name == StepId.Fail.Name)
+        if(string.Equals(loopId.Name, StepId.Fail.Name, StringComparison.Ordinal))
         {
             Finish(isok: false);
 
@@ -162,15 +147,15 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
 
     private bool ProcessChainCall(ChainCall chain)
     {
-        var id = chain.Id;
-        if (id == StepId.Fail)
+        StepId id = chain.Id;
+        if(id == StepId.Fail)
         {
             Finish(isok: false);
 
             return true;
         }
 
-        if (!_steps.TryGetValue(id, out var rev))
+        if(!_steps.TryGetValue(id, out var rev))
         {
             Log.Warning("No Step Found {Id}", id.Name);
             _errorMessage = id.Name;
@@ -179,7 +164,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
             return true;
         }
 
-        var sId = rev.Step.OnExecute(RunContext);
+        StepId sId = rev.Step.OnExecute(RunContext);
 
         switch (sId.Name)
         {
@@ -203,7 +188,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
                 break;
             case "Waiting":
                 _waiting = true;
-                if (rev.Step is IHasTimeout { Timeout: { } } timeout)
+                if(rev.Step is IHasTimeout { Timeout: { } } timeout)
                     Timers.StartSingleTimer(_timeout, new TimeoutMarker(), timeout.Timeout.Value);
                 _lastCall = chain;
 
@@ -214,7 +199,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
                 return true;
         }
 
-        if (_running)
+        if(_running)
             Self.Forward(chain.Next());
 
         return true;
@@ -224,25 +209,25 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
     {
         var std = (from con in rev.Conditions
                    let stateId = con.Select(rev.Step, RunContext)
-                   where stateId.Name != StepId.None.Name
+                   where !string.Equals(stateId.Name, StepId.None.Name, StringComparison.Ordinal)
                    select stateId).ToArray();
 
-        if (std.Length != 0)
+        if(std.Length != 0)
         {
             Self.Forward(new ChainCall(std).WithBase(baseCall));
 
             return;
         }
 
-        if (rev.GenericCondition is null)
+        if(rev.GenericCondition is null)
         {
-            if (finish)
+            if(finish)
                 Finish(isok: false);
         }
         else
         {
-            var cid = rev.GenericCondition.Select(rev.Step, RunContext);
-            if (cid.Name != StepId.None.Name)
+            StepId cid = rev.GenericCondition.Select(rev.Step, RunContext);
+            if(!string.Equals(cid.Name, StepId.None.Name, StringComparison.Ordinal))
                 Self.Forward(new ChainCall(cid).WithBase(baseCall));
         }
     }
@@ -256,7 +241,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
     {
         _starterSender = null;
         _running = false;
-        if (isok)
+        if(isok)
             rev?.Step.OnExecuteFinish(RunContext);
         Self.Forward(new WorkflowResult<TContext>(isok, _errorMessage, RunContext));
         RunContext = default!;
@@ -315,16 +300,16 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
 
         internal ChainCall Next()
         {
-            var newPos = Position + 1;
+            int newPos = Position + 1;
 
-            if (newPos == StepIds.Length && BaseCall != null) return BaseCall.Next();
+            if(newPos == StepIds.Length && BaseCall != null) return BaseCall.Next();
 
             return new ChainCall(StepIds, newPos);
         }
 
         internal ChainCall WithBase(ChainCall? call)
         {
-            if (call is null) return this;
+            if(call is null) return this;
 
             call = call.Next();
 

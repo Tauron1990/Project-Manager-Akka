@@ -1,8 +1,8 @@
-﻿namespace Tauron.Application.AkkaNode.Bootstrap.Console;
+﻿namespace Tauron.Application.AkkaNode.Bootstrap;
 
 public enum IpcApplicationType
 {
     Server,
     Client,
-    NoIpc
+    NoIpc,
 }

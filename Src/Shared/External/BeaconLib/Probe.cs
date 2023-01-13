@@ -28,7 +28,7 @@ namespace BeaconLib
 
         private readonly Task _thread;
         private readonly UdpClient _udp = new UdpClient();
-        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(initialState: false, EventResetMode.AutoReset);
+        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(initialState: false, mode: EventResetMode.AutoReset);
         private IEnumerable<BeaconLocation> _currentBeacons = Enumerable.Empty<BeaconLocation>();
 
         private bool _running = true;
@@ -55,7 +55,7 @@ namespace BeaconLib
                 _log.Error(ex, "Error switching on NAT traversal");
             }
 
-            _udp.BeginReceive(ResponseReceived, null);
+            _udp.BeginReceive(ResponseReceived, state: null);
         }
 
         public string BeaconType { get; private set; }
@@ -72,7 +72,7 @@ namespace BeaconLib
             }
         }
 
-        public event Action<IEnumerable<BeaconLocation>>? BeaconsUpdated;
+        public event EventHandler<BeaconUpdatedEventArgs>? BeaconsUpdated;
 
         public void Start()
         {
@@ -86,15 +86,15 @@ namespace BeaconLib
         {
             _log.Info("Incomming Reponse");
             var remote = new IPEndPoint(IPAddress.Any, 0);
-            var bytes = _udp.EndReceive(ar, ref remote);
+            byte[]? bytes = _udp.EndReceive(ar, ref remote);
 
-            var typeBytes = Beacon.Encode(BeaconType);
-            if (Beacon.HasPrefix(bytes, typeBytes))
+            byte[] typeBytes = Beacon.Encode(BeaconType);
+            if(Beacon.HasPrefix(bytes, typeBytes))
                 ProcessResponse(bytes, typeBytes, remote);
             else
                 _log.Info("Incompatiple Data");
 
-            _udp.BeginReceive(ResponseReceived, null);
+            _udp.BeginReceive(ResponseReceived, state: null);
         }
 
         private void ProcessResponse(byte[] bytes, byte[] typeBytes, IPEndPoint remote)
@@ -102,9 +102,9 @@ namespace BeaconLib
             try
             {
                 _log.Info("Processing Response");
-                var portBytes = bytes.Skip(typeBytes.Length).Take(2).ToArray();
+                byte[] portBytes = bytes.Skip(typeBytes.Length).Take(2).ToArray();
                 var port = (ushort)IPAddress.NetworkToHostOrder((short)BitConverter.ToUInt16(portBytes, 0));
-                var payload = Beacon.Decode(bytes.Skip(typeBytes.Length + 2));
+                string payload = Beacon.Decode(bytes.Skip(typeBytes.Length + 2));
                 NewBeacon(new BeaconLocation(new IPEndPoint(remote.Address, port), payload, DateTime.Now));
             }
             catch (Exception exception)
@@ -136,18 +136,18 @@ namespace BeaconLib
             #pragma warning restore AV1710
         {
             _log.Info("Sending Request");
-            var probe = Beacon.Encode(BeaconType).ToArray();
+            byte[] probe = Beacon.Encode(BeaconType).ToArray();
             _udp.Send(probe, probe.Length, new IPEndPoint(IPAddress.Broadcast, Beacon.DiscoveryPort));
         }
 
         private void PruneBeacons()
         {
             _log.Info("Prune Beacons");
-            var cutOff = DateTime.Now - BeaconTimeout;
+            DateTime cutOff = DateTime.Now - BeaconTimeout;
             var oldBeacons = _currentBeacons.ToList();
             var newBeacons = oldBeacons.Where(location => location.LastAdvertised >= cutOff).ToList();
 
-            if (EnumsEqual(oldBeacons, newBeacons)) return;
+            if(EnumsEqual(oldBeacons, newBeacons)) return;
 
             CallBeaconsUpdated(newBeacons);
         }
@@ -155,7 +155,7 @@ namespace BeaconLib
         private void CallBeaconsUpdated(List<BeaconLocation> newBeacons)
         {
             var onBeaconsUpdated = BeaconsUpdated;
-            onBeaconsUpdated?.Invoke(newBeacons);
+            onBeaconsUpdated?.Invoke(this, new BeaconUpdatedEventArgs(newBeacons));
             _currentBeacons = newBeacons;
         }
 
@@ -169,7 +169,7 @@ namespace BeaconLib
                .ThenBy(location => location.Address, IpEndPointComparer.Instance)
                .ToList();
             var onBeaconsUpdated = BeaconsUpdated;
-            onBeaconsUpdated?.Invoke(newBeacons);
+            onBeaconsUpdated?.Invoke(this, new BeaconUpdatedEventArgs(newBeacons));
             _currentBeacons = newBeacons;
         }
 

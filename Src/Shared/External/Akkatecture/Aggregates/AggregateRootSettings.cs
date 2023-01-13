@@ -36,7 +36,7 @@ public class AggregateRootSettings
 
     public AggregateRootSettings(Config config)
     {
-        var aggregateRootConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
+        Config? aggregateRootConfig = config.WithFallback(AkkatectureDefaultSettings.DefaultConfig());
         aggregateRootConfig = aggregateRootConfig.GetConfig(Section);
 
         UseDefaultEventRecover = aggregateRootConfig.GetBoolean("use-default-event-recover");

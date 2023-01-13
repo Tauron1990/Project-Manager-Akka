@@ -4,5 +4,5 @@ public enum NodeType
 {
     Root,
     Directory,
-    File
+    File,
 }

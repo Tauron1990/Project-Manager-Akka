@@ -20,9 +20,9 @@ public static class ManagerBuilderExtensions
             context =>
             {
                 var managerBuilder = new ManagerBuilder(context.GetRequiredService<IDriverFactory>())
-                              {
-                                  ServiceProvider = context
-                              };
+                                     {
+                                         ServiceProvider = context,
+                                     };
 
                 configAction(managerBuilder, context);
 
@@ -83,7 +83,7 @@ public static class ManagerBuilderExtensions
 
     public static ManagerBuilder AddTypes(this ManagerBuilder builder, IDataSourceFactory factory, CreationMetadata? metadata, params Type[] types)
         => AddTypes(builder, factory, metadata, (IEnumerable<Type>)types);
-    
+
     public static ManagerBuilder AddTypes(this ManagerBuilder builder, IDataSourceFactory factory, params Type[] types)
         => AddTypes(builder, factory, null, types);
 }

@@ -44,12 +44,12 @@ public class JobManager<TJobScheduler, TJobRunner, TJob, TIdentity> : ReceiveAct
         Expression<Func<TJobScheduler>> jobSchedulerFactory,
         Expression<Func<TJobRunner>> jobRunnerFactory)
     {
-        var runnerProps = Props.Create(jobRunnerFactory).WithDispatcher(Context.Props.Dispatcher);
-        var schedulerProps = Props.Create(jobSchedulerFactory).WithDispatcher(Context.Props.Dispatcher);
+        Props? runnerProps = Props.Create(jobRunnerFactory).WithDispatcher(Context.Props.Dispatcher);
+        Props? schedulerProps = Props.Create(jobSchedulerFactory).WithDispatcher(Context.Props.Dispatcher);
         var runnerName = $"{Name}-runner";
         var schedulerName = $"{Name}-scheduler";
 
-        var runnerSupervisorProps =
+        Props? runnerSupervisorProps =
             BackoffSupervisor.Props(
                 Backoff.OnFailure(
                     runnerProps,
@@ -59,7 +59,7 @@ public class JobManager<TJobScheduler, TJobRunner, TJob, TIdentity> : ReceiveAct
                     0.2,
                     3)).WithDispatcher(Context.Props.Dispatcher);
 
-        var schedulerSupervisorProps =
+        Props? schedulerSupervisorProps =
             BackoffSupervisor.Props(
                 Backoff.OnFailure(
                     schedulerProps,

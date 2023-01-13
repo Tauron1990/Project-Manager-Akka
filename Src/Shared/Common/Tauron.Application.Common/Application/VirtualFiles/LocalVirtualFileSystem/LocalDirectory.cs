@@ -17,9 +17,9 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
     {
         get
         {
-            if (Context.NoParent) return null;
+            if(Context.NoParent) return null;
 
-            var parent = Context.Data.Parent;
+            DirectoryInfo? parent = Context.Data.Parent;
 
             return parent is null ? null : new LocalDirectory(Context with { Data = parent }, Features);
         }
@@ -27,11 +27,19 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
 
     public override bool Exist => Context.Data.Exists;
     public override string Name => Context.Data.Name;
-    public override IEnumerable<IDirectory> Directories 
+
+    public override IEnumerable<IDirectory> Directories
         => Context.Data.EnumerateDirectories().Select(d => new LocalDirectory(Context with { Data = d, NoParent = false }, Features));
 
     public override IEnumerable<IFile> Files
         => Context.Data.EnumerateFiles().Select(f => new LocalFile(new FileContext(Context.Root, Context.NoParent, f), Features));
+
+    public FileAttributes Attributes
+    {
+        get => Context.Data.Attributes;
+        set => Context.Data.Attributes = value;
+    }
+
     protected override IDirectory GetDirectory(DirectoryContext context, PathInfo name)
         => throw new NotSupportedException("Never called Method");
 
@@ -39,13 +47,13 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         => throw new NotSupportedException("Never called Method");
 
     protected override void Delete(DirectoryContext context)
-        => context.Data.Delete(recursive: true);
+        => context.Data.Delete(true);
 
     protected override IDirectory MovetTo(DirectoryContext context, PathInfo location)
     {
         ValidateSheme(location, LocalFileSystemResolver.SchemeName);
 
-        var target = location.Kind == PathType.Absolute 
+        string target = location.Kind == PathType.Absolute
             ? Path.GetFullPath(location.Path)
             : Path.GetFullPath(context.Root, location.Path);
         Directory.Move(OriginalPath, target);
@@ -55,21 +63,15 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
 
     protected override IFile SplitFilePath(PathInfo name)
     {
-        var target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
+        string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 
         return new LocalFile(new FileContext(Context.Root, Context.NoParent, new FileInfo(target)), Features);
     }
 
     protected override IDirectory SplitDirectoryPath(PathInfo name)
     {
-        var target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
+        string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 
         return new LocalDirectory(Context with { Data = new DirectoryInfo(target), NoParent = false }, Features);
-    }
-
-    public FileAttributes Attributes
-    {
-        get => Context.Data.Attributes;
-        set => Context.Data.Attributes = value;
     }
 }

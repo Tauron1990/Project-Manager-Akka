@@ -6,8 +6,8 @@ public sealed record MultiChange(ImmutableList<MutatingChange> Changes) : Mutati
 {
     public override TChange Cast<TChange>()
     {
-        foreach (var change in Changes)
-            if (change is TChange c)
+        foreach (MutatingChange change in Changes)
+            if(change is TChange c)
                 return c;
 
         return null!;

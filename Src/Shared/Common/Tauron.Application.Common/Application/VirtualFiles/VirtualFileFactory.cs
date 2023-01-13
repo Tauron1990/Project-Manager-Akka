@@ -13,7 +13,7 @@ public sealed class VirtualFileFactory
 {
     public IVirtualFileSystem? TryResolve(PathInfo path, IServiceProvider serviceProvider)
         => ResolverRegistry.TryResolve(path, serviceProvider);
-    
+
     public IVirtualFileSystem InMemory(ISystemClock clock)
         => new InMemoryFileSystem(clock, "mem");
 

@@ -1,17 +1,21 @@
-﻿@inherits ComputedStateComponent<long>
+﻿@using SimpleProjectManager.Client.Shared.Data
+@using SimpleProjectManager.Client.Shared.ViewModels
+@inherits NonAutoRenderingComponent
 
-@inject ICriticalErrorService _errorService
-@inject PageNavigation _navigation
+@inject GlobalState ErrorService
+@inject PageNavigation Navigation
 
-<StateAwaiter State="State">
-    <MudTooltip Text="Aktuelle Kritische Fehler">
-        @if (context == 0)
-        {
-            <MudAlert Severity="Severity.Success">Keine</MudAlert>
-        }
-        else
-        {
-            <MudAlert Severity="Severity.Warning" OnClick="@_navigation.Errors">@context</MudAlert>
-        }
-    </MudTooltip>
-</StateAwaiter>
+<ObservableRenderer Observable="@ErrorService.Errors.ErrorCount">
+    <ValueRenderer>
+        <MudTooltip Text="Aktuelle Kritische Fehler">
+            @if(context == 0)
+            {
+                <MudAlert Severity="Severity.Success">Keine Fehler</MudAlert>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Warning" OnClick="@Navigation.Errors">Fehler: @context</MudAlert>
+            }
+        </MudTooltip>
+    </ValueRenderer>
+</ObservableRenderer>

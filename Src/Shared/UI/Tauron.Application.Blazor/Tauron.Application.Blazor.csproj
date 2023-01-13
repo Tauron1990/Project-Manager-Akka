@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <LangVersion>10</LangVersion>
+        <LangVersion>11</LangVersion>
         <PublishTrimmed>false</PublishTrimmed>
     </PropertyGroup>
 
@@ -22,20 +22,22 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="2.0.0">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.1" />
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-        <PackageReference Include="MongoDB.Driver" Version="2.14.1" />
-        <PackageReference Include="MudBlazor" Version="6.0.2" />
-        <PackageReference Include="ReactiveUI.Blazor" Version="17.1.9" />
-        <PackageReference Include="ReactiveUI.Validation" Version="2.2.1" />
+        <PackageReference Include="MongoDB.Driver" Version="2.18.0" />
+        <PackageReference Include="MudBlazor" Version="6.1.7" />
+        <PackageReference Include="ReactiveUI.Blazor" Version="18.4.1" />
+        <PackageReference Include="ReactiveUI.Validation" Version="3.0.22" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion" Version="2.2.6" />
-        <PackageReference Include="Stl.Fusion.Blazor" Version="2.2.6" />
+        <PackageReference Include="Stl.Fusion.Blazor" Version="4.2.4" />
     </ItemGroup>
 
     <ItemGroup>
@@ -43,20 +45,23 @@
     </ItemGroup>
 
     <ItemGroup>
-      <_ContentIncludedByDefault Remove="InternalComponents\DefaultMessageContent.razor" />
+        <_ContentIncludedByDefault Remove="InternalComponents\DefaultMessageContent.razor" />
     </ItemGroup>
 
-	<ItemGroup>
-      <Compile Update="Wizard\WizardRoot.cs">
-        <DependentUpon>WizardRoot.razor</DependentUpon>
-      </Compile>
-      <Compile Update="ObservableCollectionView.cs">
-        <DependentUpon>ObservableCollectionView.razor</DependentUpon>
-      </Compile>
+    <ItemGroup>
+        <Compile Update="Wizard\WizardRoot.cs">
+            <DependentUpon>WizardRoot.razor</DependentUpon>
+        </Compile>
+        <Compile Update="ObservableCollectionView.cs">
+            <DependentUpon>ObservableCollectionView.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Commands\CommandHelper.cs">
+            <DependentUpon>CommandHelper.razor</DependentUpon>
+        </Compile>
     </ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\..\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\Common\Tauron.Application.Common\Tauron.Application.Common.csproj" />
+    </ItemGroup>
 
 </Project>

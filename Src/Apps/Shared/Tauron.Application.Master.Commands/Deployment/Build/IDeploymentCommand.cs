@@ -2,5 +2,5 @@
 
 public interface IDeploymentCommand
 {
-    string AppName { get; }
+    AppName AppName { get; }
 }

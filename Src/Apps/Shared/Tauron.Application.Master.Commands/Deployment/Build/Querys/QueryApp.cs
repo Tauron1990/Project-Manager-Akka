@@ -2,4 +2,4 @@
 
 namespace Tauron.Application.Master.Commands.Deployment.Build.Querys;
 
-public sealed record QueryApp(string AppName) : DeploymentQueryBase<QueryApp, AppInfo>(AppName);
+public sealed record QueryApp(AppName AppName) : DeploymentQueryBase<QueryApp, AppInfo>(AppName);

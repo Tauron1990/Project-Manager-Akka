@@ -6,7 +6,7 @@ public sealed class IncrementalIntegerIdGenerator : IIdGenerator<long>
 
     public void Initialize(object[]? args)
     {
-        if (args is { Length: 1 })
+        if(args is { Length: 1 })
             _lastId = (long)args[0];
     }
 

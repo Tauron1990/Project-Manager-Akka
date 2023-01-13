@@ -28,7 +28,9 @@ using JetBrains.Annotations;
 namespace Akkatecture.Sagas.SagaTimeouts;
 
 [PublicAPI]
+#pragma warning disable MA0097
 public class SagaTimeoutId : Identity<SagaTimeoutId>, IJobId
+    #pragma warning restore MA0097
 {
     public SagaTimeoutId(string value) : base(value) { }
 }

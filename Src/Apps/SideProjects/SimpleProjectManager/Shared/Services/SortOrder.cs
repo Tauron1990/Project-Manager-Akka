@@ -1,28 +1,24 @@
-﻿using Akkatecture.Entities;
+﻿namespace SimpleProjectManager.Shared.Services;
 
-namespace SimpleProjectManager.Shared.Services;
-
-public sealed class SortOrder : Entity<ProjectId>
+public sealed record SortOrder
 {
-    public int SkipCount { get; }
+    public static readonly SortOrder Empty = new();
 
-    public bool IsPriority { get; }
-    
-    public SortOrder(ProjectId id, int skipCount, bool isPriority) : base(id)
-    {
-        SkipCount = skipCount;
-        IsPriority = isPriority;
-    }
+    public ProjectId Id { get; init; } = ProjectId.Empty;
+
+    public int SkipCount { get; init; }
+
+    public bool IsPriority { get; init; }
 
     public SortOrder WithCount(int count)
-        => new(Id, count, IsPriority);
-    
+        => this with { SkipCount = count };
+
     public SortOrder Increment()
-        => new(Id, SkipCount + 1, IsPriority);
-    
+        => this with { SkipCount = SkipCount + 1 };
+
     public SortOrder Decrement()
-        => new(Id, SkipCount - 1, IsPriority);
+        => this with { SkipCount = SkipCount - 1 };
 
     public SortOrder Priority()
-        => IsPriority ? this : new SortOrder(Id, 0, true);
+        => this with { IsPriority = true };
 }

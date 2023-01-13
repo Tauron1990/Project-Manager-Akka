@@ -1,7 +1,9 @@
 ﻿using Akka.Actor;
+using JetBrains.Annotations;
 
 namespace Akka.Cluster.Utility;
 
+[PublicAPI]
 public static class DistributedActorTableMessage<TKey>
 {
     public sealed record Create(TKey? Id, object[] Args)

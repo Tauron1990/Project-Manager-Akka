@@ -11,10 +11,10 @@ public class FileDescription : ICloneable
 
     private IEnumerable<string>? _readonlyEnumerable;
 
-    public FileDescription() => _keys = new HashSet<string>();
+    public FileDescription() => _keys = new HashSet<string>(StringComparer.Ordinal);
 
     private FileDescription(FileDescription parent)
-        => _keys = new HashSet<string>(parent.Keys);
+        => _keys = new HashSet<string>(parent.Keys, StringComparer.Ordinal);
 
     public IEnumerable<string> Keys => _readonlyEnumerable ??= new ReadOnlyEnumerator<string>(_keys);
 

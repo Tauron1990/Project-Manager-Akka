@@ -3,30 +3,29 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using JetBrains.Annotations;
 
-namespace Tauron.Application.Avalonia.Converter
+namespace Tauron.Application.Avalonia.Converter;
+
+[PublicAPI]
+public sealed class BrushValueConverter : ValueConverterFactoryBase
 {
-    [PublicAPI]
-    public sealed class BrushValueConverter : ValueConverterFactoryBase
+    protected override IValueConverter Create() => new Converter();
+
+    private class Converter : ValueConverterBase<string, IBrush>
     {
-        protected override IValueConverter Create() => new Converter();
+        private static readonly BrushConverter ConverterImpl = new();
 
-        private class Converter : ValueConverterBase<string, IBrush>
+        protected override IBrush Convert(string value)
         {
-            private static readonly BrushConverter ConverterImpl = new();
-
-            protected override IBrush Convert(string value)
+            try
             {
-                try
-                {
-                    if (ConverterImpl.ConvertFrom(value) is Brush brush)
-                        return brush;
+                if(ConverterImpl.ConvertFrom(value) is Brush brush)
+                    return brush;
 
-                    return Brushes.Black;
-                }
-                catch (FormatException)
-                {
-                    return Brushes.Black;
-                }
+                return Brushes.Black;
+            }
+            catch (FormatException)
+            {
+                return Brushes.Black;
             }
         }
     }

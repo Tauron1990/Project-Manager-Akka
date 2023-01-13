@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.Workshop.Driver;
 
 namespace Tauron.Application.Workshop;

@@ -10,25 +10,26 @@ public static class TransferMessages
     [PublicAPI]
     public abstract class TransferMessage
     {
-        protected TransferMessage(string operationId) => OperationId = operationId;
-        public string OperationId { get; }
+        protected TransferMessage(FileOperationId operationId) => OperationId = operationId;
+        public FileOperationId OperationId { get; }
     }
 
+    [PublicAPI]
     public abstract class TransferCompled : TransferMessage
     {
-        protected TransferCompled(string operationId, string? data) : base(operationId) => Data = data;
-        public string? Data { get; }
+        protected TransferCompled(FileOperationId operationId, TransferData data) : base(operationId) => Data = data;
+        public TransferData Data { get; }
     }
 
     public abstract class DataTranfer : TransferMessage
     {
-        protected DataTranfer(string operationId) : base(operationId) { }
+        protected DataTranfer(FileOperationId operationId) : base(operationId) { }
     }
 
     [PublicAPI]
     public sealed class TransferError : DataTranfer
     {
-        public TransferError(string operationId, FailReason failReason, string? data)
+        public TransferError(FileOperationId operationId, FailReason failReason, TransferData data)
             : base(operationId)
         {
             FailReason = failReason;
@@ -37,7 +38,7 @@ public static class TransferMessages
 
         public FailReason FailReason { get; }
 
-        public string? Data { get; }
+        public TransferData Data { get; }
 
         public TransferFailed ToFailed()
             => new(OperationId, FailReason, Data);
@@ -45,7 +46,7 @@ public static class TransferMessages
 
     public sealed class NextChunk : DataTranfer
     {
-        public NextChunk(string operationId, byte[] data, int count, bool finish, uint crc, uint finishCrc) : base(
+        public NextChunk(FileOperationId operationId, byte[] data, int count, bool finish, uint crc, uint finishCrc) : base(
             operationId)
         {
             Data = data;
@@ -68,36 +69,36 @@ public static class TransferMessages
 
     public sealed class SendNextChunk : DataTranfer
     {
-        public SendNextChunk(string operationId) : base(operationId) { }
+        public SendNextChunk(FileOperationId operationId) : base(operationId) { }
     }
 
     public sealed class SendingCompled : DataTranfer
     {
-        public SendingCompled(string operationId)
+        public SendingCompled(FileOperationId operationId)
             : base(operationId) { }
     }
 
     public sealed class RepeadChunk : DataTranfer
     {
-        public RepeadChunk(string operationId)
+        public RepeadChunk(FileOperationId operationId)
             : base(operationId) { }
     }
 
     public sealed class StartTrensfering : DataTranfer
     {
-        public StartTrensfering(string operationId)
+        public StartTrensfering(FileOperationId operationId)
             : base(operationId) { }
     }
 
     public sealed class BeginTransfering : DataTranfer
     {
-        public BeginTransfering(string operationId)
+        public BeginTransfering(FileOperationId operationId)
             : base(operationId) { }
     }
 
     public sealed class TransmitRequest : DataTranfer
     {
-        public TransmitRequest(string operationId, IActorRef from, string? data) : base(operationId)
+        public TransmitRequest(FileOperationId operationId, IActorRef from, TransferData data) : base(operationId)
         {
             From = from;
             Data = data;
@@ -105,13 +106,13 @@ public static class TransferMessages
 
         public IActorRef From { get; }
 
-        public string? Data { get; }
+        public TransferData Data { get; }
     }
 
     public sealed class RequestAccept : DataTranfer
     {
         public RequestAccept(
-            string operationId, Func<ITransferData> target,
+            FileOperationId operationId, Func<ITransferData> target,
             TaskCompletionSource<TransferCompled> taskCompletionSource)
             : base(operationId)
         {
@@ -125,6 +126,6 @@ public static class TransferMessages
 
     public sealed class RequestDeny : DataTranfer
     {
-        public RequestDeny(string operationId) : base(operationId) { }
+        public RequestDeny(FileOperationId operationId) : base(operationId) { }
     }
 }

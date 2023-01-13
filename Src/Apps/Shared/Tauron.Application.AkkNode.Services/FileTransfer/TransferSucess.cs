@@ -2,6 +2,6 @@
 
 public sealed class TransferSucess : TransferMessages.TransferCompled
 {
-    public TransferSucess(string operationId, string? data)
+    public TransferSucess(FileOperationId operationId, TransferData data)
         : base(operationId, data) { }
 }

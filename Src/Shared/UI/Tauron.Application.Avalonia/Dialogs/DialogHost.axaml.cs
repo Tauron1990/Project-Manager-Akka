@@ -7,63 +7,62 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI.Dialogs;
 
-namespace Tauron.Application.Avalonia.Dialogs
+namespace Tauron.Application.Avalonia.Dialogs;
+
+[PublicAPI]
+public class DialogHost : TemplatedControl
 {
-    [PublicAPI]
-    public class DialogHost : TemplatedControl
+    public static readonly StyledProperty<object> DialogProperty =
+        AvaloniaProperty.Register<DialogHost, object>("Dialog", defaultBindingMode: BindingMode.TwoWay);
+
+    public static readonly StyledProperty<object> MainProperty =
+        AvaloniaProperty.Register<DialogHost, object>("Main", defaultBindingMode: BindingMode.TwoWay);
+
+    public DialogHost()
     {
-        public static readonly StyledProperty<object> DialogProperty =
-            AvaloniaProperty.Register<DialogHost, object>("Dialog", defaultBindingMode: BindingMode.TwoWay);
+        InitializeComponent();
 
-        public static readonly StyledProperty<object> MainProperty =
-            AvaloniaProperty.Register<DialogHost, object>("Main", defaultBindingMode: BindingMode.TwoWay);
+        var coordinator = (IDialogCoordinatorUIEvents)TauronEnviroment.ServiceProvider.GetRequiredService<IDialogCoordinator>();
 
-        public DialogHost()
-        {
-            InitializeComponent();
+        coordinator.HideDialogEvent += () =>
+                                       {
+                                           MainContent.IsEnabled = true;
+                                           MainContent.IsVisible = true;
 
-            var coordinator = (IDialogCoordinatorUIEvents)TauronEnviroment.ServiceProvider.GetRequiredService<IDialogCoordinator>();
+                                           DialogContent.Content = null;
+                                           DialogContent.IsEnabled = false;
+                                           DialogContent.IsVisible = false;
+                                       };
 
-            coordinator.HideDialogEvent += () =>
-                                           {
-                                               MainContent.IsEnabled = true;
-                                               MainContent.IsVisible = true;
+        coordinator.ShowDialogEvent += o =>
+                                       {
+                                           MainContent.IsEnabled = false;
+                                           MainContent.IsVisible = false;
 
-                                               DialogContent.Content = null;
-                                               DialogContent.IsEnabled = false;
-                                               DialogContent.IsVisible = false;
-                                           };
-
-            coordinator.ShowDialogEvent += o =>
-                                           {
-                                               MainContent.IsEnabled = false;
-                                               MainContent.IsVisible = false;
-
-                                               DialogContent.Content = o;
-                                               DialogContent.IsEnabled = true;
-                                               DialogContent.IsVisible = true;
-                                           };
-        }
+                                           DialogContent.Content = o;
+                                           DialogContent.IsEnabled = true;
+                                           DialogContent.IsVisible = true;
+                                       };
+    }
 
 
-        private ContentControl MainContent => this.Get<ContentControl>("MainContent");
-        private ContentControl DialogContent => this.Get<ContentControl>("DialogContent");
+    private ContentControl MainContent => this.Get<ContentControl>("MainContent");
+    private ContentControl DialogContent => this.Get<ContentControl>("DialogContent");
 
-        public object Dialog
-        {
-            get => GetValue(DialogProperty);
-            set => SetValue(DialogProperty, value);
-        }
+    public object Dialog
+    {
+        get => GetValue(DialogProperty);
+        set => SetValue(DialogProperty, value);
+    }
 
-        public object Main
-        {
-            get => GetValue(MainProperty);
-            set => SetValue(MainProperty, value);
-        }
+    public object Main
+    {
+        get => GetValue(MainProperty);
+        set => SetValue(MainProperty, value);
+    }
 
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
     }
 }

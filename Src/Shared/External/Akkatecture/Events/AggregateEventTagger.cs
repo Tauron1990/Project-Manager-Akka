@@ -21,9 +21,11 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Akka.Persistence.Journal;
+using Akkatecture.Aggregates;
 using Akkatecture.Core;
 using Akkatecture.Extensions;
 using JetBrains.Annotations;
@@ -40,20 +42,20 @@ public class AggregateEventTagger : IWriteEventAdapter
     {
         try
         {
-            var aggregateName = evt
+            AggregateName aggregateName = evt
                .GetType()
                .GetCommittedEventAggregateRootName();
 
             var eventDefinitionService = new EventDefinitionService(null);
 
-            var aggregateEventType = evt
+            Type aggregateEventType = evt
                .GetType()
                .GetCommittedEventAggregateEventType();
 
             eventDefinitionService.Load(aggregateEventType);
-            var eventDefinition = eventDefinitionService.GetDefinition(aggregateEventType);
+            EventDefinition eventDefinition = eventDefinitionService.GetDefinition(aggregateEventType);
 
-            var tags = new HashSet<string> { aggregateName.Value, eventDefinition.Name };
+            var tags = new HashSet<string>(StringComparer.Ordinal) { aggregateName.Value, eventDefinition.Name };
             aggregateEventType.GetAllCustomAttributes<ITagAttribute>().Select(attribute => attribute.Name).Foreach(name => tags.Add(name));
 
             return new Tagged(evt, tags);

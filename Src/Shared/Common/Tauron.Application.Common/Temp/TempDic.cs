@@ -14,13 +14,13 @@ namespace Tauron.Temp;
 public class TempDic : DisposeableBase, ITempDic
 {
     public static readonly ITempDic Null = new TempDic();
-    
+
     private readonly bool _deleteDic;
     private readonly IDirectory? _directory;
-    
+
     private readonly Func<bool, string> _nameGenerator;
-    private readonly ConcurrentDictionary<string, ITempDic> _tempDics = new();
-    private readonly ConcurrentDictionary<string, ITempFile> _tempFiles = new();
+    private readonly ConcurrentDictionary<string, ITempDic> _tempDics = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, ITempFile> _tempFiles = new(StringComparer.Ordinal);
 
     protected TempDic(IDirectory? directory, Option<ITempDic> parent, Func<bool, string> nameGenerator, bool deleteDic)
     {
@@ -50,7 +50,7 @@ public class TempDic : DisposeableBase, ITempDic
             name,
             key =>
             {
-                var dic = new TempDic(_directory?.GetDirectory(key), this, _nameGenerator, deleteDic: true);
+                var dic = new TempDic(_directory?.GetDirectory(key), this, _nameGenerator, true);
                 dic.TrackDispose(() => _tempDics.TryRemove(key, out _));
 
                 return dic;
@@ -79,19 +79,19 @@ public class TempDic : DisposeableBase, ITempDic
 
     public void Clear()
     {
-        if (string.IsNullOrWhiteSpace(FullPath))
+        if(string.IsNullOrWhiteSpace(FullPath))
             return;
 
         void TryDispose(IEnumerable<ITempInfo> toDispose)
         {
-            foreach (var entry in toDispose)
+            foreach (ITempInfo entry in toDispose)
                 try
                 {
                     entry.Dispose();
                 }
                 catch (Exception exception)
                 {
-                    if (KeepAlive)
+                    if(KeepAlive)
                         TauronEnviroment.GetLogger(GetType()).LogWarning(exception, "Error on Dispose Dic {Path}", entry.FullPath);
                     else
                         throw;
@@ -115,19 +115,19 @@ public class TempDic : DisposeableBase, ITempDic
 
     private void CheckNull()
     {
-        if (string.IsNullOrEmpty(FullPath))
+        if(string.IsNullOrEmpty(FullPath))
             throw new NotSupportedException("The Path is Empty");
     }
 
     protected override void DisposeCore(bool disposing)
     {
-        if (!disposing) return;
+        if(!disposing) return;
 
         Clear();
 
         try
         {
-            if (_deleteDic)
+            if(_deleteDic)
                 _directory?.Clear();
         }
         catch (IOException) { }

@@ -1,5 +1,8 @@
-﻿namespace Tauron.Application.AkkaNode.Bootstrap;
+﻿using JetBrains.Annotations;
 
+namespace Tauron.Application.AkkaNode.Bootstrap;
+
+[UsedImplicitly]
 public sealed class AppNodeInfo
 {
     public string ApplicationName { get; set; } = string.Empty;

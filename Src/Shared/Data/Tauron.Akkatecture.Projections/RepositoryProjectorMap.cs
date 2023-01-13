@@ -24,7 +24,7 @@ public class RepositoryProjectorMap<TProjection, TIdentity>
                            Create = Create,
                            Delete = Delete,
                            Update = Update,
-                           Custom = Custom
+                           Custom = Custom,
                        };
     }
 
@@ -36,26 +36,26 @@ public class RepositoryProjectorMap<TProjection, TIdentity>
     {
         try
         {
-            var data = await _repository.Get<TProjection, TIdentity>(context, key);
-            if (data == null)
+            TProjection? data = await _repository.Get<TProjection, TIdentity>(context, key).ConfigureAwait(false);
+            if(data is null)
             {
-                if (createifmissing())
-                    data = await _repository.Create<TProjection, TIdentity>(context, key, _ => true);
+                if(createifmissing())
+                    data = await _repository.Create<TProjection, TIdentity>(context, key, _ => true).ConfigureAwait(false);
                 else
                     throw new KeyNotFoundException($"The key {key} is not in The Repository");
             }
 
-            await projector(data);
-            await _repository.Commit(context, data, key);
+            await projector(data).ConfigureAwait(false);
+            await _repository.Commit(context, data, key).ConfigureAwait(false);
         }
         finally
         {
-            await _repository.Completed(key);
+            await _repository.Completed(key).ConfigureAwait(false);
         }
     }
 
     protected virtual async Task<bool> Delete(TIdentity key, ProjectionContext context)
-        => await _repository.Delete<TProjection, TIdentity>(context, key);
+        => await _repository.Delete<TProjection, TIdentity>(context, key).ConfigureAwait(false);
 
     protected virtual async Task Create(
         TIdentity key, ProjectionContext context, Func<TProjection, Task> projector,
@@ -63,13 +63,13 @@ public class RepositoryProjectorMap<TProjection, TIdentity>
     {
         try
         {
-            var data = await _repository.Create(context, key, shouldoverwite);
-            await projector(data);
-            await _repository.Commit(context, data, key);
+            TProjection data = await _repository.Create(context, key, shouldoverwite).ConfigureAwait(false);
+            await projector(data).ConfigureAwait(false);
+            await _repository.Commit(context, data, key).ConfigureAwait(false);
         }
         finally
         {
-            await _repository.Completed(key);
+            await _repository.Completed(key).ConfigureAwait(false);
         }
     }
 }

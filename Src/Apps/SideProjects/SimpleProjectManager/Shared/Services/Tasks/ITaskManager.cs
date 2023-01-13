@@ -1,11 +1,12 @@
 ﻿using Stl.Fusion;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.Services.Tasks;
 
 public interface ITaskManager
 {
-    [ComputeMethod]
-    Task<PendingTask[]> GetTasks(CancellationToken token);
+    [ComputeMethod(MinCacheDuration = 5)]
+    Task<TaskList> GetTasks(CancellationToken token);
 
-    Task<string> DeleteTask(string id, CancellationToken token);
+    Task<SimpleResult> DeleteTask(string id, CancellationToken token);
 }

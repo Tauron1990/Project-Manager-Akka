@@ -2,29 +2,9 @@
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
 namespace Tauron;
-
-public class ProgressEventArgs : EventArgs
-{
-    public ProgressEventArgs(ProgressStatistic progressStatistic)
-        => ProgressStatistic = progressStatistic;
-
-    [PublicAPI] public ProgressStatistic ProgressStatistic { get; }
-}
-
-[Serializable]
-public class OperationAlreadyStartedException : Exception
-{
-    public OperationAlreadyStartedException() { }
-
-    protected OperationAlreadyStartedException(
-        SerializationInfo info,
-        StreamingContext context)
-        : base(info, context) { }
-}
 
 /// <summary>
 ///     A class which calculates progress statistics like average bytes per second or estimated finishing time.
@@ -87,7 +67,7 @@ public class ProgressStatistic
     /// <exception cref="InvalidOperationException">Thrown if the operation has finished already.</exception>
     public virtual void ProgressChange(long bytesRead, long totalBytesToRead)
     {
-        if (!HasStarted)
+        if(!HasStarted)
         {
             StartingTime = DateTime.Now;
             HasStarted = true;
@@ -101,7 +81,7 @@ public class ProgressStatistic
 
         OnProgressChanged();
 
-        if (bytesRead != TotalBytesToRead) return;
+        if(bytesRead != TotalBytesToRead) return;
 
         FinishingTime = DateTime.Now;
         OnFinished();
@@ -113,7 +93,7 @@ public class ProgressStatistic
     /// </summary>
     public virtual void Finish()
     {
-        if (HasFinished) return;
+        if(HasFinished) return;
 
         FinishingTime = DateTime.Now;
         OnFinished();
@@ -141,9 +121,9 @@ public class ProgressStatistic
     {
         get
         {
-            if (!HasStarted)
+            if(!HasStarted)
                 return TimeSpan.Zero;
-            if (!HasFinished)
+            if(!HasFinished)
                 return DateTime.Now - StartingTime;
 
             return FinishingTime - StartingTime;
@@ -163,7 +143,7 @@ public class ProgressStatistic
         /// <summary>
         ///     Average bytes per second will be used for estimating
         /// </summary>
-        AverageBytesPerSecond
+        AverageBytesPerSecond,
     }
 
     /// <summary>
@@ -180,21 +160,21 @@ public class ProgressStatistic
     {
         get
         {
-            if (HasFinished)
+            if(HasFinished)
                 return Duration;
-            if (TotalBytesToRead == -1)
+            if(TotalBytesToRead == -1)
                 return TimeSpan.MaxValue;
 
-            var bytesPerSecond = UsedEstimatingMethod switch
+            double bytesPerSecond = UsedEstimatingMethod switch
             {
                 EstimatingMethod.AverageBytesPerSecond => AverageBytesPerSecond,
                 EstimatingMethod.CurrentBytesPerSecond => CurrentBytesPerSecond,
-                _ => throw new InvalidOperationException("No Correct Estimating method")
+                _ => throw new InvalidOperationException("No Correct Estimating method"),
             };
 
-            var seconds = (TotalBytesToRead - BytesRead) / bytesPerSecond;
+            double seconds = (TotalBytesToRead - BytesRead) / bytesPerSecond;
 
-            if (seconds > 60 * 60 * 24 * 200) //over 200 Days -> infinite
+            if(seconds > 60 * 60 * 24 * 200) //over 200 Days -> infinite
                 return TimeSpan.MaxValue;
 
             return Duration + TimeSpan.FromSeconds(seconds);
@@ -233,7 +213,7 @@ public class ProgressStatistic
         get => _currentBytesCalculationInterval;
         set
         {
-            if (HasStarted)
+            if(HasStarted)
                 throw new InvalidOperationException("Task has already started!");
 
             _currentBytesCalculationInterval = value;
@@ -253,10 +233,10 @@ public class ProgressStatistic
         get => _currentBytesSamples.Length;
         set
         {
-            if (HasStarted)
+            if(HasStarted)
                 throw new InvalidOperationException("Task has already started!");
 
-            if (value != _currentBytesSamples.Length)
+            if(value != _currentBytesSamples.Length)
                 _currentBytesSamples = new KeyValuePair<DateTime, long>[value];
         }
     }
@@ -268,8 +248,8 @@ public class ProgressStatistic
 
     private void ProcessSample(long bytes)
     {
-        if ((DateTime.Now - _lastSample).Ticks <=
-            CurrentBytesCalculationInterval.Ticks / _currentBytesSamples.Length) return;
+        if((DateTime.Now - _lastSample).Ticks <=
+           CurrentBytesCalculationInterval.Ticks / _currentBytesSamples.Length) return;
 
         _lastSample = DateTime.Now;
 
@@ -278,13 +258,13 @@ public class ProgressStatistic
         var old = _currentBytesSamples[_currentSample];
         _currentBytesSamples[_currentSample] = current;
 
-        if (old.Key == DateTime.MinValue)
+        if(old.Key == DateTime.MinValue)
             CurrentBytesPerSecond = AverageBytesPerSecond;
         else
             CurrentBytesPerSecond = (current.Value - old.Value) / (current.Key - old.Key).TotalSeconds;
 
         _currentSample++;
-        if (_currentSample >= _currentBytesSamples.Length)
+        if(_currentSample >= _currentBytesSamples.Length)
             _currentSample = 0;
     }
 

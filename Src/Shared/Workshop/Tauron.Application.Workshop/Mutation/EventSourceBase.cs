@@ -13,7 +13,9 @@ public abstract class EventSourceBase<TRespond> : IEventSource<TRespond>
 
     private readonly Subject<TRespond> _subject = new();
 
+    #pragma warning disable MA0018
     public static IEventSource<TRespond> Empty => _empty ??= new EmptyEventSource();
+    #pragma warning restore MA0018
 
 
     public IDisposable Subscribe(IObserver<TRespond> observer) => _subject.Subscribe(observer);

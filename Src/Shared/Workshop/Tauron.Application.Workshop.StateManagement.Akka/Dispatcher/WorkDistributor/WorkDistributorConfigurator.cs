@@ -10,9 +10,9 @@ public class WorkDistributorConfigurator : IStateDispatcherConfigurator
 
     public WorkDistributorConfigurator(TimeSpan timeout) => _timeout = timeout;
 
-    private Props Configurate(Props mutator)
-        => Props.Create(() => new WorkDistributorDispatcher(_timeout));
-
     public IDriverFactory Configurate(IDriverFactory factory)
         => AkkaDriverFactory.Get(factory).CustomMutator(Configurate);
+
+    private Props Configurate(Props mutator)
+        => Props.Create(() => new WorkDistributorDispatcher(_timeout));
 }

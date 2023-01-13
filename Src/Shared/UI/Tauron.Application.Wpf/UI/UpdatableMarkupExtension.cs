@@ -18,26 +18,26 @@ public abstract class UpdatableMarkupExtension : MarkupExtension
 
     public sealed override object ProvideValue(IServiceProvider serviceProvider)
     {
-        if (serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget service)
+        if(serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget service)
         {
-            if (service.TargetObject.GetType().FullName == "System.Windows.SharedDp")
+            if(service.TargetObject.GetType().FullName == "System.Windows.SharedDp")
                 return this;
 
             TargetObject = service.TargetObject;
             TargetProperty = service.TargetProperty;
         }
 
-        var isDesign = TargetObject is DependencyObject dependencyObject &&
-                       DesignerProperties.GetIsInDesignMode(dependencyObject);
+        bool isDesign = TargetObject is DependencyObject dependencyObject &&
+                        DesignerProperties.GetIsInDesignMode(dependencyObject);
 
         return isDesign ? DesignTime() : ProvideValueInternal(serviceProvider);
     }
 
     protected void UpdateValue(object? value)
     {
-        if (TargetObject != null)
+        if(TargetObject != null)
         {
-            if (TargetProperty is DependencyProperty dependencyProperty)
+            if(TargetProperty is DependencyProperty dependencyProperty)
             {
                 var obj = TargetObject as DependencyObject;
 
@@ -49,7 +49,7 @@ public abstract class UpdatableMarkupExtension : MarkupExtension
                 // Check whether the target object can be accessed from the
                 // current thread, and use Dispatcher.Invoke if it can't
 
-                if (obj?.CheckAccess() == true)
+                if(obj?.CheckAccess() == true)
                     UpdateAction();
                 else
                     obj?.Dispatcher.BeginInvoke(new Action(UpdateAction), DispatcherPriority.Background);
@@ -70,7 +70,7 @@ public abstract class UpdatableMarkupExtension : MarkupExtension
         dp = null;
 
         //create a binding and assign it to the target
-        if (!(provider?.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget service)) return false;
+        if(!(provider?.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget service)) return false;
 
         //we need dependency objects / properties
         target = service.TargetObject as DependencyObject;

@@ -44,10 +44,10 @@ public class
         DateTimeOffset timestamp,
         long aggregateSequenceNumber)
     {
-        if (timestamp == default) throw new ArgumentNullException(nameof(timestamp));
-        if (aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value))
+        if(timestamp == default) throw new ArgumentNullException(nameof(timestamp));
+        if(aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value))
             throw new ArgumentNullException(nameof(aggregateIdentity));
-        if (aggregateSequenceNumber <= 0) throw new ArgumentOutOfRangeException(nameof(aggregateSequenceNumber));
+        if(aggregateSequenceNumber <= 0) throw new ArgumentOutOfRangeException(nameof(aggregateSequenceNumber));
 
         AggregateEvent = aggregateEvent ?? throw new ArgumentNullException(nameof(aggregateEvent));
         Metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));

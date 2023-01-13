@@ -44,8 +44,8 @@ public abstract class Command<TAggregate, TIdentity, TSourceIdentity> :
         TIdentity aggregateId,
         TSourceIdentity sourceId)
     {
-        if (aggregateId == null) throw new ArgumentNullException(nameof(aggregateId));
-        if (sourceId == null) throw new ArgumentNullException(nameof(sourceId));
+        if(aggregateId == null) throw new ArgumentNullException(nameof(aggregateId));
+        if(sourceId == null) throw new ArgumentNullException(nameof(sourceId));
 
         AggregateId = aggregateId;
         SourceId = sourceId;

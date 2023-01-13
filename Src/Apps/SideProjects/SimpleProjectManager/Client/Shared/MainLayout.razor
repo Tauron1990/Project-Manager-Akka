@@ -1,12 +1,14 @@
 ﻿@inherits LayoutComponentBase
+@using SimpleProjectManager.Client.Shared.Data
 @implements IDisposable
 
 @inject IEventAggregator _aggregator;
 @inject ISnackbar _snackbar;
+@inject GlobalState _globalState;
 
 <MudThemeProvider Theme="_darkTheme"/>
 <MudDialogProvider DisableBackdropClick="true" CloseButton="true" Position="DialogPosition.Center"/>
-<MudSnackbarProvider />
+<MudSnackbarProvider/>
 
 <MudLayout>
     <MainAppBar ToggleDrawer="ToggleDrawer"/>
@@ -15,8 +17,25 @@
         <NavMenu Navigating="OnNavigating"/>
     </MudDrawer>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-2">
-            @Body
+        <MudContainer MaxWidth="MaxWidth.False" Class="mt-2">
+            <MudGrid>
+                <ObservableRenderer Observable="_globalState.IsOnline">
+                    <Waiting></Waiting>
+                    <ValueRenderer>
+                        @if(!context)
+                        {
+                            <MudItem lg="12">
+                                <MudAlert Dense="true" Severity="Severity.Error">
+                                    <MudText>Du bist Offline. Entweder ist die Netzwerkverbindung getrennt oder der Server nicht erreichbar</MudText>
+                                </MudAlert>
+                            </MudItem>
+                        }
+                    </ValueRenderer>
+                </ObservableRenderer>
+                <MudItem lg="12">
+                    @Body
+                </MudItem>
+            </MudGrid>
         </MudContainer>
     </MudMainContent>
 </MudLayout>

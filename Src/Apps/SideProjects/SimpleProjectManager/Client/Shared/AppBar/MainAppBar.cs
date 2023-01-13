@@ -4,6 +4,6 @@ namespace SimpleProjectManager.Client.Shared.AppBar;
 
 public partial class MainAppBar
 {
-    [Parameter] 
+    [Parameter]
     public EventCallback ToggleDrawer { get; set; }
 }

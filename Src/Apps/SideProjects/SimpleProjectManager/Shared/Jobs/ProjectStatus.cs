@@ -8,5 +8,5 @@ public enum ProjectStatus
     Suspended,
     Finished,
     ReRun,
-    Deleted
+    Deleted,
 }

@@ -1,0 +1,82 @@
+﻿{
+  "CurrentSwitch": "Dev",
+  "RemoteBase": {
+    "Settings": {
+      "akka.remote.dot-netty.tcp.hostname": "{ip}",
+      "akka.remote.dot-netty.tcp.port": "4001",
+      "akka.cluster.downing-provider-class": "\"Akka.Cluster.SBR.SplitBrainResolverProvider\"",
+      "akka.cluster.split-brain-resolver.down-all-when-unstable": "off",
+      "severPort": "4000"
+    }
+  },
+  "MongoBase": {
+    "BasedOn": "RemoteBase",
+    "Settings": {
+      "databaseDriver": "mongodb",
+      "akka.persistence.journal.mangodb.connection-string": "\"mongodb://{mongoIp}/SimpleProjectManager?readPreference=primary&appname=SimpleProjectManager&directConnection=true&ssl=false\"",
+      "akka.persistence.snapshot-store.mongodb.connection-string": "\"mongodb://{mongoIp}/SimpleProjectManager?readPreference=primary&appname=SimpleProjectManager&directConnection=true&ssl=false\"",
+      "akka.persistence.journal.mongoRead.class": "\"Akka.Persistence.MongoDb.Query.MongoDbReadJournalProvider, Akka.Persistence.MongoDb\"",
+      "akka.persistence.journal.mongoRead.write-plugin": "\"akka.persistence.journal.mongodb\"",
+      "akka.persistence.journal.mongoRead.max-buffer-size": "500",
+      "akka.persistence.journal.mongoRead.refresh-interval": "3s",
+      "akka.persistence.journal.plugin": "\"akka.persistence.journal.mongodb\"",
+      "akka.persistence.journal.mangodb.class": "\"Akka.Persistence.MongoDb.Journal.MongoDbJournal, Akka.Persistence.MongoDb\"",
+      "akka.persistence.journal.mangodb.auto-initialize": "on",
+      "akka.persistence.journal.mangodb.collection": "\"EventJournal\"",
+      "akka.persistence.journal.mangodb.metadata-collection": "\"Metadata\"",
+      "akka.persistence.journal.mangodb.event-adapters.aggregate-event-tagger": "\"Akkatecture.Events.AggregateEventTagger, Akkatecture\"",
+      "akka.persistence.journal.mangodb.event-adapter-bindings.\"Akkatecture.Aggregates.ICommittedEvent, Akkatecture\"": "aggregate-event-tagger",
+      "akka.persistence.snapshot-store.plugin": "\"akka.persistence.snapshot-store.mongodb\"",
+      "akka.persistence.snapshot-store.mongodb.class": "\"Akka.Persistence.MongoDb.Snapshot.MongoDbSnapshotStore, Akka.Persistence.MongoDb\"",
+      "akka.persistence.snapshot-store.mongodb.auto-initialize": "on",
+      "akka.persistence.snapshot-store.mongodb.collection": "\"SnapshotStore\"",
+      "akka.persistence.journal.queryConfig.class": "Akka.Persistence.MongoDb.Query.MongoDbReadJournalProvider, Akka.Persistence.MongoDb",
+      "akka.persistence.journal.queryConfig.write-plugin": "akka.persistence.journal.mongodb",
+      "akka.persistence.journal.queryConfig.max-buffer-size": "500",
+      "akka.persistence.journal.queryConfig.refresh-interval": "3s"
+    }
+  },
+  "Actual": {
+    "BasedOn": "MongoBase",
+    "Settings": {
+      "mongoIp": "localhost:27017",
+      "serverIp": "http://{ip}:{severPort}",
+      "ip": "192.168.178.33",
+      "host": "local"
+    }
+  },
+  "SqlLiteDatabase": {
+    "BasedOn": "RemoteBase",
+    "Settings": {
+      "databaseDriver": "litedb",
+      "akka.persistence.snapshot-store.sqlite.class": "\"Akka.Persistence.Sqlite.Snapshot.SqliteSnapshotStore, Akka.Persistence.Sqlite\"",
+      "akka.persistence.snapshot-store.plugin": "\"akka.persistence.snapshot-store.sqlite\"",
+      "akka.persistence.snapshot-store.sqlite.auto-initialize": "true",
+      "akka.persistence.journal.plugin": "\"akka.persistence.journal.sqlite\"",
+      "akka.persistence.journal.sqlite.class": "\"Akka.Persistence.Sqlite.Journal.SqliteJournal, Akka.Persistence.Sqlite\"",
+      "akka.persistence.journal.sqlite.auto-initialize": "true",
+      "akka.persistence.journal.queryConfig.class": "\"Akka.Persistence.Query.Sql.SqlReadJournalProvider, Akka.Persistence.Query.Sql\"",
+      "akka.persistence.journal.queryConfig.refresh-interval": "3s",
+      "akka.persistence.journal.queryConfig.max-buffer-size": "500",
+      "akka.persistence.journal.queryConfig.write-plugin": "akka.persistence.journal.sqlite",
+      "akka.persistence.journal.sqlite.event-adapters.aggregate-event-tagger": "\"Akkatecture.Events.AggregateEventTagger, Akkatecture\"",
+      "akka.persistence.journal.sqlite.event-adapter-bindings.\"Akkatecture.Aggregates.ICommittedEvent, Akkatecture.Abstractions\"": "aggregate-event-tagger"
+    }
+  },
+  "SqliteDev": {
+    "BasedOn": "SqlLiteDatabase",
+    "Settings": {
+      "LiteConnection": "projections.db",
+      "akka.persistence.snapshot-store.sqlite.connection-string": "\"Datasource=devDb.db\"",
+      "akka.persistence.journal.sqlite.connection-string": "\"Datasource=devDb.db\""
+    }
+  },
+  "Dev": {
+    "BasedOn": "SqliteDev",
+    "Settings": {
+      "serverIp": "http://{ip}:{severPort}",
+      "ip": "192.168.178.33",
+      "host": "local"
+    }
+  }
+}

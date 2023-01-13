@@ -12,7 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Remove="Resources\gear-setting-appearance-process.png" />
+        <None Remove="Resources\gear-setting-appearance-process.png"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -24,26 +24,25 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="2.0.0">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-        <PackageReference Include="MaterialDesignThemes" Version="4.3.0" />
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="System.Management" Version="6.0.0" />
+        <PackageReference Include="ini-parser-netstandard" Version="2.5.2"/>
+        <PackageReference Include="MaterialDesignThemes" Version="4.5.0"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="System.Management" Version="6.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Settings\Tauron.Application.Settings.csproj" />
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Wpf.SerilogViewer\Tauron.Application.Wpf.SerilogViewer.csproj" />
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj" />
+        <ProjectReference Include="..\..\..\Apps\DevTools\SeriLogViewer\SeriLogViewer.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\UI\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Resource Include="Resources\gear-setting-appearance-process.png" />
+        <Resource Include="Resources\gear-setting-appearance-process.png"/>
     </ItemGroup>
 
     <ItemGroup>

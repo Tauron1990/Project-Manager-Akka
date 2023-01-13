@@ -1,10 +1,10 @@
-﻿@inherits NonAutoRenderingView<JobEditorViewModel>
+﻿@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.JobEditorViewModel>
 
-@if (ViewModel?.Data is not null)
+@if(ViewModel?.Data is not null)
 {
     <MudCard Style="@Style">
 
-        @if (!string.IsNullOrWhiteSpace(Title))
+        @if(!string.IsNullOrWhiteSpace(Title))
         {
             <MudCardHeader>
                 <MudText Typo="Typo.h2">@Title</MudText>
@@ -13,19 +13,19 @@
         <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" KeepPanelsAlive="true">
             <MudTabPanel Text="Job information">
                 <MudCardContent>
-                    <MudForm IsValid="ViewModel.IsValid" IsValidChanged="ViewModel.IsValidChanged">
-                        <MudTextField @bind-Value="ViewModel.Data.JobName" Label="Job Name" Validation="ViewModel.Data.ValidateJobName" DebounceInterval="100"/>
-                        <MudDatePicker @bind-Date="ViewModel.Data.Deadline" Label="Termin" Validation="ViewModel.Data.ValidateDeadline"/>
-                        @if (StatusEditing)
+                    <MudForm @ref="_editorForm" IsValid="ViewModel.IsValid" IsValidChanged="ViewModel.IsValidChanged">
+                        <MudTextField @bind-Value="ViewModel.Data.JobName" Label="Job Name" Validation="ViewModel.ProjectNameValidator" DebounceInterval="100"/>
+                        <MudDatePicker @bind-Date="ViewModel.Data.Deadline" Label="Termin" Validation="ViewModel.DeadlineValidator"/>
+                        @if(StatusEditing)
                         {
                             <MudSelect @bind-Value="@ViewModel.Data.Status">
-                                @foreach (var stat in Enum.GetValues<ProjectStatus>())
+                                @foreach (ProjectStatus stat in Enum.GetValues<ProjectStatus>())
                                 {
                                     <MudSelectItem Value="stat">@JobTranslator.GetString(stat)</MudSelectItem>
                                 }
                             </MudSelect>
                         }
-                        @if (SortOrderEditing)
+                        @if(SortOrderEditing)
                         {
                             <MudTextField @bind-Value="ViewModel.Data.Ordering" Label="Sortier Position"/>
                         }
@@ -33,13 +33,14 @@
                 </MudCardContent>
             </MudTabPanel>
             <MudTabPanel Text="Bild Dateien">
-                <FileUploader DisableNameEdit="true" ProjectName="@ViewModel.Data.JobName" DisableUploadButton="true" UploadTrigger="ViewModel.FileUploadTrigger"
+                <FileUploader DisableNameEdit="true" ProjectName="@ViewModel.Data.JobName?.Value"
+                              DisableUploadButton="true" UploadTrigger="ViewModel.FileUploadTrigger"
                               UploaderViewModel="ViewModel.UploaderViewModel"/>
             </MudTabPanel>
         </MudTabs>
         <MudCardActions>
-            <MudCommandButton StartIcon="@Icons.Filled.Save" @ref="CommitButton">Speichern</MudCommandButton>
-            <MudButton Disabled="@(!CanCancel)" StartIcon="@Icons.Filled.Cancel" OnClick="Cancel">Abbrechen</MudButton>
+            <MudCommandButton StartIcon="@Icons.Material.Filled.Save" @ref="CommitButton">Speichern</MudCommandButton>
+            <MudButton Disabled="@(!CanCancel)" StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Abbrechen</MudButton>
         </MudCardActions>
     </MudCard>
 }

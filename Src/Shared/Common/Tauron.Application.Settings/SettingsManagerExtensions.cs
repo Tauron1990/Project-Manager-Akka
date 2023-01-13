@@ -5,12 +5,14 @@ using Tauron.TAkka;
 
 namespace Tauron.Application.Settings;
 
+#pragma warning disable GU0011
+
 [PublicAPI]
 public static class SettingsManagerExtensions
 {
     public static void RegisterSettingsManager(this IServiceCollection builder, Action<SettingsConfiguration>? config = null)
     {
-        if (config != null)
+        if(config != null)
         {
             var s = new SettingsConfiguration(builder);
             config(s);

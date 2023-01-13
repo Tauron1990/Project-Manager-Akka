@@ -28,7 +28,7 @@ public static class CriticalExceptions
 
     public static Exception? Unwrap(this Exception? ex)
     {
-        if (ex is AggregateException ex2) return ex2.Flatten().InnerExceptions[0];
+        if(ex is AggregateException ex2) return ex2.Flatten().InnerExceptions[0];
 
         while (ex?.InnerException != null && ex is TargetInvocationException or TypeLoadException) ex = ex.InnerException;
 

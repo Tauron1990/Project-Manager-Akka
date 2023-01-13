@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Disposables;
 using JetBrains.Annotations;
 
 namespace Tauron;
@@ -10,6 +11,14 @@ public static class DisposableExtensions
         where TValue : IDisposable
     {
         cd.AddResource(value);
+
+        return value;
+    }
+
+    public static TValue DisposeWith<TValue>(this TValue value, SerialDisposable cd)
+        where TValue : IDisposable
+    {
+        cd.Disposable = value;
 
         return value;
     }

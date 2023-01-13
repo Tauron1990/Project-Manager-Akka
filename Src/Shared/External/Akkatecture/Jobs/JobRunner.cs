@@ -39,7 +39,7 @@ public abstract class JobRunner : ReceiveActor
 
     public void InitReceives()
     {
-        var type = GetType();
+        Type type = GetType();
 
         var subscriptionTypes =
             type
@@ -51,7 +51,7 @@ public abstract class JobRunner : ReceiveActor
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Run")
+                    if(!string.Equals(mi.Name, "Run", StringComparison.Ordinal))
                         return false;
 
                     var parameters = mi.GetParameters();
@@ -64,27 +64,27 @@ public abstract class JobRunner : ReceiveActor
                 mi => mi);
 
 
-        var method = type
+        MethodInfo method = type
            .GetBaseType("ReceiveActor")
            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Receive") return false;
+                    if(!string.Equals(mi.Name, "Receive", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 
-        foreach (var subscriptionType in subscriptionTypes)
+        foreach (Type subscriptionType in subscriptionTypes)
         {
-            var funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
+            Type funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
             var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
-            var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
+            MethodInfo actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
             actorReceiveMethod.InvokeFast(this, subscriptionFunction);
         }

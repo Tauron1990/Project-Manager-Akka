@@ -13,7 +13,7 @@ public sealed class Analyzer<TWorkspace, TData> : IAnalyzer<TWorkspace, TData>
     where TWorkspace : WorkspaceBase<TData> where TData : class
 {
     private readonly Action<RegisterRule<TWorkspace, TData>> _registrar;
-    private readonly HashSet<string> _rules = new();
+    private readonly HashSet<string> _rules = new(StringComparer.Ordinal);
 
     internal Analyzer(Action<RegisterRule<TWorkspace, TData>> registrar, IEventSource<IssuesEvent> source)
     {
@@ -31,7 +31,7 @@ public sealed class Analyzer<TWorkspace, TData> : IAnalyzer<TWorkspace, TData>
     {
         lock (_rules)
         {
-            if (!_rules.Add(rule.Name))
+            if(!_rules.Add(rule.Name))
                 return;
         }
 
@@ -51,7 +51,7 @@ public static class Analyzer
     {
         var evtSource = new SourceFabricator<TWorkspace, TData>();
 
-       return new Analyzer<TWorkspace, TData>(
+        return new Analyzer<TWorkspace, TData>(
             factory.CreateAnalyser(workspace, evtSource.Send()),
             evtSource.EventSource ?? throw new InvalidOperationException("Create Analyzer"));
     }
@@ -62,7 +62,7 @@ public static class Analyzer
 
         internal IObserver<RuleIssuesChanged<TWorkspace, TData>> Send()
         {
-            if (EventSource is null)
+            if(EventSource is null)
                 throw new InvalidOperationException("Analyzer is not Initialized");
 
             return EventSource.SendEvent();

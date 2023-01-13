@@ -21,12 +21,12 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using Akka.Actor;
 using Akka.Event;
 using Akka.Persistence;
 using Akkatecture.Aggregates;
 using Akkatecture.Cluster.Core;
-using Akkatecture.Cluster.Extentions;
 using Akkatecture.Extensions;
 using Akkatecture.Sagas;
 using Akkatecture.Sagas.AggregateSaga;
@@ -50,13 +50,12 @@ public class
             ClusterFactory<TAggregateSagaManager, TAggregateSaga, TIdentity, TSagaLocator>
                .StartAggregateSagaClusterProxy(Context.System, proxyRoleName, numberOfShards);
 
-        var sagaType = typeof(TAggregateSaga);
+        Type sagaType = typeof(TAggregateSaga);
 
         var sagaHandlesSubscriptionTypes =
-            sagaType
-               .GetSagaEventSubscriptionTypes();
+            sagaType.GetSagaEventSubscriptionTypes();
 
-        foreach (var type in sagaHandlesSubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
+        foreach (Type type in sagaHandlesSubscriptionTypes) Context.System.EventStream.Subscribe(Self, type);
 
         Receive<IDomainEvent>(Dispatch);
     }

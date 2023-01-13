@@ -5,11 +5,11 @@ namespace Tauron.Application.Workshop.StateManagement.StatePooling;
 
 public sealed class DispatcherPool
 {
-    private readonly Dictionary<string, MutatingEngine> _engines = new();
+    private readonly Dictionary<string, MutatingEngine> _engines = new(StringComparer.Ordinal);
 
     public MutatingEngine Get(string name, IDriverFactory driverFactory)
     {
-        if (_engines.TryGetValue(name, out var enigine))
+        if(_engines.TryGetValue(name, out MutatingEngine? enigine))
             return enigine;
 
         enigine = MutatingEngine.Create(driverFactory);

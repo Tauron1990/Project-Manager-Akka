@@ -29,30 +29,12 @@ public sealed class UiAppService : BackgroundService
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        void ShutdownApp()
-        {
-            if (_shutdown.GetAndSet(newValue: true)) return;
-
-            // ReSharper disable MethodSupportsCancellation
-            #pragma warning disable CA2016
-            Task.Run(
-                    async () =>
-                        #pragma warning restore CA2016
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(60));
-                        Process.GetCurrentProcess().Kill(entireProcessTree: false);
-                    })
-               .Ignore();
-            // ReSharper restore MethodSupportsCancellation
-            _system.Terminate()
-               .Ignore();
-        }
 
         void Runner()
         {
-            using var scope = _factory.CreateScope();
-            var provider = scope.ServiceProvider;
-            
+            using IServiceScope scope = _factory.CreateScope();
+            IServiceProvider provider = scope.ServiceProvider;
+
             _internalApplication = provider.GetService<IAppFactory>()?.Create() ?? _framework.CreateDefault();
             _internalApplication.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
@@ -62,7 +44,7 @@ public sealed class UiAppService : BackgroundService
                                                 DispatcherScheduler.CurrentDispatcher = DispatcherScheduler.From(provider.GetRequiredService<IUIDispatcher>());
 
                                                 // ReSharper disable AccessToDisposedClosure
-                                                var splash = provider.GetService<ISplashScreen>()?.Window;
+                                                IWindow? splash = provider.GetService<ISplashScreen>()?.Window;
                                                 splash?.Show();
 
                                                 var mainWindow = provider.GetRequiredService<IMainWindow>();
@@ -83,12 +65,31 @@ public sealed class UiAppService : BackgroundService
         Thread uiThread = new(Runner)
                           {
                               Name = "UI Thread",
-                              IsBackground = true
+                              IsBackground = true,
                           };
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             uiThread.SetApartmentState(ApartmentState.STA);
         uiThread.Start();
 
         return Task.CompletedTask;
+    }
+
+    private void ShutdownApp()
+    {
+        if(_shutdown.GetAndSet(newValue: true)) return;
+
+        // ReSharper disable MethodSupportsCancellation
+        #pragma warning disable CA2016
+        Task.Run(
+                async () =>
+                    #pragma warning restore CA2016
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(60)).ConfigureAwait(false);
+                    Process.GetCurrentProcess().Kill(entireProcessTree: false);
+                })
+           .Ignore();
+        // ReSharper restore MethodSupportsCancellation
+        _system.Terminate()
+           .Ignore();
     }
 }

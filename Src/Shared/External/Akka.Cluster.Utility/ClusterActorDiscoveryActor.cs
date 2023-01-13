@@ -1,43 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Akka.Actor;
-using Akka.Event;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using Tauron.Application;
 
 namespace Akka.Cluster.Utility;
 
 [PublicAPI]
-public sealed class ClusterActorDiscovery : IExtension
-{
-    public ClusterActorDiscovery(ExtendedActorSystem system)
-        => Discovery = system.ActorOf<ClusterActorDiscoveryActor>(nameof(ClusterActorDiscovery));
-
-    public IActorRef Discovery { get; }
-
-    public static ClusterActorDiscovery Get(ActorSystem system)
-        => system.GetExtension<ClusterActorDiscovery?>() ?? new ClusterActorDiscoveryId().Apply(system);
-
-    public void MonitorActor(ClusterActorDiscoveryMessage.MonitorActor actor)
-        => Discovery.Tell(actor);
-
-    public void UnMonitorActor(ClusterActorDiscoveryMessage.UnmonitorActor actor)
-        => Discovery.Tell(actor);
-
-    public void RegisterActor(ClusterActorDiscoveryMessage.RegisterActor actor)
-        => Discovery.Tell(actor);
-
-    public void UnRegisterActor(ClusterActorDiscoveryMessage.UnmonitorActor actor)
-        => Discovery.Tell(actor);
-}
-
-[PublicAPI]
-public sealed class ClusterActorDiscoveryId : ExtensionIdProvider<ClusterActorDiscovery>
-{
-    public override ClusterActorDiscovery CreateExtension(ExtendedActorSystem system) => new(system);
-}
-
-[PublicAPI]
-public class ClusterActorDiscoveryActor : ReceiveActor
+public partial class ClusterActorDiscoveryActor : ReceiveActor
 {
     private readonly List<ActorItem> _actorItems = new();
 
@@ -45,7 +17,7 @@ public class ClusterActorDiscoveryActor : ReceiveActor
 
     private readonly Dictionary<IActorRef, int[]> _actorWatchCountMap = new();
     private readonly Cluster _cluster;
-    private readonly ILoggingAdapter _log;
+    private readonly ILogger _logger;
 
     private readonly List<MonitorItem> _monitorItems = new();
     private readonly string _name;
@@ -56,7 +28,7 @@ public class ClusterActorDiscoveryActor : ReceiveActor
     {
         _cluster = Cluster.Get(Context.System);
         _name = Self.Path.Name;
-        _log = Context.GetLogger();
+        _logger = TauronEnviroment.GetLogger<ClusterActorDiscoveryActor>();
 
         Receive<ClusterEvent.MemberUp>(Handle);
         Receive<ClusterEvent.ReachableMember>(Handle);
@@ -86,20 +58,21 @@ public class ClusterActorDiscoveryActor : ReceiveActor
     }
 
     protected override void PostStop()
-    {
-        _cluster.Unsubscribe(Self);
-    }
+        => _cluster.Unsubscribe(Self);
+
+    [LoggerMessage(EventId = 7, Level = LogLevel.Information, Message = "Cluster.Up: {selfAdress} Role={roles}")]
+    private partial void SelfMemberUp(UniqueAddress selfAdress, string? roles);
 
     private void Handle(ClusterEvent.MemberUp member)
     {
-        if (_cluster.SelfUniqueAddress == member.Member.UniqueAddress)
+        if(_cluster.SelfUniqueAddress == member.Member.UniqueAddress)
         {
-            var roles = string.Join(", ", _cluster.SelfRoles);
-            _log.Info($"Cluster.Up: {_cluster.SelfUniqueAddress} Role={roles}");
+            string roles = string.Join(", ", _cluster.SelfRoles);
+            SelfMemberUp(_cluster.SelfUniqueAddress, roles);
         }
         else
         {
-            var remoteDiscoveryActor = Context.ActorSelection(member.Member.Address + "/user/" + _name);
+            ActorSelection? remoteDiscoveryActor = Context.ActorSelection(member.Member.Address + "/user/" + _name);
             remoteDiscoveryActor.Tell(
                 new ClusterActorDiscoveryMessage.RegisterCluster(
                     _cluster.SelfUniqueAddress,
@@ -108,18 +81,24 @@ public class ClusterActorDiscoveryActor : ReceiveActor
         }
     }
 
+    [LoggerMessage(EventId = 8, Level = LogLevel.Information, Message = "Cluster.ReachableMe: {selfAddress}, Role={roles}")]
+    private partial void SelfMemberReachable(UniqueAddress selfAddress, string roles);
+
+    [LoggerMessage(EventId = 9, Level = LogLevel.Information, Message = "Cluster.Reachable: {address}, Role={Roles}")]
+    private partial void MemberReachable(Address address, string roles);
+
     private void Handle(ClusterEvent.ReachableMember member)
     {
-        if (_cluster.SelfUniqueAddress == member.Member.UniqueAddress)
+        if(_cluster.SelfUniqueAddress == member.Member.UniqueAddress)
         {
-            var roles = string.Join(", ", _cluster.SelfRoles);
-            _log.Info($"Cluster.RechableMe: {_cluster.SelfUniqueAddress} Role={roles}");
+            string roles = string.Join(", ", _cluster.SelfRoles);
+            SelfMemberReachable(_cluster.SelfUniqueAddress, roles);
         }
         else
         {
-            _log.Info($"Cluster.Rechable: {member.Member.Address} Role={string.Join(",", member.Member.Roles)}");
+            MemberReachable(member.Member.Address, string.Join(",", member.Member.Roles));
 
-            var remoteDiscoveryActor = Context.ActorSelection(member.Member.Address + "/user/" + _name);
+            ActorSelection? remoteDiscoveryActor = Context.ActorSelection(member.Member.Address + "/user/" + _name);
             remoteDiscoveryActor.Tell(
                 new ClusterActorDiscoveryMessage.ResyncCluster(
                     _cluster.SelfUniqueAddress,
@@ -129,25 +108,43 @@ public class ClusterActorDiscoveryActor : ReceiveActor
         }
     }
 
+    [LoggerMessage(EventId = 10, Level = LogLevel.Information, Message = "Cluster.Unreachable: {address}, Role={role}")]
+    private partial void MemberUnreachable(Address address, string role);
+
     private void Handle(ClusterEvent.UnreachableMember member)
     {
-        _log.Info($"Cluster.Unreachable: {member.Member.Address} Role={string.Join(",", member.Member.Roles)}");
+        MemberUnreachable(member.Member.Address, string.Join(",", member.Member.Roles));
 
-        var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        #pragma warning disable GU0019
+        IActorRef key = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress).Key;
+        #pragma warning restore GU0019
+
         RemoveNode(key);
     }
+
+    [LoggerMessage(EventId = 11, Level = LogLevel.Information, Message = "Cluster.MemberRemoved: {address}, Role={role}")]
+    private partial void MemberRemoved(Address address, string role);
 
     private void Handle(ClusterEvent.MemberRemoved member)
     {
-        _log.Info($"Cluster.MemberRemoved: {member.Member.Address} Role={string.Join(",", member.Member.Roles)}");
+        MemberRemoved(member.Member.Address, string.Join(",", member.Member.Roles));
 
-        var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress);
+        #pragma warning disable GU0019
+        IActorRef? key = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.Member.UniqueAddress).Key;
+        #pragma warning restore GU0019
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if(key is null) return;
+
         RemoveNode(key);
     }
 
+    [LoggerMessage(EventId = 12, Level = LogLevel.Information, Message = "RegisterCluster: {clusterAddress}")]
+    private partial void RegisterCluster(UniqueAddress clusterAddress);
+
+
     private void Handle(ClusterActorDiscoveryMessage.RegisterCluster member)
     {
-        _log.Info($"RegisterCluster: {member.ClusterAddress}");
+        RegisterCluster(member.ClusterAddress);
 
         // Register node
 
@@ -164,31 +161,37 @@ public class ClusterActorDiscoveryActor : ReceiveActor
 
         //if (member.ActorUpList is null) return;
 
-        foreach (var actorUp in member.ActorUpList)
+        foreach (ClusterActorDiscoveryMessage.ClusterActorUp actorUp in member.ActorUpList)
             Handle(actorUp);
     }
 
+    [LoggerMessage(EventId = 42, Level = LogLevel.Information, Message = "ResyncCluster: {clusterAddress}, Request={request}")]
+    private partial void ResyncCluster(UniqueAddress clusterAddress, bool request);
+
     private void Handle(ClusterActorDiscoveryMessage.ResyncCluster member)
     {
-        _log.Info($"ResyncCluster: {member.ClusterAddress} Request={member.Request}");
+        ResyncCluster(member.ClusterAddress, member.Request);
 
         // Reregister node
 
-        var (key, _) = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress);
-        //if (key != null)
-        RemoveNode(key);
+        #pragma warning disable GU0019
+        IActorRef? key = _nodeMap.FirstOrDefault(node => node.Value.ClusterAddress == member.ClusterAddress).Key;
+        #pragma warning restore GU0019
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if(key is not null)
+            RemoveNode(key);
 
         _nodeMap.Add(Sender, new NodeItem(new List<ActorItem>(), member.ClusterAddress));
 
         // Process attached actorUp messages
 
         //if (member.ActorUpList != null)
-        foreach (var actorUp in member.ActorUpList)
+        foreach (ClusterActorDiscoveryMessage.ClusterActorUp actorUp in member.ActorUpList)
             Handle(actorUp);
 
         // Response
 
-        if (member.Request)
+        if(member.Request)
             Sender.Tell(
                 new ClusterActorDiscoveryMessage.ResyncCluster(
                     _cluster.SelfUniqueAddress,
@@ -208,24 +211,30 @@ public class ClusterActorDiscoveryActor : ReceiveActor
 
     private void RemoveNode(IActorRef? discoveryActor)
     {
-        if(discoveryActor == null) return;
+        if(discoveryActor is null) return;
 
-        if (_nodeMap.TryGetValue(discoveryActor, out var node) == false)
+        if(_nodeMap.TryGetValue(discoveryActor, out NodeItem? node) == false)
             return;
 
         _nodeMap.Remove(discoveryActor);
 
-        foreach (var actorItem in node.ActorItems)
+        foreach (ActorItem actorItem in node.ActorItems)
             NotifyActorDownToMonitor(actorItem.Actor, actorItem.Tag);
     }
 
+    [LoggerMessage(EventId = 13, Level = LogLevel.Information, Message = "ClusterActor{type}: Actor={path}, Tag={tag}")]
+    private partial void ClusterActorEvent(string type, ActorPath path, string tag);
+
+    [LoggerMessage(EventId = 14, Level = LogLevel.Error, Message = "Cannot find node: Discovery={path}")]
+    private partial void ClusterActornodeNotFound(ActorPath path);
+
     private void Handle(ClusterActorDiscoveryMessage.ClusterActorUp member)
     {
-        _log.Debug($"ClusterActorUp: Actor={member.Actor.Path} Tag={member.Tag}");
+        ClusterActorEvent("Up", member.Actor.Path, member.Tag);
 
-        if (_nodeMap.TryGetValue(Sender, out var node) == false)
+        if(_nodeMap.TryGetValue(Sender, out NodeItem? node) == false)
         {
-            _log.Error($"Cannot find node: Discovery={Sender.Path}");
+            ClusterActornodeNotFound(Sender.Path);
 
             return;
         }
@@ -235,43 +244,52 @@ public class ClusterActorDiscoveryActor : ReceiveActor
         NotifyActorUpToMonitor(member.Actor, member.Tag);
     }
 
+    [LoggerMessage(EventId = 15, Level = LogLevel.Error, Message = "Cannot fing Actor: Discovery={path}, Actor={actorPath}")]
+    private partial void ActorNotFound(ActorPath path, ActorPath actorPath);
+
     private void Handle(ClusterActorDiscoveryMessage.ClusterActorDown member)
     {
-        _log.Debug($"ClusterActorDown: Actor={member.Actor.Path}");
+        ClusterActorEvent("Down", member.Actor.Path, string.Empty);
 
-        if (_nodeMap.TryGetValue(Sender, out var node) == false)
+        if(_nodeMap.TryGetValue(Sender, out NodeItem? node) == false)
         {
-            _log.Error($"Cannot find node: Discovery={Sender.Path}");
+            ClusterActornodeNotFound(Sender.Path);
 
             return;
         }
 
         // remove actor from node.ActorItems
 
-        var index = node.ActorItems.FindIndex(item => item.Actor.Equals(member.Actor));
-        if (index == -1)
+        int index = node.ActorItems.FindIndex(item => item.Actor.Equals(member.Actor));
+        if(index == -1)
         {
-            _log.Error($"Cannot find actor: Discovery={Sender.Path} Actor={member.Actor.Path}");
+            ActorNotFound(Sender.Path, member.Actor.Path);
 
             return;
         }
 
-        var tag = node.ActorItems[index].Tag;
+        string tag = node.ActorItems[index].Tag;
         node.ActorItems.RemoveAt(index);
 
         NotifyActorDownToMonitor(member.Actor, tag);
     }
 
+    [LoggerMessage(EventId = 16, Level = LogLevel.Debug, Message = "RegisterActor: Actor={path}, Tag={tag}")]
+    private partial void ActorRegister(ActorPath path, string tag);
+
+    [LoggerMessage(EventId = 17, Level = LogLevel.Error, Message = "Already registred actor: Actor={path}, Tag={tag}")]
+    private partial void AlreadyRegistredActor(ActorPath path, string tag);
+
     private void Handle(ClusterActorDiscoveryMessage.RegisterActor member)
     {
-        _log.Debug($"RegisterActor: Actor={member.Actor.Path} Tag={member.Tag}");
+        ActorRegister(member.Actor.Path, member.Tag);
 
         // add actor to _actorItems
 
-        var index = _actorItems.FindIndex(item => item.Actor.Equals(member.Actor));
-        if (index != -1)
+        int index = _actorItems.FindIndex(item => item.Actor.Equals(member.Actor));
+        if(index != -1)
         {
-            _log.Error($"Already registered actor: Actor={member.Actor.Path} Tag={member.Tag}");
+            AlreadyRegistredActor(member.Actor.Path, member.Tag);
 
             return;
         }
@@ -282,95 +300,107 @@ public class ClusterActorDiscoveryActor : ReceiveActor
         // tell monitors & other discovery actors that local actor up
 
         NotifyActorUpToMonitor(member.Actor, member.Tag);
-        foreach (var discoveryActor in _nodeMap.Keys)
+        foreach (IActorRef discoveryActor in _nodeMap.Keys)
             discoveryActor.Tell(new ClusterActorDiscoveryMessage.ClusterActorUp(member.Actor, member.Tag));
     }
 
+    [LoggerMessage(EventId = 18, Level = LogLevel.Debug, Message = "UnregisterActor: Actor={path}")]
+    private partial void UnregisterActor(ActorPath path);
+
     private void Handle(ClusterActorDiscoveryMessage.UnregisterActor member)
     {
-        _log.Debug($"UnregisterActor: Actor={member.Actor.Path}");
+        UnregisterActor(member.Actor.Path);
 
         // remove actor from _actorItems
 
-        var index = _actorItems.FindIndex(item => item.Actor.Equals(member.Actor));
+        int index = _actorItems.FindIndex(item => item.Actor.Equals(member.Actor));
 
-        if (index == -1)
+        if(index == -1)
             return;
 
-        var tag = _actorItems[index].Tag;
+        string tag = _actorItems[index].Tag;
         _actorItems.RemoveAt(index);
         UnwatchActor(member.Actor, 0);
 
         // tell monitors & other discovery actors that local actor down
 
         NotifyActorDownToMonitor(member.Actor, tag);
-        foreach (var discoveryActor in _nodeMap.Keys)
+        foreach (IActorRef discoveryActor in _nodeMap.Keys)
             discoveryActor.Tell(new ClusterActorDiscoveryMessage.ClusterActorDown(member.Actor));
     }
 
+    [LoggerMessage(EventId = 19, Level = LogLevel.Debug, Message = "MonitorActor: Monitor={path}, Tag={tag}")]
+    private partial void MonitorActor(ActorPath path, string tag);
+
     private void Handle(ClusterActorDiscoveryMessage.MonitorActor member)
     {
-        _log.Debug($"MonitorActor: Monitor={Sender.Path} Tag={member.Tag}");
+        MonitorActor(Sender.Path, member.Tag);
 
         _monitorItems.Add(new MonitorItem(Sender, member.Tag));
         WatchActor(Sender, 1);
 
         // Send actor up message to just registered monitor
 
-        foreach (var actor in _actorItems.Where(item => item.Tag == member.Tag))
+        foreach (ActorItem actor in _actorItems.Where(item => string.Equals(item.Tag, member.Tag, StringComparison.Ordinal)))
             Sender.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor.Actor, actor.Tag));
 
-        foreach (var actor in _nodeMap.Values.SelectMany(node => node.ActorItems.Where(item => item.Tag == member.Tag)))
+        foreach (ActorItem actor in _nodeMap.Values.SelectMany(node => node.ActorItems.Where(item => string.Equals(item.Tag, member.Tag, StringComparison.Ordinal))))
             Sender.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor.Actor, actor.Tag));
     }
 
+    [LoggerMessage(EventId = 20, Level = LogLevel.Debug, Message = "UnmonitorActor: Monitor={path}, Tag={tag}")]
+    private partial void UnmonitorActor(ActorPath path, string tag);
+
     private void Handle(ClusterActorDiscoveryMessage.UnmonitorActor member)
     {
-        _log.Debug($"UnmonitorActor: Monitor={Sender.Path} Tag={member.Tag}");
+        UnmonitorActor(Sender.Path, member.Tag);
 
-        var count = _monitorItems.RemoveAll(item => item.Actor.Equals(Sender) && item.Tag == member.Tag);
+        int count = _monitorItems.RemoveAll(item => item.Actor.Equals(Sender) && string.Equals(item.Tag, member.Tag, StringComparison.Ordinal));
         for (var index = 0; index < count; index++)
             UnwatchActor(Sender, 1);
     }
 
+    [LoggerMessage(EventId = 41, Level = LogLevel.Debug, Message = "Terminated: Actor={path}")]
+    private partial void ActorTerminated(ActorPath path);
+
     private void Handle(Terminated member)
     {
-        _log.Debug($"Terminated: Actor={member.ActorRef.Path}");
+        ActorTerminated(member.ActorRef.Path);
 
-        if (_actorWatchCountMap.TryGetValue(member.ActorRef, out var counts) == false)
+        if(_actorWatchCountMap.TryGetValue(member.ActorRef, out int[]? counts) == false)
             return;
 
-        if (counts[1] > 0)
+        if(counts[1] > 0)
         {
             _monitorItems.RemoveAll(item => item.Actor.Equals(Sender));
             counts[1] = 0;
         }
 
-        if (counts[0] <= 0) return;
+        if(counts[0] <= 0) return;
 
-        var index = _actorItems.FindIndex(item => item.Actor.Equals(member.ActorRef));
+        int index = _actorItems.FindIndex(item => item.Actor.Equals(member.ActorRef));
 
-        if (index == -1) return;
+        if(index == -1) return;
 
-        var tag = _actorItems[index].Tag;
+        string tag = _actorItems[index].Tag;
         _actorItems.RemoveAt(index);
 
         // tell monitors & other discovery actors that local actor down
 
         NotifyActorDownToMonitor(member.ActorRef, tag);
-        foreach (var discoveryActor in _nodeMap.Keys)
+        foreach (IActorRef discoveryActor in _nodeMap.Keys)
             discoveryActor.Tell(new ClusterActorDiscoveryMessage.ClusterActorDown(member.ActorRef));
     }
 
     private void NotifyActorUpToMonitor(IActorRef actor, string tag)
     {
-        foreach (var monitor in _monitorItems.Where(item => item.Tag == tag))
+        foreach (MonitorItem monitor in _monitorItems.Where(item => string.Equals(item.Tag, tag, StringComparison.Ordinal)))
             monitor.Actor.Tell(new ClusterActorDiscoveryMessage.ActorUp(actor, tag));
     }
 
     private void NotifyActorDownToMonitor(IActorRef actor, string tag)
     {
-        foreach (var monitor in _monitorItems.Where(item => item.Tag == tag))
+        foreach (MonitorItem monitor in _monitorItems.Where(item => string.Equals(item.Tag, tag, StringComparison.Ordinal)))
             monitor.Actor.Tell(new ClusterActorDiscoveryMessage.ActorDown(actor, tag));
     }
 
@@ -380,7 +410,7 @@ public class ClusterActorDiscoveryActor : ReceiveActor
         // - channel 0: source actor watching counter
         // - channel 1: monitor actor watching counter (to track monitoring actor destroyed)
 
-        if (_actorWatchCountMap.TryGetValue(actor, out var counts))
+        if(_actorWatchCountMap.TryGetValue(actor, out int[]? counts))
         {
             counts[channel] += 1;
 
@@ -395,12 +425,12 @@ public class ClusterActorDiscoveryActor : ReceiveActor
 
     private void UnwatchActor(IActorRef actor, int channel)
     {
-        if (_actorWatchCountMap.TryGetValue(actor, out var counts) == false)
+        if(_actorWatchCountMap.TryGetValue(actor, out int[]? counts) == false)
             return;
 
         counts[channel] -= 1;
 
-        if (counts.Sum() > 0)
+        if(counts.Sum() > 0)
             return;
 
         _actorWatchCountMap.Remove(actor);

@@ -1,0 +1,39 @@
+﻿{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "allowJs": true,
+    "baseUrl": "./",
+    "sourceMap": true,
+    "declaration": false,
+    "allowSyntheticDefaultImports": true,
+    "module": "ES6",
+    "moduleResolution": "Node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
+    "target": "es5",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "ES2018",
+      "DOM"
+    ],
+    "types": [
+      "webpack-env"
+    ],
+    "outDir": "../wwwroot/dist"
+  },
+  "include": [
+    "./**/*"
+  ],
+  "exclude": [
+    "./plugins/**/*",
+    "./typings/**/*",
+    "./built/**/*"
+    // This is what fixed it!
+  ]
+}

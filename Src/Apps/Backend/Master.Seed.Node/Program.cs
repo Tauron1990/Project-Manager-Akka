@@ -6,7 +6,6 @@ using Petabridge.Cmd.Cluster;
 using Petabridge.Cmd.Host;
 using ServiceHost.Client.Shared;
 using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.Master.Commands.ServiceRegistry;
 
@@ -22,25 +21,29 @@ namespace Master.Seed.Node
                     args,
                     KillRecpientType.Seed,
                     IpcApplicationType.Client,
-                    ab => ab.ConfigureAkkaSystem(
-                        (context, system) =>
+                    ab => ab.ConfigureAkka(
+                        (context, systemBuilder) =>
                         {
-                            var cluster = Cluster.Get(system);
-                            cluster.RegisterOnMemberUp(
-                                () =>
+                            systemBuilder.AddStartup(
+                                (system, _) =>
                                 {
-                                    ServiceRegistry.Start(
-                                        system,
-                                        new RegisterService(
-                                            context.HostingEnvironment.ApplicationName,
-                                            cluster.SelfUniqueAddress,
-                                            ServiceTypes.SeedNode));
-                                });
+                                    var cluster = Cluster.Get(system);
+                                    cluster.RegisterOnMemberUp(
+                                        () =>
+                                        {
+                                            ServiceRegistry.Start(
+                                                system,
+                                                new RegisterService(
+                                                    context.HostingEnvironment.ApplicationName,
+                                                    cluster.SelfUniqueAddress,
+                                                    ServiceTypes.SeedNode));
+                                        });
 
-                            var cmd = PetabridgeCmd.Get(system);
-                            cmd.RegisterCommandPalette(ClusterCommands.Instance);
-                            cmd.RegisterCommandPalette(MasterCommand.New);
-                            cmd.Start();
+                                    var cmd = PetabridgeCmd.Get(system);
+                                    cmd.RegisterCommandPalette(ClusterCommands.Instance);
+                                    cmd.RegisterCommandPalette(MasterCommand.New);
+                                    cmd.Start();
+                                });
                         }))
                .Build().RunAsync();
         }

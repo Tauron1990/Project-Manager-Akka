@@ -29,7 +29,7 @@ public class DomainEventReadAdapter : IReadEventAdapter
 {
     public IEventSequence FromJournal(object evt, string manifest)
     {
-        var newEvent = DomainEventMapper.FromCommittedEvent(evt);
+        object newEvent = DomainEventMapper.FromCommittedEvent(evt);
 
         return new SingleEventSequence(newEvent);
     }

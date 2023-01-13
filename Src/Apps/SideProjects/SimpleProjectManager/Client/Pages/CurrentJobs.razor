@@ -1,43 +1,46 @@
-﻿@using SimpleProjectManager.Client.Shared.CurrentJobs;
+﻿@page "/CurrentJobs"
+@page "/CurrentJobs/{PreSelected}"
+@using SimpleProjectManager.Client.Shared.Data
+@using SimpleProjectManager.Client.Shared.CurrentJobs
+@inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.Pages.CurrentJobsViewModel>
 
-@page "/CurrentJobs"
-
-@inherits NonAutoRenderingView<CurrentJobsViewModel>
-
-@inject JobsViewModel _model
+@inject IJSRuntime JsRuntime
+@inject GlobalState GlobalState 
+@inject IEventAggregator EventAggregator
 
 <PageTitle>Aktuelle Aufträge</PageTitle>
 
-<StateAwaiter State="@ViewModel?.State">
-    @if(context == null)
-    {
+<ObservableRenderer Observable="@ViewModel?.Jobs">
+    <Waiting>
         <GenericLoadingElement Label="Daten werden Abgerufen"/>
-    }
-    else if (context.Length == 0)
-    {
-        <MudGrid Justify="Justify.Center">
-            <MudItem lg="12">
-                <MudText Align="Align.Center" Typo="Typo.h1">Keine Aufträge</MudText>
-            </MudItem>
-            <MudItem lg="5"/>
-            <MudItem lg="2">
-                <MudCommandButton StartIcon="@Icons.Filled.NewLabel" Class="align-center" @ref="NewJob">Neuer Auftrag</MudCommandButton>
-            </MudItem>
-            <MudItem lg="5"/>
-        </MudGrid>
-    }
-    else
-    {
-        <MudGrid>
-            <MudItem lg="3">
-                <JobSideBar CurrentJobs="context"/>
-            </MudItem>
-            <MudItem lg="9">
-                <JobDetailDisplay/>
-            </MudItem>
-        </MudGrid>
-    }
-    
-</StateAwaiter>
-
-
+    </Waiting>
+    <ValueRenderer>
+        @if(context.Length == 0)
+        {
+            <MudGrid Justify="Justify.Center">
+                <MudItem lg="12">
+                    <MudText Align="Align.Center" Typo="Typo.h1">Keine Aufträge</MudText>
+                </MudItem>
+                <MudItem lg="5"/>
+                <MudItem lg="2">
+                    <MudCommandButton StartIcon="@Icons.Material.Filled.NewLabel" Class="align-center" @ref="NewJob">Neuer Auftrag</MudCommandButton>
+                </MudItem>
+                <MudItem lg="5"/>
+            </MudGrid>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem lg="3">
+                    <JobSideBar/>
+                </MudItem>
+                <MudItem lg="9">
+                    <JobDetailDisplay/>
+                </MudItem>
+            </MudGrid>
+        }
+    </ValueRenderer>
+    <OnCompled>
+        <GenericStreamError/>
+    </OnCompled>
+</ObservableRenderer>

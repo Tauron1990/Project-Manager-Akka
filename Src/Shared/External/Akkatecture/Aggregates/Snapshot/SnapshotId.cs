@@ -27,7 +27,9 @@ using JetBrains.Annotations;
 namespace Akkatecture.Aggregates.Snapshot;
 
 [PublicAPI]
+#pragma warning disable MA0097
 public class SnapshotId : Identity<SnapshotId>, ISnapshotId
+    #pragma warning restore MA0097
 {
     public SnapshotId(string value)
         : base(value) { }

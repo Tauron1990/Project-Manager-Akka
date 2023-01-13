@@ -23,13 +23,12 @@ public abstract class DisposableComponent : ComponentBase, IResourceHolder
 
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
-        {
+        if(disposing)
             _disposables.Dispose();
-        }
     }
 }
 
+[PublicAPI]
 public abstract class DisposableComponent<TState> : ComputedStateComponent<TState>, IResourceHolder
 {
     private readonly CompositeDisposable _disposables = new();

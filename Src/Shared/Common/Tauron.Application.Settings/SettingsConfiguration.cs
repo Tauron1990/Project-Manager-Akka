@@ -2,6 +2,8 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
+#pragma warning disable GU0011
+
 namespace Tauron.Application.Settings;
 
 [PublicAPI]
@@ -26,7 +28,7 @@ public sealed class SettingsConfiguration
 
         return this;
     }
-    
+
     public SettingsConfiguration WithProvider<TType>(Func<IServiceProvider, TType> setting)
         where TType : ISettingProviderConfiguration
     {

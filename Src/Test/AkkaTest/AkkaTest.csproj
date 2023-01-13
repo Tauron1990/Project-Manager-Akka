@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0-windows</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
@@ -40,25 +40,24 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.DependencyInjection" Version="1.4.23"/>
-        <PackageReference Include="Akka.Remote" Version="1.4.23"/>
-        <PackageReference Include="Akka.Streams" Version="1.4.23"/>
-        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0"/>
-        <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="2.2.12"/>
-        <PackageReference Include="Castle.Core" Version="4.4.1"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0"/>
-        <PackageReference Include="NLog" Version="4.7.10"/>
+        <PackageReference Include="Akka.DependencyInjection" Version="1.4.40"/>
+        <PackageReference Include="Akka.Remote" Version="1.4.40"/>
+        <PackageReference Include="Akka.Streams" Version="1.4.40"/>
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0"/>
+        <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="3.0.1"/>
+        <PackageReference Include="Castle.Core" Version="5.1.0"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1"/>
+        <PackageReference Include="NLog" Version="5.0.2"/>
         <PackageReference Include="SharpRepository.InMemoryRepository" Version="2.0.3.1"/>
         <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1"/>
-        <PackageReference Include="Spectre.Console" Version="0.41.0"/>
-        <PackageReference Include="System.Threading.Channels" Version="5.0.0"/>
+        <PackageReference Include="Spectre.Console" Version="0.44.0"/>
+        <PackageReference Include="System.Threading.Channels" Version="6.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\Apps\Shared\Stl.Fusion.AkkaBridge\Stl.Fusion.AkkaBridge.csproj"/>
         <ProjectReference Include="..\..\Apps\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj"/>
-        <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

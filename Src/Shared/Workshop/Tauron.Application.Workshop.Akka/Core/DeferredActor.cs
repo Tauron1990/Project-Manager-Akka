@@ -21,7 +21,7 @@ public class DeferredActor
         lock (_lock)
         {
             Actor = obj.Result;
-            foreach (var message in _stash ?? ImmutableList<object>.Empty)
+            foreach (object message in _stash ?? ImmutableList<object>.Empty)
                 Actor.Tell(message);
 
             _stash = null;
@@ -30,12 +30,12 @@ public class DeferredActor
 
     public void TellToActor(object msg)
     {
-        if (!Actor.IsNobody())
+        if(!Actor.IsNobody())
             Actor.Tell(msg);
         else
             lock (_lock)
             {
-                if (!Actor.IsNobody())
+                if(!Actor.IsNobody())
                 {
                     Actor.Tell(msg);
 

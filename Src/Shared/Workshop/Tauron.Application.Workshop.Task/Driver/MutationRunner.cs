@@ -14,9 +14,11 @@ public sealed class MutationRunner
                 {
                     case ISyncMutation sync:
                         sync.Run();
+
                         break;
                     case IAsyncMutation asyncMutation:
-                        await asyncMutation.Run();
+                        await asyncMutation.Run().ConfigureAwait(false);
+
                         break;
                 }
             });

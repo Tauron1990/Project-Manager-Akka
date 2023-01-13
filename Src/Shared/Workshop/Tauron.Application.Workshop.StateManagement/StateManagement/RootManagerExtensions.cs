@@ -13,7 +13,7 @@ public static class RootManagerExtensions
     {
         void OnNext(TCommand c)
             => invoker.Run(c);
-        
+
         if(errorHandler is null)
             return commandProvider.NotNull().Subscribe(OnNext);
 

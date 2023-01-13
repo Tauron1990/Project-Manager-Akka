@@ -1,14 +1,13 @@
-﻿namespace Tauron.Grid
+﻿namespace Tauron.Grid;
+
+public enum GridAlignExt
 {
-    public enum GridAlignExt
-    {
-        None,
-        Start,
-        End,
-        Center,
-        Stretch,
-        SpaceAround,
-        SpaceBetween,
-        SpaceEvenly
-    }
+    None,
+    Start,
+    End,
+    Center,
+    Stretch,
+    SpaceAround,
+    SpaceBetween,
+    SpaceEvenly
 }

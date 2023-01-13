@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Reactive.Linq;
 using JetBrains.Annotations;
 using NLog;
@@ -8,101 +9,11 @@ using Stl;
 
 namespace Tauron.Application.CommonUI.Helper;
 
-public abstract class DataContextPromise
-{
-    public abstract void OnUnload(Action unload);
-
-    public abstract void OnContext(Action<IViewModel, IView> modelAction);
-
-    public abstract void OnNoContext(Action action);
-}
-
-public sealed class RootedDataContextPromise : DataContextPromise
-{
-    private readonly IUIElement _element;
-
-    private Action? _noContext;
-
-    public RootedDataContextPromise(IUIElement element) => _element = element;
-
-    public override void OnUnload(Action unload)
-    {
-        if (_element is IView view)
-            view.ControlUnload += unload;
-    }
-
-    public override void OnContext(Action<IViewModel, IView> modelAction)
-    {
-        if (_element is IView view)
-        {
-            if (_element.DataContext is IViewModel model)
-            {
-                modelAction(model, view);
-
-                return;
-            }
-
-            void OnElementOnDataContextChanged(object newValue)
-            {
-                if (newValue is IViewModel localModel)
-                    modelAction(localModel, view);
-                else
-                    _noContext?.Invoke();
-            }
-
-            _element.DataContextChanged.Take(1).Subscribe(OnElementOnDataContextChanged);
-        }
-        else
-        {
-            _noContext?.Invoke();
-        }
-    }
-
-    public override void OnNoContext(Action action)
-    {
-        _noContext = action;
-    }
-}
-
-public sealed class DisconnectedDataContextRoot : DataContextPromise
-{
-    private Action<IViewModel, IView>? _modelAction;
-    private Action? _noContext;
-    private Action? _unload;
-
-    public DisconnectedDataContextRoot(IUIElement elementBase)
-    {
-        void OnLoad()
-        {
-            var (hasValue, value) = ControlBindLogic.FindRoot(elementBase.AsOption<IUIObject>());
-            if (hasValue && value is IView control and IUIElement { DataContext: IViewModel model })
-            {
-                _modelAction?.Invoke(model, control);
-
-                if (_unload != null)
-                    control.ControlUnload += _unload;
-            }
-            else
-            {
-                _noContext?.Invoke();
-            }
-        }
-
-        elementBase.Loaded.Take(1).Subscribe(_ => OnLoad());
-    }
-
-    public override void OnUnload(Action unload) => _unload = unload;
-
-    public override void OnContext(Action<IViewModel, IView> modelAction) => _modelAction = modelAction;
-
-    public override void OnNoContext(Action noContext) => _noContext = noContext;
-}
-
 [PublicAPI]
 public sealed class ControlBindLogic
 {
     private static readonly ILogger Log = LogManager.GetCurrentClassLogger();
-    private readonly Dictionary<string, (IDisposable Disposer, IControlBindable Binder)> _binderList = new();
+    private readonly Dictionary<string, (IDisposable Disposer, IControlBindable Binder)> _binderList = new(StringComparer.Ordinal);
     private readonly object? _dataContext;
 
     private readonly IUIObject _target;
@@ -143,12 +54,12 @@ public sealed class ControlBindLogic
             bindable.GetType(),
             affectedPart.GetType());
 
-        if (_dataContext == null)
+        if(_dataContext is null)
             return;
 
-        var disposer = bindable.Bind(_target, affectedPart, _dataContext);
+        IDisposable disposer = bindable.Bind(_target, affectedPart, _dataContext);
 
-        if (affectedPart is IUIElement element)
+        if(affectedPart is IUIElement element)
         {
             void OnElementOnUnloaded()
             {
@@ -164,9 +75,9 @@ public sealed class ControlBindLogic
 
     public void CleanUp(string key)
     {
-        Log.Debug("Clean Up Element {Name}", key);
+        Log.Debug(CultureInfo.InvariantCulture, "Clean Up Element {Name}", key);
 
-        if (_binderList.TryGetValue(key, out var pair))
+        if(_binderList.TryGetValue(key, out (IDisposable Disposer, IControlBindable Binder) pair))
             pair.Disposer.Dispose();
 
         _binderList.Remove(key);
@@ -179,13 +90,13 @@ public sealed class ControlBindLogic
                 {
                     Log.Debug("Try Find Root for {Element}", root.GetType());
 
-                    var affected = root;
+                    IUIObject? affected = root;
 
                     do
                     {
                         // ReSharper disable once SuspiciousTypeConversion.Global
                         // ReSharper disable once ConstantConditionalAccessQualifier
-                        if (affected?.Object is IBinderControllable binder)
+                        if(affected?.Object is IBinderControllable binder)
                         {
                             Log.Debug("Root Found for {Element}", affected.GetType());
 
@@ -206,7 +117,7 @@ public sealed class ControlBindLogic
                 root =>
                 {
                     Log.Debug("Try Find View for {Element}", root.GetType());
-                    var affected = root;
+                    IUIObject? affected = root;
 
                     do
                     {
@@ -214,7 +125,7 @@ public sealed class ControlBindLogic
                         affected = affected?.GetPerent();
 
                         // ReSharper disable once SuspiciousTypeConversion.Global
-                        if (affected?.Object is not IView binder) continue;
+                        if(affected?.Object is not IView binder) continue;
 
                         Log.Debug("View Found for {Element}", affected.GetType());
 
@@ -232,7 +143,7 @@ public sealed class ControlBindLogic
                 root =>
                 {
                     Log.Debug("Try Find DataContext for {Element}", root.GetType());
-                    var affected = root;
+                    IUIObject? affected = root;
 
                     do
                     {
@@ -256,9 +167,9 @@ public sealed class ControlBindLogic
     {
         promise = null;
         var root = FindRoot(affected);
-        if (root is { HasValue: true } and { Value: IUIElement element })
+        if(root is { HasValue: true } and { Value: IUIElement element })
             promise = new RootedDataContextPromise(element);
-        else if (affected.HasValue && affected.Value is IUIElement affectedElement)
+        else if(affected is { HasValue: true, Value: IUIElement affectedElement })
             promise = new DisconnectedDataContextRoot(affectedElement);
 
 
@@ -292,7 +203,7 @@ public sealed class ControlBindLogic
         {
             var root = FindRoot(_target.AsOption<IUIObject>());
 
-            if (!root.HasValue) return;
+            if(!root.HasValue) return;
 
             _runner(_oldValue, _newValue, root.Value, _target);
         }

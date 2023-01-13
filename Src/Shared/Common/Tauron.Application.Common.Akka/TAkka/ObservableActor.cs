@@ -4,33 +4,11 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using Akka.Actor;
-using Akka.Event;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using Tauron.Application;
 
 namespace Tauron.TAkka;
-
-[PublicAPI]
-public interface IObservableActor : IResourceHolder
-{
-    IObservable<IActorContext> Start { get; }
-
-    IObservable<IActorContext> Stop { get; }
-
-    ILoggingAdapter Log { get; }
-    IActorRef Self { get; }
-    IActorRef Parent { get; }
-    IActorRef? Sender { get; }
-    void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler);
-    IObservable<TEvent> Receive<TEvent>();
-    void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler);
-    void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
-
-    void Receive<TEvent>(
-        Func<IObservable<TEvent>, IObservable<TEvent>> handler,
-        Func<Exception, bool> errorHandler);
-
-    void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler);
-}
 
 [PublicAPI]
 public class ObservableActor : ActorBase, IObservableActor
@@ -40,8 +18,8 @@ public class ObservableActor : ActorBase, IObservableActor
     private readonly CompositeDisposable _resources = new();
 
     private readonly Dictionary<Type, object> _selectors = new();
-    private readonly BehaviorSubject<IActorContext?> _start = new(null);
-    private readonly BehaviorSubject<IActorContext?> _stop = new(null);
+    private readonly BehaviorSubject<IActorContext?> _start = new(value: null);
+    private readonly BehaviorSubject<IActorContext?> _stop = new(value: null);
 
     private bool _isReceived;
 
@@ -53,6 +31,8 @@ public class ObservableActor : ActorBase, IObservableActor
         _resources.Add(_receiver);
         _resources.Add(_start);
         _resources.Add(_stop);
+
+        Log = TauronEnviroment.GetLogger(GetType());
     }
 
     public bool CallSingleHandler { get; set; }
@@ -61,7 +41,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
     public IObservable<IActorContext> Start => _start.NotNull();
     public IObservable<IActorContext> Stop => _stop.NotNull();
-    public ILoggingAdapter Log { get; } = ActorBase.Context.GetLogger();
+    public ILogger Log { get; }
 
     public virtual void Dispose()
     {
@@ -102,7 +82,7 @@ public class ObservableActor : ActorBase, IObservableActor
         bool RunDefault()
         {
             var signaled = false;
-            foreach (var signal in _currentWaiting.Where(signal => signal.Match(message)))
+            foreach (ISignal signal in _currentWaiting.Where(signal => signal.Match(message)))
             {
                 signal.Signal(message);
                 signaled = true;
@@ -118,10 +98,10 @@ public class ObservableActor : ActorBase, IObservableActor
             case Status.Failure when _selectors.ContainsKey(typeof(Status.Failure)) || _currentWaiting.Any(signal => signal.Match(message)):
                 return RunDefault();
             case Status.Failure failure:
-                if (OnError(failure))
+                if(OnError(failure))
                     throw failure.Cause;
-                else
-                    return true;
+
+                return true;
             case Status.Success when _selectors.ContainsKey(typeof(Status.Success)) || _currentWaiting.Any(signal => signal.Match(message)):
                 return RunDefault();
             case AddSignal add:
@@ -155,10 +135,10 @@ public class ObservableActor : ActorBase, IObservableActor
 
     protected override void Unhandled(object message)
     {
-        if (message is Status status)
+        if(message is Status status)
         {
-            if (status is Status.Failure failure)
-                Log.Error(failure.Cause, "Unhandled Exception Received");
+            if(status is Status.Failure failure)
+                ObservableActorLogger.UnhandledException(Log, failure.Cause);
         }
         else
         {
@@ -191,7 +171,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
     protected IObservable<TEvent> GetSelector<TEvent>()
     {
-        if (_selectors.TryGetValue(typeof(TEvent), out var selector)) return (IObservable<TEvent>)selector;
+        if(_selectors.TryGetValue(typeof(TEvent), out object? selector)) return (IObservable<TEvent>)selector;
 
         selector = _receiver
            .Where(msg => msg is TEvent && (!CallSingleHandler || !_isReceived))
@@ -211,7 +191,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
     public bool ThrowError(Exception exception)
     {
-        Log.Error(exception, "Error on Process Event");
+        ObservableActorLogger.EventProcessError(Log, exception);
         Self.Tell(new Status.Failure(exception));
 
         return true;
@@ -219,7 +199,7 @@ public class ObservableActor : ActorBase, IObservableActor
 
     public bool DefaultError(Exception exception)
     {
-        Log.Error(exception, "Error on Process Event");
+        ObservableActorLogger.EventProcessError(Log, exception);
 
         return false;
     }
@@ -283,7 +263,7 @@ public class ObservableActor : ActorBase, IObservableActor
                            _ => { },
                            exception =>
                            {
-                               if (errorHandler(exception))
+                               if(errorHandler(exception))
                                    Init();
                            });
             _selector = selector;

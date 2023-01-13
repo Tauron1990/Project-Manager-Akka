@@ -40,7 +40,7 @@ public sealed class ScheduleRepeatedly<TJob, TIdentity> : Schedule<TJob, TIdenti
         object? nack = null)
         : base(jobId, job, triggerDate, ack, nack)
     {
-        if (interval == default) throw new ArgumentException(nameof(interval));
+        if(interval == default) throw new ArgumentException("Interval is default", nameof(interval));
 
         Interval = interval;
     }

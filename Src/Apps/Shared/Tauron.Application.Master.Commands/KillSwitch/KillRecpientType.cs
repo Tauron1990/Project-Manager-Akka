@@ -6,5 +6,5 @@ public enum KillRecpientType
     Frontend,
     Host,
     Service,
-    Seed
+    Seed,
 }

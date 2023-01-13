@@ -43,7 +43,7 @@ public sealed class ScheduleCron<TJob, TIdentity> : Schedule<TJob, TIdentity>
         object? nack = null)
         : base(jobId, job, triggerDate, ack, nack)
     {
-        if (string.IsNullOrWhiteSpace(cronExpression)) throw new ArgumentNullException(nameof(cronExpression));
+        if(string.IsNullOrWhiteSpace(cronExpression)) throw new ArgumentNullException(nameof(cronExpression));
 
         CronExpression = cronExpression;
         _expression = Cronos.CronExpression.Parse(cronExpression);

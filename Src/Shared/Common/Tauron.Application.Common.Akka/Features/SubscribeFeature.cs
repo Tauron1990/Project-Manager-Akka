@@ -5,12 +5,17 @@ using JetBrains.Annotations;
 
 namespace Tauron.Features;
 
+[PublicAPI]
 public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
 {
     IEnumerable<string> IFeature.Identify()
     {
         yield return nameof(SubscribeFeature);
     }
+
+    public void PostStop() { }
+
+    public void PreStart() { }
 
     void IFeature<State>.Init(IFeatureActor<State> actor)
     {
@@ -26,11 +31,11 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
                .Select(
                     statePair =>
                     {
-                        var ((_, @event), state, _) = statePair;
+                        (EventSubscribe subscribe, State state) = statePair;
 
-                        actor.TellSelf(new InternalEventSubscription(actor.Sender, @event));
+                        actor.TellSelf(new InternalEventSubscription(actor.Sender, subscribe.Event));
 
-                        return state.Update(@event, refs => refs.Add(actor.Sender));
+                        return state.Update(subscribe.Event, refs => refs.Add(actor.Sender));
                     }));
 
         actor.Receive<EventUnSubscribe>(
@@ -39,7 +44,7 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
                     statePair =>
                     {
                         actor.Context.Unwatch(actor.Sender);
-                        var (eventUnSubscribe, state, _) = statePair;
+                        (EventUnSubscribe eventUnSubscribe, State state) = statePair;
 
                         return state.Update(eventUnSubscribe.Event, refs => refs.Remove(actor.Sender));
                     }));
@@ -48,9 +53,9 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
             obs => obs.ToUnit(
                 statePair =>
                 {
-                    var ((@event, eventType), state, _) = statePair;
+                    ((object @event, Type eventType), State state) = statePair;
 
-                    if (state.Subscriptions.TryGetValue(eventType, out var intrests))
+                    if(state.Subscriptions.TryGetValue(eventType, out var intrests))
                         intrests.ForEach(actorRef => actorRef.Tell(@event));
                 }));
     }
@@ -71,15 +76,15 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
     {
         public State Update(Type type, Func<ImmutableList<IActorRef>, ImmutableList<IActorRef>> listUpdate)
         {
-            if (!Subscriptions.TryGetValue(type, out var list))
+            if(!Subscriptions.TryGetValue(type, out var list))
                 return this with
                        {
-                           Subscriptions = Subscriptions.SetItem(type, listUpdate(ImmutableList<IActorRef>.Empty))
+                           Subscriptions = Subscriptions.SetItem(type, listUpdate(ImmutableList<IActorRef>.Empty)),
                        };
 
             list = listUpdate(list);
 
-            if (list.IsEmpty)
+            if(list.IsEmpty)
                 return this with { Subscriptions = Subscriptions.Remove(type) };
 
             return this with { Subscriptions = Subscriptions.SetItem(type, list) };
@@ -89,20 +94,4 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
     private sealed record KeyHint(IActorRef Target, Type Key);
 
     public sealed record InternalEventSubscription(IActorRef Intrest, Type Type);
-}
-
-[PublicAPI]
-public sealed record EventUnSubscribe(Type Event);
-
-[PublicAPI]
-#pragma warning disable AV1564
-public sealed record EventSubscribe(bool Watch, Type Event);
-#pragma warning restore AV1564
-
-public sealed record SendEvent(object Event, Type EventType)
-{
-    [PublicAPI]
-    public static SendEvent Create<TType>(TType evt)
-        where TType : notnull
-        => new(evt, typeof(TType));
 }

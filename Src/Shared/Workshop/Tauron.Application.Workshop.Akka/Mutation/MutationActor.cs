@@ -20,7 +20,7 @@ public sealed class MutationActor : ReceiveActor
         try
         {
             Log.Info("Mutation Begin: {Name}", mutation.Name);
-            await mutation.Run();
+            await mutation.Run().ConfigureAwait(false);
             Log.Info("Mutation Finisht: {Name}", mutation.Name);
         }
         catch (Exception e)

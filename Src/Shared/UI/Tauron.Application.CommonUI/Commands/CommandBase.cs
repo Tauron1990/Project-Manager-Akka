@@ -15,23 +15,23 @@ public abstract class CommandBase : ICommand
     {
         add
         {
-            if (value != null)
+            if(value != null)
                 _referenceCollection.Add(new WeakDelegate(value));
         }
         remove
         {
-            if (value != null)
+            if(value != null)
                 _referenceCollection.Remove(new WeakDelegate(value));
         }
     }
 
-    public virtual bool CanExecute(object? parameter = null) => true;
+    public virtual bool CanExecute(object? parameter) => true;
 
-    public abstract void Execute(object? parameter = null);
+    public abstract void Execute(object? parameter);
 
     public virtual void RaiseCanExecuteChanged()
     {
-        foreach (var weakDelegate in _referenceCollection)
+        foreach (WeakDelegate weakDelegate in _referenceCollection)
             weakDelegate.Invoke(this, EventArgs.Empty);
     }
 }

@@ -18,19 +18,19 @@ public sealed class IniParser
 
     public IniFile Parse()
     {
-        var entrys = new Dictionary<string, GroupDictionary<string, string>>();
+        var entrys = new Dictionary<string, GroupDictionary<string, string>>(StringComparer.Ordinal);
         var currentSection = new GroupDictionary<string, string>();
-        
-        var currentSectionName = _reader
+
+        string? currentSectionName = _reader
            .EnumerateTextLines()
            .Aggregate<string?, string?>(null, (current, line) => ReadIniContent(line ?? string.Empty, current, entrys, ref currentSection));
 
-        if (currentSectionName != null)
+        if(currentSectionName != null)
             entrys[currentSectionName] = currentSection;
 
         var sections = ImmutableDictionary<string, IniSection>.Empty;
 
-        foreach (var (key, value) in entrys) 
+        foreach ((string key, var value) in entrys)
             sections = CreateEntrys(value, sections, key);
 
         return new IniFile(sections);
@@ -40,7 +40,7 @@ public sealed class IniParser
     {
         var entries = ImmutableDictionary<string, IniEntry>.Empty;
 
-        foreach (var (entryKey, collection) in value)
+        foreach ((string entryKey, var collection) in value)
             entries = collection.Count < 1
                 ? entries.Add(entryKey, new ListIniEntry(entryKey, ImmutableList<string>.Empty.AddRange(collection)))
                 : entries.Add(entryKey, new SingleIniEntry(entryKey, collection.ElementAt(0)));
@@ -52,9 +52,9 @@ public sealed class IniParser
 
     private static string? ReadIniContent(string line, string? currentSectionName, Dictionary<string, GroupDictionary<string, string>> entrys, ref GroupDictionary<string, string> currentSection)
     {
-        if (line[0] == '[' && line[^1] == ']')
+        if(line[0] == '[' && line[^1] == ']')
         {
-            if (currentSectionName != null) 
+            if(currentSectionName != null)
                 entrys[currentSectionName] = currentSection;
 
             currentSectionName = line.Trim().Trim('[', ']');
@@ -63,9 +63,9 @@ public sealed class IniParser
             return currentSectionName;
         }
 
-        var content = line.Split(KeyValueChar, 2, StringSplitOptions.RemoveEmptyEntries);
+        string[] content = line.Split(KeyValueChar, 2, StringSplitOptions.RemoveEmptyEntries);
 
-        if (content.Length <= 1)
+        if(content.Length <= 1)
             return currentSectionName;
 
         currentSection[content[0]].Add(content[1]);

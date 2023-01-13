@@ -29,7 +29,7 @@ public sealed class RepositoryApi : ISender
 
     public static RepositoryApi CreateProxy(ActorSystem system, string name = "RepositoryProxy")
     {
-        var proxy = ClusterSingletonProxy.Props(
+        Props? proxy = ClusterSingletonProxy.Props(
             $"/user/{RepositoryPath}",
             ClusterSingletonProxySettings.Create(system).WithRole("UpdateSystem"));
 

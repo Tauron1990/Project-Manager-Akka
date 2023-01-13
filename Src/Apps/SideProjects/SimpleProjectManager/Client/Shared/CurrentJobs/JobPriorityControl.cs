@@ -1,17 +1,17 @@
 ﻿using System.Collections.Immutable;
-using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
 using ReactiveUI;
-using SimpleProjectManager.Client.ViewModels;
+using SimpleProjectManager.Client.Shared.Data.States;
+using Tauron;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 
 public partial class JobPriorityControl
 {
-    private MudCommandButton? _priorize;
-    private MudCommandIconButton? _goup;
     private MudCommandIconButton? _godown;
+    private MudCommandIconButton? _goup;
+    private MudCommandButton? _priorize;
 
     private MudCommandButton? Priorize
     {
@@ -34,14 +34,12 @@ public partial class JobPriorityControl
     [Parameter]
     public ImmutableList<JobSortOrderPair> ActivePairs { get; set; } = ImmutableList<JobSortOrderPair>.Empty;
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                this.BindCommand(ViewModel, m => m.GoDown, v => v.Godown, _jobsViewModel.CurrentInfo).DisposeWith(dispo);
-                this.BindCommand(ViewModel, m => m.GoUp, v => v.Goup, _jobsViewModel.CurrentInfo).DisposeWith(dispo);
-                this.BindCommand(ViewModel, m => m.Priorize, v => v.Priorize, _jobsViewModel.CurrentInfo).DisposeWith(dispo);
-            });
+        var currentInfo = _globalState.Jobs.CurrentlySelectedPair.NotNull();
+
+        yield return this.BindCommand(ViewModel, m => m.GoDown, v => v.Godown, currentInfo);
+        yield return this.BindCommand(ViewModel, m => m.GoUp, v => v.Goup, currentInfo);
+        yield return this.BindCommand(ViewModel, m => m.Priorize, v => v.Priorize, currentInfo);
     }
 }

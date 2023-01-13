@@ -71,14 +71,14 @@ public class InternalCrcStream : IDisposable
     {
         unchecked
         {
-            uint[] table = new uint[256];
+            var table = new uint[256];
 
             const uint poly = 0xEDB88320;
             for (uint i = 0; i < table.Length; i++)
             {
-                var crc = i;
+                uint crc = i;
                 for (var j = 8; j > 0; j--)
-                    if ((crc & 1) == 1)
+                    if((crc & 1) == 1)
                         crc = (crc >> 1) ^ poly;
                     else
                         crc >>= 1;

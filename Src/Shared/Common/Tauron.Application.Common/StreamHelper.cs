@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Tauron;
-
-[PublicAPI]
-public sealed record CopyFromArguments(long TotalLength = -1, int BufferSize = 4096, ProgressChange? ProgressChangeCallback = null, CancellationToken StopEvent = default);
 
 /// <summary>
 ///     A static class for basic stream operations.
@@ -36,26 +32,26 @@ public static class StreamHelper
     {
         ValidateArguments(arguments);
 
-        var buffer = ArrayPool<byte>.Shared.Rent(arguments.BufferSize);
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(arguments.BufferSize);
         try
         {
-            var totalLength = arguments.TotalLength;
-            if (totalLength == -1 && source.CanSeek) totalLength = source.Length;
+            long totalLength = arguments.TotalLength;
+            if(totalLength == -1 && source.CanSeek) totalLength = source.Length;
 
             long length = 0;
 
             do
             {
                 var mem = buffer.AsMemory(0, arguments.BufferSize);
-                var count = await source.ReadAsync(mem, arguments.StopEvent);
+                int count = await source.ReadAsync(mem, arguments.StopEvent).ConfigureAwait(false);
 
-                if (count == 0) break;
+                if(count == 0) break;
 
-                await target.WriteAsync(mem, arguments.StopEvent);
+                await target.WriteAsync(mem, arguments.StopEvent).ConfigureAwait(false);
 
                 length += count;
 
-                if (arguments.StopEvent.IsCancellationRequested)
+                if(arguments.StopEvent.IsCancellationRequested)
                     break;
 
                 arguments.ProgressChangeCallback?.Invoke(count, totalLength);
@@ -75,10 +71,10 @@ public static class StreamHelper
     private static void ValidateArguments(CopyFromArguments arguments)
     {
         #pragma warning disable EX005
-        if (arguments.BufferSize < 128)
+        if(arguments.BufferSize < 128)
             throw new ArgumentOutOfRangeException(
                 // ReSharper disable once NotResolvedInText
-                "arguments.BufferSize",
+                nameof(arguments),
                 arguments.BufferSize,
                 "BufferSize has to be greater or equal than 128.");
 
@@ -95,7 +91,7 @@ public static class StreamHelper
     public static long CopyFrom(this Stream stream, Stream source, int bufferSize = 4096)
     {
         int count;
-        byte[] buffer = new byte[bufferSize];
+        var buffer = new byte[bufferSize];
         long length = 0;
 
         while ((count = source.Read(buffer, 0, bufferSize)) != 0)

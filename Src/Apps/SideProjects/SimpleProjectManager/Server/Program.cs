@@ -1,35 +1,37 @@
-using Akka.Configuration;
 using SimpleProjectManager.Server;
+using SimpleProjectManager.Server.Configuration;
+using SimpleProjectManager.Server.Core.Data;
+using SimpleProjectManager.Server.Core.DeviceManager;
+using SimpleProjectManager.Server.Core.Projections;
+using SimpleProjectManager.Server.Core.Services;
+using SimpleProjectManager.Server.Core.Tasks;
+using Stl.IO;
 using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
 
 try
 {
-    string ip;
+    StartConfigManager.ConfigManager.Init(FilePath.Empty);
 
-    if (File.Exists("seed.conf"))
-    {
-        var config = ConfigurationFactory.ParseString(File.ReadAllText("seed.conf"));
-        ip = config.GetString("akka.remote.dot-netty.tcp.hostname");
-
-        //await SetupRunner.Run(ip);
-    }
-    else
-    #pragma warning disable EX006 // Do not write logic driven by exceptions.
-        throw new InvalidOperationException("The File seed.conf does not Exist");
-    #pragma warning restore EX006 // Do not write logic driven by exceptions.
-
-    var builder = Bootstrap.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: true)
+    IHostBuilder builder = AppNode.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: false)
+       .ConfigureServices(
+            sc => sc.RegisterModules(
+                new AkkaModule(),
+                new CommonModule(),
+                new DataModule(),
+                new MainModule(),
+                new ProjectionModule(),
+                new ServicesModule(),
+                new TaskModule(),
+                new DeviceModule()))
        .ConfigureWebHostDefaults(
             b =>
             {
-                b.UseUrls("http://localhost:85", $"http://{ip}:85");
-
+                StartConfigManager.ConfigManager.ConfigurateWeb(b);
                 b.UseStartup<Startup>();
             });
 
-    await builder.Build().RunAsync();
+    await builder.Build().RunAsync().ConfigureAwait(false);
 }
 catch (Exception e)
 {

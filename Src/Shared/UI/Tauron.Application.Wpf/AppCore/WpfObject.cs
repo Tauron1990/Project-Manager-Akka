@@ -13,7 +13,7 @@ public class WpfObject : IUIObject
 
     public IUIObject? GetPerent()
     {
-        if (DependencyObject is FrameworkElement { TemplatedParent: { } } ele)
+        if(DependencyObject is FrameworkElement { TemplatedParent: { } } ele)
             return ElementMapper.Create(ele.TemplatedParent);
 
         DependencyObject? temp;

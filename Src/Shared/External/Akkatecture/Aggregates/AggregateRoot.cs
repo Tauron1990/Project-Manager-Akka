@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Akka.Actor;
@@ -68,17 +69,14 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
     {
         Settings = settings ?? new AggregateRootSettings(Context.System.Settings.Config);
 
-        if (id is null)
+        if(id is null)
             throw new ArgumentNullException(nameof(id));
 
-        if (this is not TAggregate)
-        {
+        if(this is not TAggregate)
             throw new InvalidOperationException(
                 $"Aggregate {Name} specifies Type={typeof(TAggregate).PrettyPrint()} as generic argument, it should be its own type.");
-        }
 
-        if (State is null)
-        {
+        if(State is null)
             try
             {
                 State = (TAggregateState?)FastReflection.Shared.FastCreateInstance(typeof(TAggregateState));
@@ -91,21 +89,22 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
                     typeof(TAggregateState).PrettyPrint(),
                     Name);
             }
-        }
 
         PinnedCommand = null!;
         _eventDefinitionService = new EventDefinitionService(Context.GetLogger());
         _snapshotDefinitionService = new SnapshotDefinitionService(Context.GetLogger());
         Id = id;
+        #pragma warning disable MA0056
         PersistenceId = id.Value;
+        #pragma warning restore MA0056
         SetSourceIdHistory(100);
 
-        if (Settings.UseDefaultSnapshotRecover) Recover<SnapshotOffer>(Recover);
+        if(Settings.UseDefaultSnapshotRecover) Recover<SnapshotOffer>(Recover);
 
         Command<SaveSnapshotSuccess>(SnapshotStatus);
         Command<SaveSnapshotFailure>(SnapshotStatus);
 
-        if (Settings.UseDefaultEventRecover)
+        if(Settings.UseDefaultEventRecover)
         {
             Recover<ICommittedEvent<TAggregate, TIdentity, IAggregateEvent<TAggregate, TIdentity>>>(Recover);
             Recover<RecoveryCompleted>(Recover);
@@ -120,7 +119,9 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
     private object? PinnedReply { get; set; }
     private ISnapshotStrategy SnapshotStrategy { get; set; } = SnapshotNeverStrategy.Instance;
     public TAggregateState? State { get; }
+
     public override string PersistenceId { get; }
+
     public override Recovery Recovery => new(SnapshotSelectionCriteria.Latest);
     private AggregateRootSettings Settings { get; }
 
@@ -130,7 +131,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
     public bool IsNew => Version <= 0;
 
     public bool HasSourceId(ISourceId sourceId)
-        => !sourceId.IsNone() && _previousSourceIds.Any(id => id.Value == sourceId.Value);
+        => !sourceId.IsNone() && _previousSourceIds.Any(id => string.Equals(id.Value, sourceId.Value, StringComparison.Ordinal));
 
     public IIdentity GetIdentity() => Id;
 
@@ -150,12 +151,12 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
 
     public virtual void EmitAll(IEnumerable<IAggregateEvent<TAggregate, TIdentity>> aggregateEvents)
     {
-        var version = Version;
+        long version = Version;
 
         var committedEvents = new List<object>();
         foreach (var aggregateEvent in aggregateEvents)
         {
-            var committedEvent = FromObject(aggregateEvent, version + 1);
+            object committedEvent = FromObject(aggregateEvent, version + 1);
             committedEvents.Add(committedEvent);
             version++;
         }
@@ -166,15 +167,15 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
 
     protected virtual object FromObject(object aggregateEvent, long version, IMetadata? metadata = null)
     {
-        if (aggregateEvent is IAggregateEvent)
+        if(aggregateEvent is IAggregateEvent)
         {
             _eventDefinitionService.Load(aggregateEvent.GetType());
-            var eventDefinition = _eventDefinitionService.GetDefinition(aggregateEvent.GetType());
-            var aggregateSequenceNumber = version + 1;
+            EventDefinition eventDefinition = _eventDefinitionService.GetDefinition(aggregateEvent.GetType());
+            long aggregateSequenceNumber = version + 1;
             var eventId = EventId.NewDeterministic(
                 GuidFactories.Deterministic.Namespaces.Events,
                 $"{Id.Value}-v{aggregateSequenceNumber}");
-            var now = DateTimeOffset.UtcNow;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
             var eventMetadata = new Metadata
                                 {
                                     Timestamp = now,
@@ -184,14 +185,14 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
                                     SourceId = PinnedCommand.SourceId,
                                     EventId = eventId,
                                     EventName = eventDefinition.Name,
-                                    EventVersion = eventDefinition.Version
+                                    EventVersion = eventDefinition.Version,
                                 };
-            eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
-            if (metadata != null) eventMetadata.AddRange(metadata);
-            var genericType = typeof(CommittedEvent<,,>)
+            eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString(CultureInfo.InvariantCulture));
+            if(metadata != null) eventMetadata.AddRange(metadata);
+            Type genericType = typeof(CommittedEvent<,,>)
                .MakeGenericType(typeof(TAggregate), typeof(TIdentity), aggregateEvent.GetType());
 
-            var committedEvent = FastReflection.Shared.FastCreateInstance(
+            object? committedEvent = FastReflection.Shared.FastCreateInstance(
                 genericType,
                 Id,
                 aggregateEvent,
@@ -211,15 +212,15 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
         long version, IMetadata? metadata = null)
         where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
     {
-        if (aggregateEvent is null) throw new ArgumentNullException(nameof(aggregateEvent));
+        if(aggregateEvent is null) throw new ArgumentNullException(nameof(aggregateEvent));
 
         _eventDefinitionService.Load(aggregateEvent.GetType());
-        var eventDefinition = _eventDefinitionService.GetDefinition(aggregateEvent.GetType());
-        var aggregateSequenceNumber = version + 1;
+        EventDefinition eventDefinition = _eventDefinitionService.GetDefinition(aggregateEvent.GetType());
+        long aggregateSequenceNumber = version + 1;
         var eventId = EventId.NewDeterministic(
             GuidFactories.Deterministic.Namespaces.Events,
             $"{Id.Value}-v{aggregateSequenceNumber}");
-        var now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = DateTimeOffset.UtcNow;
         var eventMetadata = new Metadata
                             {
                                 Timestamp = now,
@@ -229,10 +230,10 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
                                 SourceId = PinnedCommand.SourceId,
                                 EventId = eventId,
                                 EventName = eventDefinition.Name,
-                                EventVersion = eventDefinition.Version
+                                EventVersion = eventDefinition.Version,
                             };
-        eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString());
-        if (metadata != null) eventMetadata.AddRange(metadata);
+        eventMetadata.Add(MetadataKeys.TimestampEpoch, now.ToUnixTime().ToString(CultureInfo.InvariantCulture));
+        if(metadata != null) eventMetadata.AddRange(metadata);
 
         var committedEvent = new CommittedEvent<TAggregate, TIdentity, TAggregateEvent>(
             Id,
@@ -280,21 +281,21 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
         Publish(domainEvent);
         ReplyIfAvailable();
 
-        if (!SnapshotStrategy.ShouldCreateSnapshot(this)) return;
+        if(!SnapshotStrategy.ShouldCreateSnapshot(this)) return;
 
         var aggregateSnapshot = CreateSnapshot();
 
-        if (aggregateSnapshot is null) return;
+        if(aggregateSnapshot is null) return;
 
         _snapshotDefinitionService.Load(aggregateSnapshot.GetType());
-        var snapshotDefinition = _snapshotDefinitionService.GetDefinition(aggregateSnapshot.GetType());
+        SnapshotDefinition snapshotDefinition = _snapshotDefinitionService.GetDefinition(aggregateSnapshot.GetType());
         var snapshotMetadata = new SnapshotMetadata
                                {
                                    AggregateId = Id.Value,
                                    AggregateName = Name.Value,
                                    AggregateSequenceNumber = Version,
                                    SnapshotName = snapshotDefinition.Name,
-                                   SnapshotVersion = snapshotDefinition.Version
+                                   SnapshotVersion = snapshotDefinition.Version,
                                };
 
         var committedSnapshot =
@@ -312,12 +313,12 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
     {
         try
         {
-            var method = GetType()
+            MethodInfo method = GetType()
                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                .Where(methodInfo => methodInfo.IsFamily || methodInfo.IsPublic)
                .Single(methodInfo => methodInfo.Name.Equals("ApplyCommittedEvent"));
 
-            var genericMethod = method.MakeGenericMethod(committedEvent.GetType().GenericTypeArguments[2]);
+            MethodInfo genericMethod = method.MakeGenericMethod(committedEvent.GetType().GenericTypeArguments[2]);
 
             genericMethod.InvokeFast(this, committedEvent);
         }
@@ -345,9 +346,9 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
 
     protected override bool AroundReceive(Receive receive, object message)
     {
-        if (message is not Command<TAggregate, TIdentity> command) return base.AroundReceive(receive, message);
+        if(message is not Command<TAggregate, TIdentity> command) return base.AroundReceive(receive, message);
 
-        if (IsNew || Id.Equals(command.AggregateId))
+        if(IsNew || Id.Equals(command.AggregateId))
             PinnedCommand = command;
 
         return base.AroundReceive(receive, message);
@@ -355,17 +356,17 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
 
     protected virtual void Reply(object replyMessage)
     {
-        if (!Sender.IsNobody()) PinnedReply = replyMessage;
+        if(!Sender.IsNobody()) PinnedReply = replyMessage;
     }
 
     protected virtual void ReplyFailure(object replyMessage)
     {
-        if (!Sender.IsNobody()) Context.Sender.Tell(replyMessage);
+        if(!Sender.IsNobody()) Context.Sender.Tell(replyMessage);
     }
 
     protected virtual void ReplyIfAvailable()
     {
-        if (PinnedReply != null)
+        if(PinnedReply != null)
             Sender.Tell(PinnedReply);
 
         PinnedReply = null;
@@ -388,13 +389,15 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
     protected Action<IAggregateEvent> GetEventApplyMethods<TAggregateEvent>(TAggregateEvent aggregateEvent)
         where TAggregateEvent : class, IAggregateEvent<TAggregate, TIdentity>
     {
-        var eventType = aggregateEvent.GetType();
+        Type eventType = aggregateEvent.GetType();
 
-        if (!ApplyMethodsFromState.TryGetValue(eventType, out var applyMethod))
+        if(!ApplyMethodsFromState.TryGetValue(eventType, out var applyMethod))
         {
             #pragma warning disable GU0090
+            #pragma warning disable MA0025
             throw new NotImplementedException(
                 $"AggregateState of Type={State?.GetType().PrettyPrint()} does not have an 'Apply' method that takes in an aggregate event of Type={eventType.PrettyPrint()} as an argument.");
+            #pragma warning restore MA0025
             #pragma warning restore GU0090
         }
 
@@ -407,13 +410,15 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
         TAggregateSnapshot aggregateEvent)
         where TAggregateSnapshot : class, IAggregateSnapshot<TAggregate, TIdentity>
     {
-        var snapshotType = aggregateEvent.GetType();
+        Type snapshotType = aggregateEvent.GetType();
 
-        if (!HydrateMethodsFromState.TryGetValue(snapshotType, out var hydrateMethod))
+        if(!HydrateMethodsFromState.TryGetValue(snapshotType, out var hydrateMethod))
         {
             #pragma warning disable GU0090
+            #pragma warning disable MA0025
             throw new NotImplementedException(
                 $"AggregateState of Type={State?.GetType().PrettyPrint()} does not have a 'Hydrate' method that takes in an aggregate snapshot of Type={snapshotType.PrettyPrint()} as an argument.");
+            #pragma warning restore MA0025
             #pragma warning restore GU0090
         }
 
@@ -568,7 +573,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
     {
         try
         {
-            if (FastReflection.Shared.FastCreateInstance(typeof(TCommandHandler)) is not TCommandHandler handler)
+            if(FastReflection.Shared.FastCreateInstance(typeof(TCommandHandler)) is not TCommandHandler handler)
                 Log.Error("Unable to resolve CommandHandler of Type={0} for Aggregate of Type={1}.");
             else
                 Command(command => handler.HandleCommand((TAggregate)this, Context, command), shouldHandle);
@@ -585,7 +590,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
 
     public void InitReceives()
     {
-        var type = GetType();
+        Type type = GetType();
 
         var subscriptionTypes =
             type
@@ -597,7 +602,7 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Execute") return false;
+                    if(!string.Equals(mi.Name, "Execute", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
@@ -608,27 +613,27 @@ public abstract class AggregateRoot<TAggregate, TIdentity, TAggregateState> : Re
                 mi => mi.GetParameters()[0].ParameterType,
                 mi => mi);
 
-        var method = type
+        MethodInfo method = type
            .GetBaseType("ReceivePersistentActor")
            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Command") return false;
+                    if(!string.Equals(mi.Name, "Command", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 
-        foreach (var subscriptionType in subscriptionTypes)
+        foreach (Type subscriptionType in subscriptionTypes)
         {
-            var funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
+            Type funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
             var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
-            var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
+            MethodInfo actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
             actorReceiveMethod.Invoke(this, new object[] { subscriptionFunction });
         }

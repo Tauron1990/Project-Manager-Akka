@@ -41,16 +41,16 @@ public abstract class ModelConnectorBase<TDrived>
                     View = view;
                     Model = model;
 
-                    if (model.IsInitialized)
+                    if(model.IsInitialized)
                     {
-                        Task.Run(async () => await InitAsync())
+                        Task.Run(async () => await InitAsync().ConfigureAwait(false))
                            .Ignore();
                     }
                     else
                     {
                         void OnModelOnInitialized()
                         {
-                            Task.Run(async () => await InitAsync())
+                            Task.Run(async () => await InitAsync().ConfigureAwait(false))
                                .Ignore();
                         }
 
@@ -72,16 +72,16 @@ public abstract class ModelConnectorBase<TDrived>
         {
             Log.Debug("Init ModelConnector {Type} -- {Name}", typeof(TDrived), Name);
 
-            if (Model == null) return;
+            if(Model is null) return;
 
             OnLoad();
 
             //Log.Information("Ask For {Property}", _name);
-            var eventActor = await Model.Actor.Ask<IEventActor>(new MakeEventHook(Name), TimeSpan.FromSeconds(15));
+            var eventActor = await Model.Actor.Ask<IEventActor>(new MakeEventHook(Name), TimeSpan.FromSeconds(15)).ConfigureAwait(false);
             //Log.Information("Ask Compled For {Property}", _name);
 
-            _disposable.Add(await eventActor.Register(HookEvent.Create<PropertyChangedEvent>(PropertyChangedHandler)));
-            _disposable.Add(await eventActor.Register(HookEvent.Create<ValidatingEvent>(ValidateCompled)));
+            _disposable.Add(await eventActor.Register(HookEvent.Create<PropertyChangedEvent>(PropertyChangedHandler)).ConfigureAwait(false));
+            _disposable.Add(await eventActor.Register(HookEvent.Create<ValidatingEvent>(ValidateCompled)).ConfigureAwait(false));
 
             Model.Actor.Tell(new TrackPropertyEvent(Name), eventActor.OriginalRef);
 
@@ -90,7 +90,9 @@ public abstract class ModelConnectorBase<TDrived>
         }
         catch (Exception e)
         {
+            #pragma warning disable MA0011
             Log.Error(e, "Error Bind Property {Name}", Name);
+            #pragma warning restore MA0011
         }
     }
 
@@ -105,7 +107,7 @@ public abstract class ModelConnectorBase<TDrived>
 
     public void ForceUnload()
     {
-        if (Model == null)
+        if(Model is null)
             return;
 
         OnUnload();

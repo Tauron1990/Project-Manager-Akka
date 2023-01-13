@@ -8,11 +8,12 @@ namespace Tauron.Application.VirtualFiles.Resolvers;
 
 public static class ResolverRegistry
 {
-    private static readonly ConcurrentBag<IFileSystemResolver> Resolvers = new(new IFileSystemResolver[]
-                                                                               {
-                                                                                   new InMemoryResolver(),
-                                                                                   new LocalFileSystemResolver()
-                                                                               });
+    private static readonly ConcurrentBag<IFileSystemResolver> Resolvers = new(
+        new IFileSystemResolver[]
+        {
+            new InMemoryResolver(),
+            new LocalFileSystemResolver(),
+        });
 
     [PublicAPI]
     public static void Register(IFileSystemResolver resolver)
@@ -20,7 +21,7 @@ public static class ResolverRegistry
 
     public static IVirtualFileSystem? TryResolve(PathInfo path, IServiceProvider serviceProvider)
     {
-        if (path.Kind != PathType.Absolute)
+        if(path.Kind != PathType.Absolute)
             return null;
 
         return Resolvers

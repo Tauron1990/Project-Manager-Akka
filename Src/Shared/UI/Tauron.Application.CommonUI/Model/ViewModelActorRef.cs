@@ -25,6 +25,9 @@ public sealed class ViewModelActorRef<TModel> : ViewModelActorRef, IViewModel<TM
 
     private List<Action> _waiter = new();
 
+    public void Dispose()
+        => _actor.Tell(PoisonPill.Instance);
+
     public override IActorRef Actor => _actor;
 
     public override Type ModelType => typeof(TModel);
@@ -35,7 +38,7 @@ public sealed class ViewModelActorRef<TModel> : ViewModelActorRef, IViewModel<TM
     {
         lock (_lock)
         {
-            if (IsInitialized)
+            if(IsInitialized)
                 waiter();
             else
                 _waiter.Add(waiter);
@@ -49,13 +52,10 @@ public sealed class ViewModelActorRef<TModel> : ViewModelActorRef, IViewModel<TM
         lock (_lock)
         {
             _isInitialized = true;
-            foreach (var action in _waiter)
+            foreach (Action action in _waiter)
                 action();
 
             _waiter = null!;
         }
     }
-
-    public void Dispose()
-        => _actor.Tell(PoisonPill.Instance);
 }

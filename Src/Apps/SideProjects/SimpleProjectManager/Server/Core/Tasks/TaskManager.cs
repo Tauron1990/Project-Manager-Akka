@@ -1,12 +1,13 @@
-﻿using SimpleProjectManager.Shared.Services.Tasks;
+﻿using System.Collections.Immutable;
+using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Fusion;
 
 namespace SimpleProjectManager.Server.Core.Tasks;
 
 public class TaskManager : ITaskManager, IDisposable
 {
-    private readonly TaskManagerCore _taskManagerCore;
     private readonly IDisposable _subscription;
+    private readonly TaskManagerCore _taskManagerCore;
 
     public TaskManager(TaskManagerCore taskManagerCore, IEventAggregator aggregator)
     {
@@ -16,36 +17,33 @@ public class TaskManager : ITaskManager, IDisposable
                 _ =>
                 {
                     using (Computed.Invalidate())
+                    {
                         GetTasks(default).Ignore();
+                    }
                 });
-    }
-
-    public virtual async Task<PendingTask[]> GetTasks(CancellationToken token)
-    {
-        if (Computed.IsInvalidating()) return Array.Empty<PendingTask>();
-
-        var entrys = await _taskManagerCore.GetCurrentTasks(token);
-
-        return entrys.Select(e => new PendingTask(e.JobId, e.Name, e.Info)).ToArray();
-    }
-
-    public async Task<string> DeleteTask(string id, CancellationToken token)
-    {
-        try
-        {
-            var result = await _taskManagerCore.Delete(id, token);
-
-            if (!result.Ok)
-                return result.Error ?? "Unbkannter Fehler";
-
-            return string.Empty;
-        }
-        catch (Exception e)
-        {
-            return e.Message;
-        }
     }
 
     public void Dispose()
         => _subscription.Dispose();
+
+    public virtual async Task<TaskList> GetTasks(CancellationToken token)
+    {
+        if(Computed.IsInvalidating()) return TaskList.Empty;
+
+        var entrys = await _taskManagerCore.GetCurrentTasks(token).ConfigureAwait(false);
+
+        return new TaskList(entrys.Select(e => new PendingTask(e.JobId, e.Name, e.Info)).ToImmutableList());
+    }
+
+    public async Task<SimpleResult> DeleteTask(string id, CancellationToken token)
+    {
+        try
+        {
+            return await _taskManagerCore.DeleteTask(id, token).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            return SimpleResult.Failure(e);
+        }
+    }
 }

@@ -44,9 +44,8 @@ public class Consumer
         string readJournalPluginId)
         where TJournal : IEventsByTagQuery, ICurrentEventsByTagQuery
     {
-        var readJournal = PersistenceQuery
-           .Get(ActorSystem)
-           .ReadJournalFor<TJournal>(readJournalPluginId);
+        PersistenceQuery? persistenceQuery = PersistenceQuery.Get(ActorSystem);
+        var readJournal = persistenceQuery.ReadJournalFor<TJournal>(readJournalPluginId);
 
         return new Consumer<TJournal>(Name, ActorSystem, readJournal);
     }
@@ -69,14 +68,14 @@ public class Consumer<TJournal> : Consumer
         where TAggregate : IAggregateRoot
     {
         var mapper = new DomainEventReadAdapter();
-        var aggregateName = typeof(TAggregate).GetAggregateName();
+        AggregateName aggregateName = typeof(TAggregate).GetAggregateName();
 
         return Journal
            .EventsByTag(aggregateName.Value, offset)
            .Select(
                 envelope =>
                 {
-                    var domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
+                    object? domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
 
                     return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
                 });
@@ -86,14 +85,14 @@ public class Consumer<TJournal> : Consumer
         where TAggregate : IAggregateRoot
     {
         var mapper = new DomainEventReadAdapter();
-        var aggregateName = typeof(TAggregate).GetAggregateName();
+        AggregateName aggregateName = typeof(TAggregate).GetAggregateName();
 
         return Journal
            .CurrentEventsByTag(aggregateName.Value, offset)
            .Select(
                 envelope =>
                 {
-                    var domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
+                    object? domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
 
                     return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
                 });

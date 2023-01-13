@@ -10,11 +10,8 @@ namespace Tauron.Application.VirtualFiles.InMemory;
 public class InMemoryDirectory : DirectoryBase<DirectoryContext>
 {
     private bool _exist = true;
-    
+
     public InMemoryDirectory(DirectoryContext context, FileSystemFeature feature) : base(context, feature) { }
-    
-    public static InMemoryDirectory? Create([NotNullIfNotNull("context")]DirectoryContext? context, FileSystemFeature features)
-        => context is null ? null : new InMemoryDirectory(context, features);
 
     public override PathInfo OriginalPath => Context.Path;
 
@@ -23,13 +20,13 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     public override IDirectory? ParentDirectory => Context.Parent != null
         ? new InMemoryDirectory(Context with { Path = OriginalPath, Data = Context.Parent.Data }, Features)
         : null;
-    
+
     public override bool Exist => _exist;
 
     public override string Name => Context.ActualData.Name;
 
     internal DirectoryContext DirectoryContext => Context;
-    
+
     public override IEnumerable<IDirectory> Directories
         => Context.ActualData.Directorys.Select(
             d => new InMemoryDirectory(
@@ -42,16 +39,21 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
                 Context.GetFileContext(Context, f, OriginalPath),
                 Features));
 
+    public static InMemoryDirectory? Create([NotNullIfNotNull("context")] DirectoryContext? context, FileSystemFeature features)
+        => context is null ? null : new InMemoryDirectory(context, features);
+
     internal bool TryAddElement(string name, IDataElement element)
         => Context.ActualData.TryAddElement(name, element);
-    
+
     protected override IDirectory GetDirectory(DirectoryContext context, PathInfo name)
-        => new InMemoryDirectory(context with
-                                 {
-                                     Path = GenericPathHelper.Combine(OriginalPath, name), 
-                                     Data = Context.Root.GetDirectoryEntry(name, context.Clock),
-                                     Parent = Context
-                                 }, Features);
+        => new InMemoryDirectory(
+            context with
+            {
+                Path = GenericPathHelper.Combine(OriginalPath, name),
+                Data = Context.Root.GetDirectoryEntry(name, context.Clock),
+                Parent = Context,
+            },
+            Features);
 
     protected override IFile GetFile(DirectoryContext context, PathInfo name)
         => new InMemoryFile(
@@ -68,18 +70,18 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     }
 
     private IDirectory? AddTo(PathInfo path, string name, DirectoryContext context)
-        => GetDirectory(path) is InMemoryDirectory newDic 
-        && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData) 
-            ? new InMemoryDirectory(context with { Parent = newDic.DirectoryContext, Path = GenericPathHelper.Combine(newDic.OriginalPath, name)}, Features) 
+        => GetDirectory(path) is InMemoryDirectory newDic
+        && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData)
+            ? new InMemoryDirectory(context with { Parent = newDic.DirectoryContext, Path = GenericPathHelper.Combine(newDic.OriginalPath, name) }, Features)
             : null;
 
     protected override IDirectory MovetTo(DirectoryContext context, PathInfo location)
     {
         ValidateSheme(location, "mem");
-        
+
         IDirectory? newDic = null;
-        
-        if (location.Kind == PathType.Absolute)
+
+        if(location.Kind == PathType.Absolute)
         {
             newDic = Context.RootSystem.MoveElement(
                 Name,
@@ -90,17 +92,17 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
                     {
                         Parent = newContext,
                         Path = newPath,
-                        Data = dic
+                        Data = dic,
                     },
                     Features));
         }
         else
         {
-            if (ParentDirectory is InMemoryDirectory parent) 
+            if(ParentDirectory is InMemoryDirectory parent)
                 newDic = parent.AddTo(location, Name, context);
         }
 
-        if (newDic is null)
+        if(newDic is null)
             throw new InvalidOperationException("Directory moving Failed");
 
         _exist = false;

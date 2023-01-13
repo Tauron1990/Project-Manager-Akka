@@ -13,7 +13,7 @@ public class ClusterParentProxy : ReceiveActor
     {
         _child = Context.ActorOf(childProps);
 
-        if (shouldUnsubscribe)
+        if(shouldUnsubscribe)
             _child.Tell(UnsubscribeFromAll.Instance);
 
         ReceiveAny(Forward);

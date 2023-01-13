@@ -1,13 +1,15 @@
 ﻿using System.Globalization;
 using Akka.Actor;
 using Akka.Util;
+using JetBrains.Annotations;
 using Tauron.Localization.Provider;
 
 namespace Tauron.Localization.Actor;
 
+[PublicAPI]
 public sealed class LocCoordinator : ReceiveActor, IWithTimers
 {
-    private readonly Dictionary<string, Request> _requests = new();
+    private readonly Dictionary<string, Request> _requests = new(StringComparer.Ordinal);
 
     public LocCoordinator(IEnumerable<ILocStoreProducer> producers)
     {
@@ -21,20 +23,20 @@ public sealed class LocCoordinator : ReceiveActor, IWithTimers
 
     private void QueryResponseHandler(LocStoreActorBase.QueryResponse obj)
     {
-        if (!_requests.Remove(obj.Id, out var request)) return;
+        if(!_requests.Remove(obj.Id, out Request? request)) return;
 
         request.Sender.Tell(new ResponseLocValue(obj.Value, request.Key));
     }
 
     private void RequestLocValueHandler(RequestLocValue msg)
     {
-        var (key, cultureInfo) = msg;
+        (string key, CultureInfo cultureInfo) = msg;
         var request = new Request(Context.Sender, key);
         var opId = Guid.NewGuid().ToString();
 
         _requests[opId] = request;
 
-        foreach (var actorRef in Context.GetChildren())
+        foreach (IActorRef? actorRef in Context.GetChildren())
             actorRef.Tell(new LocStoreActorBase.QueryRequest(request.Key, opId, cultureInfo));
 
         Timers.StartSingleTimer(Guid.NewGuid(), new SendInvalidate(opId), TimeSpan.FromSeconds(10));
@@ -42,7 +44,7 @@ public sealed class LocCoordinator : ReceiveActor, IWithTimers
 
     private void Invalidate(SendInvalidate op)
     {
-        if (!_requests.Remove(op.OpId, out var request)) return;
+        if(!_requests.Remove(op.OpId, out Request? request)) return;
 
         request.Sender.Tell(new ResponseLocValue(Option<object>.None, request.Key));
     }

@@ -7,6 +7,7 @@ namespace Tauron.Application.Workshop.StateManagement.Internal;
 public class SimpleConstructorStateFactory : IStateInstanceFactory
 {
     public int Order => int.MaxValue;
+
     public bool CanCreate(Type state)
         => true;
 
@@ -24,7 +25,7 @@ public class SimpleConstructorStateFactory : IStateInstanceFactory
                         param[0].ParameterType.IsAssignableTo(typeof(IActionInvoker))
                             ? new object?[] { invoker, dataEngine }
                             : new object?[] { dataEngine, invoker }),
-                    _ => null
+                    _ => null,
                 }
                 into instance
                 where instance is not null

@@ -5,7 +5,9 @@ using Stl.Fusion.Server;
 
 namespace SimpleProjectManager.Server.Controllers;
 
-[ApiController, Route(ApiPaths.TaskApi + "/[action]"), JsonifyErrors]
+[ApiController]
+[Route(ApiPaths.TaskApi + "/[action]")]
+[JsonifyErrors]
 public sealed class TaskManagerController : Controller, ITaskManager
 {
     private readonly ITaskManager _taskManager;
@@ -13,11 +15,12 @@ public sealed class TaskManagerController : Controller, ITaskManager
     public TaskManagerController(ITaskManager taskManager)
         => _taskManager = taskManager;
 
-    [HttpGet, Publish]
-    public Task<PendingTask[]> GetTasks(CancellationToken token)
+    [HttpGet]
+    [Publish]
+    public Task<TaskList> GetTasks(CancellationToken token)
         => _taskManager.GetTasks(token);
 
     [HttpPost]
-    public Task<string> DeleteTask([FromBody] string id, CancellationToken token)
+    public Task<SimpleResult> DeleteTask([FromBody] string id, CancellationToken token)
         => _taskManager.DeleteTask(id, token);
 }

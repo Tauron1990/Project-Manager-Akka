@@ -21,7 +21,7 @@ public static class LoggingExtensions
 
     public static ILoggingBuilder ConfigDefaultLogging(this ILoggingBuilder loggingBuilder, string applicationName, bool noFile = false)
     {
-        var loggerConfiguration = LogManager.Setup().ConfigDefaultLogging(applicationName, noFile);
+        ISetupBuilder loggerConfiguration = LogManager.Setup().ConfigDefaultLogging(applicationName, noFile);
 
         return loggingBuilder.AddNLog(_ => loggerConfiguration.LogFactory);
     }
@@ -30,57 +30,61 @@ public static class LoggingExtensions
     {
         loggerConfiguration = loggerConfiguration.SetupExtensions(e => e.RegisterLayoutRenderer("event-type", typeof(EventTypeLayoutRenderer)));
 
-        if (!noFile)
-        {
-            const string defaultFile = "default-file";
-            loggerConfiguration =
-                loggerConfiguration.LoadConfiguration(
-                    b =>
-                    {
-                        b.Configuration.AddTarget(
-                            new AsyncTargetWrapper(
-                                new FileTarget("actual-" + defaultFile)
-                                {
-                                    Layout = new JsonLayout
-                                             {
-                                                 Attributes =
-                                                 {
-                                                     new JsonAttribute("time", "${longdate}"),
-                                                     new JsonAttribute("level", "${level:upperCase=true}"),
-                                                     new JsonAttribute("application", applicationName),
-                                                     new JsonAttribute("eventType", "${event-type}"),
-                                                     new JsonAttribute("message", "${message}"),
-                                                     new JsonAttribute(
-                                                         "Properties",
-                                                         new JsonLayout
-                                                         {
-                                                             ExcludeEmptyProperties = true,
-                                                             ExcludeProperties = new HashSet<string>
-                                                                                 {
-                                                                                     "time",
-                                                                                     "level",
-                                                                                     "eventType",
-                                                                                     "message"
-                                                                                 },
-                                                             IncludeAllProperties = true
-                                                         })
-                                                 }
-                                             },
-                                    ArchiveAboveSize = 5_242_880,
-                                    ConcurrentWrites = false,
-                                    MaxArchiveFiles = 5,
-                                    FileName = "Logs\\Log.log",
-                                    ArchiveFileName = "Logs\\Log.{###}.log",
-                                    ArchiveNumbering = ArchiveNumberingMode.Rolling,
-                                    EnableArchiveFileCompression = true
-                                })
-                            {
-                                Name = defaultFile
-                            });
+        if(noFile)
+            return loggerConfiguration;
 
-                        b.Configuration.AddRuleForAllLevels(defaultFile);
-                    });
-        }
+        const string defaultFile = "default-file";
+        const string defaultConsole = "default-Console";
+
+        loggerConfiguration =
+            loggerConfiguration.LoadConfiguration(
+                b =>
+                {
+                    b.Configuration.AddTarget(new ColoredConsoleTarget(defaultConsole));
+                    b.Configuration.AddTarget(
+                        new AsyncTargetWrapper(
+                            new FileTarget("actual-" + defaultFile)
+                            {
+                                Layout = new JsonLayout
+                                         {
+                                             Attributes =
+                                             {
+                                                 new JsonAttribute("time", "${longdate}"),
+                                                 new JsonAttribute("level", "${level:upperCase=true}"),
+                                                 new JsonAttribute("application", applicationName),
+                                                 new JsonAttribute("eventType", "${event-type}"),
+                                                 new JsonAttribute("message", "${message}"),
+                                                 new JsonAttribute(
+                                                     "Properties",
+                                                     new JsonLayout
+                                                     {
+                                                         ExcludeEmptyProperties = true,
+                                                         ExcludeProperties = new HashSet<string>(StringComparer.Ordinal)
+                                                                             {
+                                                                                 "time",
+                                                                                 "level",
+                                                                                 "eventType",
+                                                                                 "message",
+                                                                             },
+                                                         IncludeEventProperties = true,
+                                                     }),
+                                             },
+                                         },
+                                ArchiveAboveSize = 5_242_880,
+                                ConcurrentWrites = false,
+                                MaxArchiveFiles = 5,
+                                FileName = "Logs\\Log.log",
+                                ArchiveFileName = "Logs\\Log.{###}.log",
+                                ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                                EnableArchiveFileCompression = true,
+                            })
+                        {
+                            Name = defaultFile,
+                        });
+
+                    b.Configuration.AddRuleForAllLevels(defaultFile);
+                    b.Configuration.AddRuleForAllLevels(defaultConsole);
+                });
 
         return loggerConfiguration;
     }
@@ -110,16 +114,16 @@ public static class LoggingExtensions
                                                  new JsonLayout
                                                  {
                                                      ExcludeEmptyProperties = true,
-                                                     ExcludeProperties = new HashSet<string>
+                                                     ExcludeProperties = new HashSet<string>(StringComparer.Ordinal)
                                                                          {
                                                                              "time",
                                                                              "level",
                                                                              "eventType",
-                                                                             "message"
+                                                                             "message",
                                                                          },
-                                                     IncludeAllProperties = true
-                                                 })
-                                         }
+                                                     IncludeEventProperties = true,
+                                                 }),
+                                         },
                                      },
                             ArchiveAboveSize = 5_242_880,
                             ConcurrentWrites = false,
@@ -127,10 +131,10 @@ public static class LoggingExtensions
                             FileName = $"Logs\\{applicationName}.log",
                             ArchiveFileName = $"Logs\\{applicationName}.{{###}}.log",
                             ArchiveNumbering = ArchiveNumberingMode.Rolling,
-                            EnableArchiveFileCompression = true
+                            EnableArchiveFileCompression = true,
                         })
                     {
-                        Name = defaultFile
+                        Name = defaultFile,
                     });
 
                 b.Configuration.AddRuleForAllLevels(defaultFile);

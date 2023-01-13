@@ -31,7 +31,7 @@ public sealed class FluentCollectionPropertyRegistration<TData>
 
     public FluentCollectionPropertyRegistration<TData> AndInitialElements(IEnumerable<TData> elements)
     {
-        foreach (var element in elements)
+        foreach (TData element in elements)
             _collection.Add(element);
 
         return this;
@@ -41,7 +41,7 @@ public sealed class FluentCollectionPropertyRegistration<TData>
     {
         subscriber ??= set => set.Subscribe();
 
-        if (typeof(TData).Implements<IDisposable>())
+        if(typeof(TData).Implements<IDisposable>())
             source = source.DisposeMany();
 
         subscriber(
@@ -58,7 +58,7 @@ public sealed class FluentCollectionPropertyRegistration<TData>
     {
         subscriber ??= set => set.Subscribe();
 
-        if (typeof(TData).Implements<IDisposable>())
+        if(typeof(TData).Implements<IDisposable>())
             source = source.DisposeMany();
 
         subscriber(

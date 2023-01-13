@@ -1,19 +1,35 @@
 ﻿@page "/EditJob/{ProjectId}"
-@inherits NonAutoRenderingView<EditJobViewModel>
+@using SimpleProjectManager.Client.Shared.ViewModels.EditJob
+@inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.Pages.EditJobViewModel>
 
 <PageTitle>Job Beabeiten</PageTitle>
 
-@if (ViewModel is not null)
+@if(ViewModel is not null)
 {
-    @if (string.IsNullOrWhiteSpace(ProjectId))
+    @if(string.IsNullOrWhiteSpace(ProjectId))
     {
         <MudText Typo="Typo.h3">Kein Job Id Angegeben</MudText>
     }
     else
     {
-        <StateAwaiter State="ViewModel.State">
-            <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="@($"{context?.JobName} beabeiten")"
-                       Cancel="ViewModel.Cancel" Commit="ViewModel.Commit"/>
-        </StateAwaiter>
+        <ObservableRenderer Observable="ViewModel?.EditorData">
+            <ValueRenderer>
+                <JobEditor Data="context" CanCancel="true" Configuration="@JobEditorConfiguration.EditJobConfig" Title="@($"{context?.JobName} beabeiten")"
+                           Cancel="ViewModel!.Cancel" Commit="_commitAction"/>
+            </ValueRenderer>
+            <OnError>
+                <MudGrid>
+                    <MudItem lg="12">
+                        <MudText>Fehler beim Abrufen der Daten</MudText>
+                    </MudItem>
+                    <MudItem lg="12">
+                        <MudText>@context.Message</MudText>
+                    </MudItem>
+                </MudGrid>
+            </OnError>
+            <OnCompled>
+                <GenericStreamError/>
+            </OnCompled>
+        </ObservableRenderer>
     }
 }

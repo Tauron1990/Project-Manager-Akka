@@ -55,16 +55,16 @@ public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservableP
 
     IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName)
     {
-        if (string.IsNullOrWhiteSpace(propertyName))
+        if(string.IsNullOrWhiteSpace(propertyName))
         {
-            foreach (var error in _errors.Items) yield return error.Error;
+            foreach (ValidationError error in _errors.Items) yield return error.Error;
 
             yield break;
         }
 
         var opt = _errors.Lookup(propertyName);
 
-        if (!opt.HasValue) yield break;
+        if(!opt.HasValue) yield break;
 
         yield return opt.Value.Error;
     }
@@ -100,12 +100,12 @@ public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservableP
 
     protected void AddValidation<TData>(Expression<Func<TData>> property, Func<IObservable<TData?>, IObservable<string>> validate)
     {
-        var name = Reflex.PropertyName(property);
+        string name = Reflex.PropertyName(property);
 
         Disposer.Add
         (
             _propertys.Connect()
-               .Where(o => o.Name == name)
+               .Where(o => string.Equals(o.Name, name, StringComparison.Ordinal))
                .Flatten()
                .SelectMany(
                     c =>
@@ -122,11 +122,11 @@ public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservableP
                                     {
                                         o.When(
                                             string.IsNullOrWhiteSpace,
-                                            s => s.Select(_ => () => _errors.RemoveKey(name)));
+                                            s => s.Select<string?, Action>(_ => () => _errors.RemoveKey(name)));
                                         o.When(
                                             e => !string.IsNullOrWhiteSpace(e),
                                             no => no.NotEmpty()
-                                               .Select(e => () => _errors.AddOrUpdate(new ValidationError(e, name))));
+                                               .Select<string, Action>(e => () => _errors.AddOrUpdate(new ValidationError(e, name))));
                                     });
                         }
 
@@ -135,7 +135,7 @@ public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservableP
                             ChangeReason.Add => CreateChangeAction(),
                             ChangeReason.Update => CreateChangeAction(),
                             ChangeReason.Remove => CreateEmpty(),
-                            _ => CreateEmpty()
+                            _ => CreateEmpty(),
                         };
                     })
                .AutoSubscribe(a => a(), ErrorEncountered)

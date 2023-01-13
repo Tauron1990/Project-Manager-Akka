@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -19,7 +20,7 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
     private readonly IDirectory _defaultPath;
     private readonly ILogger<TauronProfile> _logger = TauronEnviroment.GetLogger<TauronProfile>();
 
-    private readonly Dictionary<string, string> _settings = new();
+    private readonly Dictionary<string, string> _settings = new(StringComparer.Ordinal);
 
     protected TauronProfile(string application, IDirectory defaultPath)
     {
@@ -58,8 +59,8 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
         _settings.Clear();
 
         _logger.LogInformation(
-            "{Application} -- Delete Profile infos... {Path}", 
-            Application, 
+            "{Application} -- Delete Profile infos... {Path}",
+            Application,
             Dictionary.Select(d => d.OriginalPath.Path).GetOrElse(string.Empty).PathShorten(20));
 
         Dictionary.OnSuccess(dic => dic.Delete());
@@ -74,14 +75,14 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
         File = Dictionary.Select(dic => dic.GetFile("Settings.db"));
 
         _logger.LogInformation(
-            "{Application} -- Begin Load Profile infos... {Path}", 
-            Application, 
+            "{Application} -- Begin Load Profile infos... {Path}",
+            Application,
             File.Select(f => f.OriginalPath.Path).GetOrElse(string.Empty).PathShorten(20));
 
         _settings.Clear();
-        foreach (var vals in File.Value.EnumerateTextLinesIfExis()
-           .Select(line => line.Split(ContentSplitter, 2))
-           .Where(vals => vals.Length == 2))
+        foreach (string[] vals in File.Value.EnumerateTextLinesIfExis()
+                    .Select(line => line.Split(ContentSplitter, 2))
+                    .Where(vals => vals.Length == 2))
         {
             _logger.LogInformation("key: {Key} | Value {Value}", vals[0], vals[1]);
 
@@ -97,11 +98,11 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
         {
             var writerOption = File.Select(path => new StreamWriter(path.Open(FileAccess.Write)));
 
-            if (!writerOption.HasValue) return;
+            if(!writerOption.HasValue) return;
 
-            using var writer = writerOption.Value;
+            using StreamWriter writer = writerOption.Value;
 
-            foreach (var (key, value) in _settings)
+            foreach ((string key, string value) in _settings)
             {
                 writer.WriteLine("{0}={1}", key, value);
 
@@ -116,24 +117,24 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
 
     public virtual string? GetValue(string? defaultValue, [CallerMemberName] string? key = null)
     {
-        if (string.IsNullOrWhiteSpace(key)) return string.Empty;
+        if(string.IsNullOrWhiteSpace(key)) return string.Empty;
 
         IlligalCharCheck(key);
 
         return !_settings.ContainsKey(key) ? defaultValue : _settings[key];
     }
 
-    public virtual int GetValue(int defaultValue, [CallerMemberName] string? key = null)
-        => int.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
+    public virtual int GetValue(int defaultValue, IFormatProvider? provider = null, [CallerMemberName] string? key = null)
+        => int.TryParse(GetValue(null, key), NumberStyles.Any, provider, out int result) ? result : defaultValue;
 
     #pragma warning disable AV1564
     public virtual bool GetValue(bool defaultValue, [CallerMemberName] string? key = null)
         #pragma warning restore AV1564
-        => bool.TryParse(GetValue(null, key), out var result) ? result : defaultValue;
+        => bool.TryParse(GetValue(null, key), out bool result) ? result : defaultValue;
 
     public virtual void SetVaue(object value, [CallerMemberName] string? key = null)
     {
-        if (string.IsNullOrWhiteSpace(key)) return;
+        if(string.IsNullOrWhiteSpace(key)) return;
 
         IlligalCharCheck(key);
 
@@ -143,8 +144,8 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
 
     private static void IlligalCharCheck(string key)
     {
-        if (key.Contains('='))
-            throw new ArgumentException($"The Key ({key}) Contains an Illigal Char: =");
+        if(key.Contains('=', StringComparison.Ordinal))
+            throw new ArgumentException($"The Key ({key}) Contains an Illigal Char: =", nameof(key));
     }
 
     public void Clear()

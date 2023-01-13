@@ -10,8 +10,8 @@ public sealed class JsonProvider : ISettingProvider
 
     public JsonProvider(string fileName)
     {
-        var dic = Path.GetDirectoryName(Path.GetFullPath(fileName));
-        if (!string.IsNullOrWhiteSpace(dic) && !Directory.Exists(dic))
+        string? dic = Path.GetDirectoryName(Path.GetFullPath(fileName));
+        if(!string.IsNullOrWhiteSpace(dic) && !Directory.Exists(dic))
             Directory.CreateDirectory(dic);
 
         _fileName = Path.GetFullPath(fileName);

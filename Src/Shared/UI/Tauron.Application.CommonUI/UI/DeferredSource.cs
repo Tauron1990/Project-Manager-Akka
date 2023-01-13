@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using Akka.Actor;
 using JetBrains.Annotations;
@@ -23,7 +24,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
         get => _value;
         set
         {
-            if (Equals(_value, value)) return;
+            if(Equals(_value, value)) return;
 
             _value = value;
             Model?.Actor.Tell(new SetValue(Name, value));
@@ -35,7 +36,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
         get => _error;
         private set
         {
-            if (value == _error) return;
+            if(string.Equals(value, _error, StringComparison.Ordinal)) return;
 
             _error = value;
             OnPropertyChanged();
@@ -49,7 +50,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
         get => _hasErrors;
         private set
         {
-            if (value == _hasErrors) return;
+            if(value == _hasErrors) return;
 
             _hasErrors = value;
             OnPropertyChanged();
@@ -65,7 +66,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
 
     protected override void PropertyChangedHandler(PropertyChangedEvent msg)
     {
-        if (Equals(_value, msg.Value)) return;
+        if(Equals(_value, msg.Value)) return;
 
         _value = msg.Value;
         OnPropertyChanged(nameof(Value));
@@ -73,7 +74,7 @@ public class DeferredSource : ModelConnectorBase<DeferredSource>, INotifyPropert
 
     protected override void NoDataContextFound()
     {
-        Log.Debug("No DataContext Found for {Name}", Name);
+        Log.Debug(CultureInfo.InvariantCulture, "No DataContext Found for {Name}", Name);
     }
 
     protected override void ValidateCompled(ValidatingEvent msg)

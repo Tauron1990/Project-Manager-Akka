@@ -46,9 +46,9 @@ public abstract class DomainEventSubscriber : ReceiveActor
 
         SubscriptionTypes = new List<Type>();
 
-        if (Settings.AutoSubscribe)
+        if(Settings.AutoSubscribe)
         {
-            var type = GetType();
+            Type type = GetType();
 
             var asyncDomainEventSubscriptionTypes =
                 type
@@ -64,11 +64,11 @@ public abstract class DomainEventSubscriber : ReceiveActor
 
             SubscriptionTypes = subscriptionTypes;
 
-            foreach (var subscriptionType in SubscriptionTypes)
+            foreach (Type subscriptionType in SubscriptionTypes)
                 Context.System.EventStream.Subscribe(Self, subscriptionType);
         }
 
-        if (Settings.AutoReceive)
+        if(Settings.AutoReceive)
         {
             InitReceives();
             InitAsyncReceives();
@@ -83,7 +83,7 @@ public abstract class DomainEventSubscriber : ReceiveActor
 
     public void InitReceives()
     {
-        var type = GetType();
+        Type type = GetType();
 
         var subscriptionTypes =
             type
@@ -95,7 +95,7 @@ public abstract class DomainEventSubscriber : ReceiveActor
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Handle") return false;
+                    if(!string.Equals(mi.Name, "Handle", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
@@ -106,27 +106,27 @@ public abstract class DomainEventSubscriber : ReceiveActor
                 mi => mi.GetParameters()[0].ParameterType,
                 mi => mi);
 
-        var method = type
+        MethodInfo method = type
            .GetBaseType("ReceiveActor")
            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "Receive") return false;
+                    if(!string.Equals(mi.Name, "Receive", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 1
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 
-        foreach (var subscriptionType in subscriptionTypes)
+        foreach (Type subscriptionType in subscriptionTypes)
         {
-            var funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
+            Type funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(bool));
             var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
-            var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
+            MethodInfo actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
             actorReceiveMethod.InvokeFast(this, subscriptionFunction);
         }
@@ -134,7 +134,7 @@ public abstract class DomainEventSubscriber : ReceiveActor
 
     public void InitAsyncReceives()
     {
-        var type = GetType();
+        Type type = GetType();
 
         var subscriptionTypes =
             type
@@ -146,7 +146,7 @@ public abstract class DomainEventSubscriber : ReceiveActor
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "HandleAsync") return false;
+                    if(!string.Equals(mi.Name, "HandleAsync", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
@@ -158,27 +158,27 @@ public abstract class DomainEventSubscriber : ReceiveActor
                 mi => mi);
 
 
-        var method = type
+        MethodInfo method = type
            .GetBaseType("ReceiveActor")
            .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
            .Where(
                 mi =>
                 {
-                    if (mi.Name != "ReceiveAsync") return false;
+                    if(!string.Equals(mi.Name, "ReceiveAsync", StringComparison.Ordinal)) return false;
 
                     var parameters = mi.GetParameters();
 
                     return
                         parameters.Length == 2
-                     && parameters[0].ParameterType.Name.Contains("Func");
+                     && parameters[0].ParameterType.Name.Contains("Func", StringComparison.Ordinal);
                 })
            .First();
 
-        foreach (var subscriptionType in subscriptionTypes)
+        foreach (Type subscriptionType in subscriptionTypes)
         {
-            var funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(Task));
+            Type funcType = typeof(Func<,>).MakeGenericType(subscriptionType, typeof(Task));
             var subscriptionFunction = Delegate.CreateDelegate(funcType, this, methods[subscriptionType]);
-            var actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
+            MethodInfo actorReceiveMethod = method.MakeGenericMethod(subscriptionType);
 
             actorReceiveMethod.InvokeFast(this, subscriptionFunction, null);
         }
@@ -193,6 +193,6 @@ public abstract class DomainEventSubscriber : ReceiveActor
 
     protected void UnsubscribeFromAllTopics()
     {
-        foreach (var type in SubscriptionTypes) Context.System.EventStream.Unsubscribe(Self, type);
+        foreach (Type type in SubscriptionTypes) Context.System.EventStream.Unsubscribe(Self, type);
     }
 }

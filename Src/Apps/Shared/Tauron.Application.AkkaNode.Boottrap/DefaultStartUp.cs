@@ -1,9 +1,6 @@
-﻿using Akka.Actor;
-using Akka.Cluster;
-using JetBrains.Annotations;
+﻿namespace Tauron.Application.AkkaNode.Bootstrap;
 
-namespace Tauron.Application.AkkaNode.Bootstrap;
-
+/*
 [PublicAPI]
 public abstract class ClusterStartUp : IStartUpAction
 {
@@ -25,4 +22,4 @@ public abstract class ClusterStartUp : IStartUpAction
     public virtual void MemberRemoved() { }
 
     public virtual void Run() { }
-}
+}*/

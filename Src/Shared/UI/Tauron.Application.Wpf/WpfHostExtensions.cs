@@ -7,6 +7,8 @@ using Tauron.Application.Wpf;
 using Tauron.Application.Wpf.AppCore;
 using Window = System.Windows.Window;
 
+#pragma warning disable GU0011
+
 // ReSharper disable once CheckNamespace
 namespace Tauron.AkkaHost;
 

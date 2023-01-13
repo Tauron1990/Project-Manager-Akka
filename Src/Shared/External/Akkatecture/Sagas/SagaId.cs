@@ -29,7 +29,9 @@ using Akkatecture.ValueObjects;
 
 namespace Akkatecture.Sagas;
 
+#pragma warning disable MA0097
 public abstract class SagaId<T> : SingleValueObject<string>, ISagaId
+    #pragma warning restore MA0097
     where T : SagaId<T>
 {
     protected SagaId(string value)

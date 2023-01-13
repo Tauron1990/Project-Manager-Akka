@@ -7,6 +7,7 @@ using Akka.Util;
 using Microsoft.Extensions.Logging;
 using Tauron.AkkaHost;
 using Tauron.Operations;
+using UnitsNet;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
@@ -14,7 +15,7 @@ public static class SendingHelper
 {
     private static readonly ILogger Log = TauronEnviroment.GetLogger(typeof(SendingHelper));
 
-    public static async Task<Either<TResult, Error>> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages, TimeSpan timeout, bool isEmpty, CancellationToken token)
+    public static async Task<Either<TResult, Error>> Send<TResult, TCommand>(ISender sender, TCommand command, Action<string> messages, Duration? timeout, bool isEmpty, CancellationToken token)
         where TCommand : class, IReporterMessage
     {
         Log.LogInformation("Sending Command {CommandType} -- {SenderType}", command.GetType(), sender.GetType());
@@ -23,19 +24,19 @@ public static class SendingHelper
         var task = new TaskCompletionSource<Either<TResult, Error>>();
         IActorRefFactory factory = ActorApplication.ActorSystem;
 
-        var listner = Reporter.CreateListner(
+        IActorRef listner = Reporter.CreateListner(
             factory,
             messages,
             result =>
             {
-                if (result.Ok)
+                if(result.Ok)
                 {
-                    if (isEmpty)
+                    if(isEmpty)
                         task.TrySetResult(Either.Left<TResult>(default!));
-                    else if (result.Outcome is TResult outcome)
+                    else if(result.Outcome is TResult outcome)
                         task.TrySetResult(Either.Left(outcome));
                     else
-                        task.TrySetResult(Either.Right(new Error(new InvalidCastException(result.Outcome?.GetType().Name ?? "null-source"))));
+                        task.TrySetResult(Either.Right(Error.FromException(new InvalidCastException(result.Outcome?.GetType().Name ?? "null-source"))));
                 }
                 else
                 {
@@ -47,8 +48,10 @@ public static class SendingHelper
         command.SetListner(listner);
         sender.SendCommand(command);
 
-        await using var _ = token.Register(t => ((TaskCompletionSource<Either<TResult, Error>>)t!).TrySetCanceled(), task);
-        var result = await task.Task;
+        #pragma warning disable MA0004
+        await using CancellationTokenRegistration _ = token.Register(t => ((TaskCompletionSource<Either<TResult, Error>>)t!).TrySetCanceled(), task);
+        #pragma warning restore MA0004
+        var result = await task.Task.ConfigureAwait(false);
 
         return result;
     }

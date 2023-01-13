@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.WebUtilities;
 using ReactiveUI;
-using Stl;
 using Stl.Fusion;
+using Tauron.Operations;
 
 namespace Tauron.Application.Blazor;
 
@@ -23,18 +16,74 @@ public static class Extensions
     public static bool IsLoading<TData>(this IState<TData> state)
         => state.Computed.ConsistencyState != ConsistencyState.Consistent;
 
-    public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask<string>> runner)
+    public static Func<TInput, bool> IsSuccess<TInput>(this IEventAggregator aggregator, Func<TInput, SimpleResult> runner)
+    {
+        return input =>
+               {
+                   try
+                   {
+                       SimpleResult result = runner(input);
+
+                       if(result.IsSuccess())
+                           return true;
+
+                       aggregator.PublishWarnig(result.GetErrorString());
+
+                       return false;
+                   }
+                   catch (Exception e)
+                   {
+                       aggregator.PublishError(e);
+
+                       return false;
+                   }
+               };
+    }
+
+    public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask<SimpleResult>> runner)
     {
         try
         {
-            var result = await runner();
+            SimpleResult result = await runner().ConfigureAwait(false);
 
-            if (string.IsNullOrWhiteSpace(result))
+            if(result.IsSuccess())
                 return true;
 
-            aggregator.PublishWarnig(result);
+            aggregator.PublishWarnig(result.GetErrorString());
 
             return false;
+        }
+        catch (Exception e)
+        {
+            aggregator.PublishError(e);
+
+            return false;
+        }
+    }
+
+    public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask<Unit>> runner)
+    {
+        try
+        {
+            await runner().ConfigureAwait(false);
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            aggregator.PublishError(e);
+
+            return false;
+        }
+    }
+
+    public static async ValueTask<bool> IsSuccess(this IEventAggregator aggregator, Func<ValueTask> runner)
+    {
+        try
+        {
+            await runner().ConfigureAwait(false);
+
+            return true;
         }
         catch (Exception e)
         {
@@ -48,12 +97,12 @@ public static class Extensions
         => state.Set(update(state.LatestNonErrorValue));
 
     public static async Task ReplaceState<TData>(this IMutableState<TData> state, Func<TData, Task<TData>> update)
-        => state.Set(await update(state.LatestNonErrorValue));
+        => state.Set(await update(state.LatestNonErrorValue).ConfigureAwait(false));
 
     public static void PublishError(this IEventAggregator aggregator, Exception error)
     {
         error = error.Demystify();
-            
+
         #if DEBUG
         Console.WriteLine(error);
         #endif
@@ -65,6 +114,16 @@ public static class Extensions
 
     public static void PublishWarnig(this IEventAggregator aggregator, string message)
         => PublishMessage(aggregator, new SnackbarWarningMessage(message));
+
+    public static void PublishWarnig(this IEventAggregator aggregator, Exception error)
+    {
+        error = error.Demystify();
+
+        #if DEBUG
+        Console.WriteLine(error);
+        #endif
+        PublishMessage(aggregator, new SnackbarWarningMessage($"{error.GetType().Name} -- {error.Message}"));
+    }
 
     public static void PublishInfo(this IEventAggregator aggregator, string message)
         => PublishMessage(aggregator, new SnackbarInfoMessage(message));
@@ -81,70 +140,13 @@ public static class Extensions
     public static IObservable<SnackbarMessage> ConsumeMessages(this IEventAggregator aggregator)
         => aggregator.GetEvent<AggregateEvent<SnackbarMessage>, SnackbarMessage>().Get();
 
-    public static async Task<TResult?> PostJson<TData, TResult>(this HttpClient client, string url, TData data)
-    {
-        var response = await client.PostAsJsonAsync(url, data);
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<TResult>();
-    }
-
-    public static async Task<TResult?> PostJson<TResult>(this HttpClient client, string url, HttpContent content, CancellationToken token)
-    {
-        var response = await client.PostAsync(url, content, token);
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<TResult>(cancellationToken: token);
-    }
-
-    public static IDisposableState<TData> ToState<TData>(this IObservable<TData> input, IStateFactory factory)
-    {
-        var serial = new SerialDisposable();
-        var state = factory.NewMutable(new MutableState<TData>.Options());
-        serial.Disposable = input.AutoSubscribe(n => state.Set(n), () => serial.Dispose(), e => state.Set(Result.Error<TData>(e)));
-
-        return new DisposableState<TData>(state, serial);
-    }
-
-    public static IObservable<TData> ToObservable<TData>(this IState<TData> state)
-        => Observable.Create<TData>(o =>
-                                    {
-                                        if(state.HasValue)
-                                            o.OnNext(state.Value);
-                                        return new StateRegistration<TData>(o, state);
-                                    })
-           .DistinctUntilChanged();
-        
-    private sealed class StateRegistration<TData> : IDisposable
-    {
-        private readonly IObserver<TData> _observer;
-        private readonly IState<TData> _state;
-
-        internal StateRegistration(IObserver<TData> observer, IState<TData> state)
-        {
-            _observer = observer;
-            _state = state;
-                
-            state.AddEventHandler(StateEventKind.All, Handler);
-        }
-
-        private void Handler(IState<TData> arg1, StateEventKind arg2)
-        {
-            if(_state.HasValue)
-                _observer.OnNext(_state.Value);
-            else if(_state.HasError && _state.Error is not null)
-                _observer.OnError(_state.Error);
-        }
-
-        public void Dispose() => _state.RemoveEventHandler(StateEventKind.All, Handler);
-    }
-
-    public static Scoped<TService> GetIsolatedService<TService>(this IServiceProvider serviceProvider) 
+    public static Scoped<TService> GetIsolatedService<TService>(this IServiceProvider serviceProvider)
         where TService : notnull => new(serviceProvider);
 
     public static Action<TInput> ToAction<TInput, TResult>(this ReactiveCommand<TInput, TResult> command)
     {
         var com = (ICommand)command;
+
         return i =>
                {
                    if(com.CanExecute(i))
@@ -155,47 +157,11 @@ public static class Extensions
     public static Action ToAction<TResult>(this ReactiveCommand<Unit, TResult> command)
     {
         var com = (ICommand)command;
+
         return () =>
                {
                    if(com.CanExecute(Unit.Default))
                        com.Execute(Unit.Default);
                };
-    }
-}
-
-[PublicAPI]
-public static class NavigationManagerExtensions
-{
-    public static bool TryGetQueryString<T>(this NavigationManager navManager, string key, out T? value)
-    {
-        var uri = navManager.ToAbsoluteUri(navManager.Uri);
-
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue(key, out var valueFromQueryString))
-        {
-            if (typeof(T) == typeof(int) && int.TryParse(valueFromQueryString, out var valueAsInt))
-            {
-                value = (T)(object)valueAsInt;
-
-                return true;
-            }
-
-            if (typeof(T) == typeof(string))
-            {
-                value = (T)(object)valueFromQueryString.ToString();
-
-                return true;
-            }
-
-            if (typeof(T) == typeof(decimal) && decimal.TryParse(valueFromQueryString, out var valueAsDecimal))
-            {
-                value = (T)(object)valueAsDecimal;
-
-                return true;
-            }
-        }
-
-        value = default;
-
-        return false;
     }
 }

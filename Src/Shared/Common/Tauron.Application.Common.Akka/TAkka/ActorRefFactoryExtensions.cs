@@ -13,7 +13,7 @@ public static class ActorRefFactoryExtensions
 
     public static IActorRef GetOrAdd(this IActorContext context, string? name, Props props)
     {
-        var child = context.Child(name);
+        IActorRef? child = context.Child(name);
 
         return child.Equals(ActorRefs.Nobody) ? context.ActorOf(props, name) : child;
     }

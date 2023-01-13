@@ -32,7 +32,7 @@ public sealed class ManagerBuilder : IDispatcherConfigurable<ManagerBuilder>
         return this;
     }
 
-    public ManagerBuilder WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory) 
+    public ManagerBuilder WithDispatcher(string name, Func<IStateDispatcherConfigurator>? factory)
         => throw new NotSupportedException("Polled Dispatcher not Supported");
 
     public static RootManager CreateManager(IDriverFactory driverFactory, Action<ManagerBuilder> builder)
@@ -92,21 +92,21 @@ public sealed class ManagerBuilder : IDispatcherConfigurable<ManagerBuilder>
         List<IMiddleware> additionalMiddlewares = new();
         List<IStateInstanceFactory> stateInstanceFactories = new();
 
-        if (ServiceProvider != null)
+        if(ServiceProvider != null)
         {
             serviceOptions ??= new ServiceOptions();
 
-            if (serviceOptions.ResolveEffects)
+            if(serviceOptions.ResolveEffects)
                 additionalEffects.AddRange(ServiceProvider.GetRequiredService<IEnumerable<IEffect>>());
-            if (serviceOptions.ResolveMiddleware)
+            if(serviceOptions.ResolveMiddleware)
                 additionalMiddlewares.AddRange(ServiceProvider.GetRequiredService<IEnumerable<IMiddleware>>());
             if(serviceOptions.ResolveStateFactorys)
                 stateInstanceFactories.AddRange(ServiceProvider.GetRequiredService<IEnumerable<IStateInstanceFactory>>());
         }
 
         if(stateInstanceFactories.Count == 0)
-            stateInstanceFactories.AddRange(new IStateInstanceFactory []{ new ActivatorUtilitiesStateFactory(), new SimpleConstructorStateFactory() });
-        
+            stateInstanceFactories.AddRange(new IStateInstanceFactory[] { new ActivatorUtilitiesStateFactory(), new SimpleConstructorStateFactory() });
+
         var man = new RootManager(
             Driver,
             _dispatcherFunc(),

@@ -1,31 +1,19 @@
-﻿using SimpleProjectManager.Client.Shared.CurrentJobs;
+using SimpleProjectManager.Client.Shared.CurrentJobs;
+using SimpleProjectManager.Client.Shared.Data;
+using SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs;
 using SimpleProjectManager.Shared;
-using SimpleProjectManager.Shared.Services;
 using Stl.Fusion;
-using Tauron.Application.Blazor;
+using Tauron.Application.Blazor.Parameters;
 
 namespace SimpleProjectManager.Client.ViewModels;
 
-public sealed class FileDetailDisplayViewModel : StatefulViewModel<ProjectFileInfo?>
+public sealed class FileDetailDisplayViewModel : FileDetailDisplayViewModelBase, IParameterUpdateable
 {
-    private readonly IJobFileService _fileService;
+    public FileDetailDisplayViewModel(GlobalState state, IStateFactory stateFactory)
+        : base(state, stateFactory) { }
 
-    public IState<ProjectFileId?> Id { get; }
-    
-    public FileDetailDisplayViewModel(IStateFactory stateFactory, IJobFileService fileService) 
-        : base(stateFactory)
-    {
-        _fileService = fileService;
+    public ParameterUpdater Updater { get; } = new();
 
-        Id = GetParameter<ProjectFileId?>(nameof(FileDetailDisplay.FileId));
-    }
-
-    protected override async Task<ProjectFileInfo?> ComputeState(CancellationToken cancellationToken)
-    {
-        var id = await Id.Use(cancellationToken);
-
-        if (id is null) return null;
-
-        return await _fileService.GetJobFileInfo(id, cancellationToken);
-    }
+    protected override IState<ProjectFileId?> GetId(IStateFactory stateFactory)
+        => Updater.Register<ProjectFileId?>(nameof(FileDetailDisplay.FileId), stateFactory);
 }

@@ -40,11 +40,11 @@ public class CommittedSnapshot<TAggregate, TIdentity, TAggregateSnapshot>
         DateTimeOffset timestamp,
         long aggregateSequenceNumber)
     {
-        if (aggregateSnapshot == null) throw new ArgumentNullException(nameof(aggregateSnapshot));
-        if (timestamp == default) throw new ArgumentNullException(nameof(timestamp));
-        if (aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value))
+        if(aggregateSnapshot == null) throw new ArgumentNullException(nameof(aggregateSnapshot));
+        if(timestamp == default) throw new ArgumentNullException(nameof(timestamp));
+        if(aggregateIdentity == null || string.IsNullOrEmpty(aggregateIdentity.Value))
             throw new ArgumentNullException(nameof(aggregateIdentity));
-        if (aggregateSequenceNumber <= 0) throw new ArgumentOutOfRangeException(nameof(aggregateSequenceNumber));
+        if(aggregateSequenceNumber <= 0) throw new ArgumentOutOfRangeException(nameof(aggregateSequenceNumber));
 
         AggregateIdentity = aggregateIdentity;
         AggregateSequenceNumber = aggregateSequenceNumber;

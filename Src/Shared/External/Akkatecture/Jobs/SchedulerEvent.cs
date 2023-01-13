@@ -29,7 +29,7 @@ public abstract class SchedulerEvent<TJob, TIdentity> : ISchedulerEvent<TJob, TI
     where TJob : IJob
     where TIdentity : IJobId
 {
-    public override string ToString() => $"{typeof(TJob).PrettyPrint()}/{GetType().PrettyPrint()}";
     public abstract JobEventType GetEventType();
     public abstract string GetJobId();
+    public override string ToString() => $"{typeof(TJob).PrettyPrint()}/{GetType().PrettyPrint()}";
 }

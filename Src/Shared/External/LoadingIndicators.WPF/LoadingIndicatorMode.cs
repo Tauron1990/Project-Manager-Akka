@@ -1,42 +1,40 @@
 ﻿using System.ComponentModel;
 
-namespace LoadingIndicators.WPF
+namespace LoadingIndicators.WPF;
+
+public enum LoadingIndicatorMode
 {
-    public enum LoadingIndicatorMode
-    {
-        [Description("LoadingIndicatorWaveStyle")]
-        Wave,
+    [Description("LoadingIndicatorWaveStyle")]
+    Wave,
 
-        [Description("LoadingIndicatorArcsStyle")]
-        Arcs,
+    [Description("LoadingIndicatorArcsStyle")]
+    Arcs,
 
-        [Description("LoadingIndicatorArcsRingStyle")]
-        ArcsRing,
+    [Description("LoadingIndicatorArcsRingStyle")]
+    ArcsRing,
 
-        [Description("LoadingIndicatorDoubleBounceStyle")]
-        DoubleBounce,
+    [Description("LoadingIndicatorDoubleBounceStyle")]
+    DoubleBounce,
 
-        [Description("LoadingIndicatorFlipPlaneStyle")]
-        FlipPlane,
+    [Description("LoadingIndicatorFlipPlaneStyle")]
+    FlipPlane,
 
-        [Description("LoadingIndicatorPulseStyle")]
-        Pulse,
+    [Description("LoadingIndicatorPulseStyle")]
+    Pulse,
 
-        [Description("LoadingIndicatorRingStyle")]
-        Ring,
+    [Description("LoadingIndicatorRingStyle")]
+    Ring,
 
-        [Description("LoadingIndicatorThreeDotsStyle")]
-        ThreeDots
-    }
-
-
-    // internal static class LoadingIndicatorModeUtility
-    // {
-    //     public static string GetDescription(this LoadingIndicatorMode value) => value
-    //         .GetType()
-    //         .GetMember(value.ToString())
-    //         .FirstOrDefault()
-    //         ?.GetCustomAttribute<DescriptionAttribute>()
-    //         ?.Description;
-    // }
+    [Description("LoadingIndicatorThreeDotsStyle")]
+    ThreeDots
 }
+
+// internal static class LoadingIndicatorModeUtility
+// {
+//     public static string GetDescription(this LoadingIndicatorMode value) => value
+//         .GetType()
+//         .GetMember(value.ToString())
+//         .FirstOrDefault()
+//         ?.GetCustomAttribute<DescriptionAttribute>()
+//         ?.Description;
+// }

@@ -31,7 +31,9 @@ using JetBrains.Annotations;
 namespace Akkatecture.Commands;
 
 [PublicAPI]
+#pragma warning disable MA0097
 public class CommandId : Identity<CommandId>, ICommandId
+    #pragma warning restore MA0097
 {
     public CommandId(string value)
         : base(value) { }

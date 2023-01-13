@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Akka.Util.Internal;
 using JetBrains.Annotations;
 using Stl;
 
@@ -70,7 +67,7 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
 
     public void Add(Option<TType> item)
     {
-        if (!item.HasValue) return;
+        if(!item.HasValue) return;
 
         lock (_internalCollection)
         {
@@ -100,7 +97,7 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
         lock (_internalCollection)
         {
             var index = 0;
-            for (var i = arrayIndex; i < array.Length; i++)
+            for (int i = arrayIndex; i < array.Length; i++)
             {
                 Option<TType> target = default;
                 while (!target.HasValue && index <= _internalCollection.Count)
@@ -109,7 +106,7 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
                     index++;
                 }
 
-                if (!target.HasValue) break;
+                if(!target.HasValue) break;
 
                 array[i] = target;
             }
@@ -133,39 +130,42 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
     {
         lock (_internalCollection)
         {
-            if (!item.HasValue) return -1;
+            if(!item.HasValue) return -1;
 
             int index;
             for (index = 0; index < _internalCollection.Count; index++)
             {
                 var temp = _internalCollection[index];
 
-                if (temp?.TypedTarget() == item) break;
+                if(temp?.TypedTarget() == item) break;
             }
 
             return index == _internalCollection.Count ? -1 : index;
         }
     }
 
+
     public void Insert(int index, Option<TType> item)
     {
-        var (hasValue, value) = item;
+        (bool hasValue, TType? value) = item;
 
-        if (!hasValue) return;
+        if(!hasValue) return;
 
+        #pragma warning disable CS8604
         lock (_internalCollection)
         {
             _internalCollection.Insert(index, new WeakReference<TType>(value));
         }
+        #pragma warning restore CS8604
     }
 
     public bool Remove(Option<TType> item)
     {
-        if (!item.HasValue) return false;
+        if(!item.HasValue) return false;
 
-        var index = IndexOf(item);
+        int index = IndexOf(item);
 
-        if (index == -1) return false;
+        if(index == -1) return false;
 
         lock (_internalCollection)
         {
@@ -195,64 +195,4 @@ public sealed class WeakCollection<TType> : IList<Option<TType>>
     }
 
     private void OnCleaned() => _cleaned.OnNext(Unit.Default);
-}
-
-[DebuggerNonUserCode]
-[PublicAPI]
-public class WeakReferenceCollection<TType> : Collection<TType>
-    where TType : IInternalWeakReference
-{
-    private readonly object _gate = new();
-
-    public WeakReferenceCollection() => WeakCleanUp.RegisterAction(CleanUpMethod);
-
-    protected override void ClearItems()
-    {
-        lock (_gate)
-        {
-            base.ClearItems();
-        }
-    }
-
-    protected override void InsertItem(int index, TType item)
-    {
-        lock (_gate)
-        {
-            if (index > Count) index = Count;
-            base.InsertItem(index, item);
-        }
-    }
-
-    protected override void RemoveItem(int index)
-    {
-        lock (_gate)
-        {
-            base.RemoveItem(index);
-        }
-    }
-
-    protected override void SetItem(int index, TType item)
-    {
-        lock (_gate)
-        {
-            base.SetItem(index, item);
-        }
-    }
-
-    private void CleanUpMethod()
-    {
-        lock (_gate)
-        {
-            Items.ToArray()
-               .Where(it => !it.IsAlive)
-               .ForEach(
-                    it =>
-                    {
-                        // ReSharper disable once SuspiciousTypeConversion.Global
-                        if (it is IDisposable dis) dis.Dispose();
-
-                        Items.Remove(it);
-                    });
-        }
-    }
 }

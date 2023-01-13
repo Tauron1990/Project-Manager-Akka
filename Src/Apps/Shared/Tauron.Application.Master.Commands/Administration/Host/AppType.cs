@@ -4,5 +4,5 @@ public enum AppType
 {
     Host,
     Cluster,
-    StartUp
+    StartUp,
 }

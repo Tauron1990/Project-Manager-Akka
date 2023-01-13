@@ -13,16 +13,13 @@ public class AkkaDriverFactory : IDriverFactory
 {
     private Func<Props, Props>? Config { get; init; }
 
-    public AkkaDriverFactory CustomMutator(Func<Props, Props>? configurator) 
-        => new() { Config = configurator };    
-    
     public Action<IDataMutation> CreateMutator()
     {
-        var superviser = WorkspaceSuperviser.Get(ActorApplication.ActorSystem);
+        WorkspaceSuperviser superviser = WorkspaceSuperviser.Get(ActorApplication.ActorSystem);
         var props = Props.Create(() => new MutationActor());
-        if (Config is not null)
+        if(Config is not null)
             props = Config(props);
-        
+
         var actor = new DeferredActor(superviser.Create(props, "Mutator"));
 
         return m => actor.TellToActor(m);
@@ -30,7 +27,7 @@ public class AkkaDriverFactory : IDriverFactory
 
     public Action<RegisterRule<TWorkspace, TData>> CreateAnalyser<TWorkspace, TData>(TWorkspace workspace, IObserver<RuleIssuesChanged<TWorkspace, TData>> observer) where TWorkspace : WorkspaceBase<TData> where TData : class
     {
-        var superviser = WorkspaceSuperviser.Get(ActorApplication.ActorSystem);
+        WorkspaceSuperviser superviser = WorkspaceSuperviser.Get(ActorApplication.ActorSystem);
         var actor = new DeferredActor(superviser.Create(Props.Create(() => new AnalyzerActor<TWorkspace, TData>(workspace, observer)), "Analyser"));
 
         return r => actor.TellToActor(r);
@@ -41,18 +38,21 @@ public class AkkaDriverFactory : IDriverFactory
 
     public Action<IOperationResult>? GetResultSender()
     {
-        var context = InternalCurrentActorCellKeeper.Current;
+        ActorCell? context = InternalCurrentActorCellKeeper.Current;
 
-        if (context == null) return null;
+        if(context == null) return null;
 
-        var self = context.Self;
+        IActorRef? self = context.Self;
 
         return or => self.Tell(or, ActorRefs.NoSender);
     }
 
+    public AkkaDriverFactory CustomMutator(Func<Props, Props>? configurator)
+        => new() { Config = configurator };
+
     public static AkkaDriverFactory Get(IDriverFactory driverFactory)
     {
-        if (driverFactory is not AkkaDriverFactory akkaFactory)
+        if(driverFactory is not AkkaDriverFactory akkaFactory)
             throw new InvalidOperationException("No Akka Driver Factory Provided");
 
         return akkaFactory;

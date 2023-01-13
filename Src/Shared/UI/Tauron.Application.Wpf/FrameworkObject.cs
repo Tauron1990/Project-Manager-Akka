@@ -39,27 +39,27 @@ public sealed class FrameworkObject : IInternalWeakReference
         _isFce = fce != null;
         IsValid = _isFce || _isFe;
 
-        if (fe != null) _fe = new ElementReference<FrameworkElement>(fe, isWeak);
-        else if (fce != null) _fce = new ElementReference<FrameworkContentElement>(fce, isWeak);
+        if(fe != null) _fe = new ElementReference<FrameworkElement>(fe, isWeak);
+        else if(fce != null) _fce = new ElementReference<FrameworkContentElement>(fce, isWeak);
     }
 
     public object? DataContext
     {
         get
         {
-            if (!IsValid) return null;
+            if(!IsValid) return null;
 
-            if (TryGetFrameworkElement(out var fe)) return fe.DataContext;
+            if(TryGetFrameworkElement(out FrameworkElement? fe)) return fe.DataContext;
 
-            return TryGetFrameworkContentElement(out var fce) ? fce.DataContext : null;
+            return TryGetFrameworkContentElement(out FrameworkContentElement? fce) ? fce.DataContext : null;
         }
 
         set
         {
-            if (!IsValid) return;
+            if(!IsValid) return;
 
-            if (TryGetFrameworkElement(out var fe)) fe.DataContext = value;
-            else if (TryGetFrameworkContentElement(out var fce)) fce.DataContext = value;
+            if(TryGetFrameworkElement(out FrameworkElement? fe)) fe.DataContext = value;
+            else if(TryGetFrameworkContentElement(out FrameworkContentElement? fce)) fce.DataContext = value;
         }
     }
 
@@ -69,7 +69,7 @@ public sealed class FrameworkObject : IInternalWeakReference
     {
         get
         {
-            if (_isFe) return _fe.Value.Target.Value;
+            if(_isFe) return _fe.Value.Target.Value;
 
             return _isFce ? _fce.Value.Target.Value : Option<DependencyObject>.None;
         }
@@ -79,11 +79,11 @@ public sealed class FrameworkObject : IInternalWeakReference
     {
         get
         {
-            if (!IsValid) return Option<DependencyObject>.None;
+            if(!IsValid) return Option<DependencyObject>.None;
 
-            if (TryGetFrameworkElement(out var fe)) return fe.Parent.OptionNotNull();
+            if(TryGetFrameworkElement(out FrameworkElement? fe)) return fe.Parent.OptionNotNull();
 
-            return TryGetFrameworkContentElement(out var fce) ? fce.Parent.OptionNotNull() : Option<DependencyObject>.None;
+            return TryGetFrameworkContentElement(out FrameworkContentElement? fce) ? fce.Parent.OptionNotNull() : Option<DependencyObject>.None;
         }
     }
 
@@ -91,9 +91,9 @@ public sealed class FrameworkObject : IInternalWeakReference
     {
         get
         {
-            if (!IsValid) return Option<DependencyObject>.None;
+            if(!IsValid) return Option<DependencyObject>.None;
 
-            return TryGetFrameworkElement(out var fe) ? VisualTreeHelper.GetParent(fe).OptionNotNull() : Option<DependencyObject>.None;
+            return TryGetFrameworkElement(out FrameworkElement? fe) ? VisualTreeHelper.GetParent(fe).OptionNotNull() : Option<DependencyObject>.None;
         }
     }
 
@@ -101,7 +101,7 @@ public sealed class FrameworkObject : IInternalWeakReference
     {
         get
         {
-            if (_isFe) return _fe.Value.IsAlive;
+            if(_isFe) return _fe.Value.IsAlive;
 
             return _isFce && _fce.Value.IsAlive;
         }
@@ -109,28 +109,28 @@ public sealed class FrameworkObject : IInternalWeakReference
 
     public IUIObject? CreateElement()
     {
-        if (TryGetFrameworkElement(out var el))
+        if(TryGetFrameworkElement(out FrameworkElement? el))
             return ElementMapper.Create(el);
 
-        return TryGetFrameworkContentElement(out var ce) ? ElementMapper.Create(ce) : null;
+        return TryGetFrameworkContentElement(out FrameworkContentElement? ce) ? ElementMapper.Create(ce) : null;
     }
 
     public event DependencyPropertyChangedEventHandler DataContextChanged
     {
         add
         {
-            if (!IsValid) return;
+            if(!IsValid) return;
 
-            if (TryGetFrameworkElement(out var fe)) fe.DataContextChanged += value;
-            else if (TryGetFrameworkContentElement(out var fce)) fce.DataContextChanged += value;
+            if(TryGetFrameworkElement(out FrameworkElement? fe)) fe.DataContextChanged += value;
+            else if(TryGetFrameworkContentElement(out FrameworkContentElement? fce)) fce.DataContextChanged += value;
         }
 
         remove
         {
-            if (!IsValid) return;
+            if(!IsValid) return;
 
-            if (TryGetFrameworkElement(out var fe)) fe.DataContextChanged -= value;
-            else if (TryGetFrameworkContentElement(out var fce)) fce.DataContextChanged -= value;
+            if(TryGetFrameworkElement(out FrameworkElement? fe)) fe.DataContextChanged -= value;
+            else if(TryGetFrameworkContentElement(out FrameworkContentElement? fce)) fce.DataContextChanged -= value;
         }
     }
 
@@ -138,18 +138,18 @@ public sealed class FrameworkObject : IInternalWeakReference
     {
         add
         {
-            if (!IsValid) return;
+            if(!IsValid) return;
 
-            if (TryGetFrameworkElement(out var fe)) fe.Loaded += value;
-            else if (TryGetFrameworkContentElement(out var fce)) fce.Loaded += value;
+            if(TryGetFrameworkElement(out FrameworkElement? fe)) fe.Loaded += value;
+            else if(TryGetFrameworkContentElement(out FrameworkContentElement? fce)) fce.Loaded += value;
         }
 
         remove
         {
-            if (!IsValid) return;
+            if(!IsValid) return;
 
-            if (TryGetFrameworkElement(out var fe)) fe.Loaded -= value;
-            else if (TryGetFrameworkContentElement(out var fce)) fce.Loaded -= value;
+            if(TryGetFrameworkElement(out FrameworkElement? fe)) fe.Loaded -= value;
+            else if(TryGetFrameworkContentElement(out FrameworkContentElement? fce)) fce.Loaded -= value;
         }
     }
 
@@ -162,9 +162,9 @@ public sealed class FrameworkObject : IInternalWeakReference
 
     public bool TryGetFrameworkElement([NotNullWhen(true)] out FrameworkElement? frameworkElement)
     {
-        var temp = _isFe ? _fe.Value.Target.Value : null;
+        FrameworkElement? temp = _isFe ? _fe.Value.Target.Value : null;
 
-        if (temp is null)
+        if(temp is null)
         {
             frameworkElement = null;
 
@@ -186,7 +186,7 @@ public sealed class FrameworkObject : IInternalWeakReference
 
         internal ElementReference(TReference reference, bool isWeak)
         {
-            if (isWeak) _weakRef = new WeakReference<TReference>(reference);
+            if(isWeak) _weakRef = new WeakReference<TReference>(reference);
             else _reference = reference;
         }
 

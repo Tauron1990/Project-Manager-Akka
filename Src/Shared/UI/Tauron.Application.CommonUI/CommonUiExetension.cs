@@ -49,7 +49,7 @@ public static class CommonUiExetension
     public static CommandRegistrationBuilder WithFlow<TStart>(this CommandRegistrationBuilder builder, Func<object?, TStart> trigger, Func<IObservable<TStart>, IDisposable> flowBuilder)
     {
         var ob = new Subject<TStart>();
-        var sub = flowBuilder(ob.AsObservable());
+        IDisposable sub = flowBuilder(ob.AsObservable());
 
         builder.Target.AddResource(ob);
         builder.Target.AddResource(sub);

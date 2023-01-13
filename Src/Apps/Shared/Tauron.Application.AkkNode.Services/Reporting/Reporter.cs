@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Util;
 using JetBrains.Annotations;
 using Tauron.Operations;
+using UnitsNet;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting;
 
@@ -27,8 +26,10 @@ public sealed class Reporter
         => new(factory.ActorOf(Props.Create(() => new ReporterActor()).WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy), name));
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner,
-        Action<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
+            IActorRefFactory factory, Action<string> listner,
+            #pragma warning disable EPS05
+            Action<IOperationResult> onCompled, Duration? timeout, string? name = null)
+        #pragma warning restore EPS05
         => factory.ActorOf(
             Props.Create(() => new Listner(listner, onCompled, timeout))
                .WithSupervisorStrategy(SupervisorStrategy.StoppingStrategy),
@@ -37,34 +38,34 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
         Action<IOperationResult> onCompled, string? name = null)
-        => CreateListner(factory, listner, onCompled, Timeout.InfiniteTimeSpan, name);
+        => CreateListner(factory, listner, onCompled, timeout: null, name);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter,
-        Action<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
+        Action<IOperationResult> onCompled, in Duration? timeout, string? name = null)
         => CreateListner(factory, reporter.Send, onCompled, timeout, name);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
-        TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
+        TaskCompletionSource<IOperationResult> onCompled, in Duration? timeout, string? name = null)
         => CreateListner(factory, listner, onCompled.SetResult, timeout, name);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
         TaskCompletionSource<IOperationResult> onCompled, string? name = null)
-        => CreateListner(factory, listner, onCompled, Timeout.InfiniteTimeSpan, name);
+        => CreateListner(factory, listner, onCompled: onCompled, timeout: null, name);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Reporter reporter,
-        TaskCompletionSource<IOperationResult> onCompled, TimeSpan timeout, string? name = null)
+        TaskCompletionSource<IOperationResult> onCompled, in Duration? timeout, string? name = null)
         => CreateListner(factory, reporter.Send, onCompled, timeout, name);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+        IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         string? name, Action<Task<IOperationResult>> onCompled)
     {
         var source = new TaskCompletionSource<IOperationResult>();
-        var actor = CreateListner(factory, listner, source, timeout, name);
+        IActorRef actor = CreateListner(factory, listner, source, timeout, name);
         onCompled(source.Task);
 
         return actor;
@@ -73,49 +74,49 @@ public sealed class Reporter
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner, string name,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, listner, Timeout.InfiniteTimeSpan, name, onCompled);
+        => CreateListner(factory, listner, timeout: null, name, onCompled);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Reporter reporter, TimeSpan timeout,
+        IActorRefFactory factory, Reporter reporter, in Duration? timeout,
         string? name, Action<Task<IOperationResult>> onCompled)
         => CreateListner(factory, reporter.Send, timeout, name, onCompled);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+        IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, listner, timeout, null, onCompled);
+        => CreateListner(factory, listner, timeout, name: null, onCompled);
 
     public static IActorRef CreateListner(
         IActorRefFactory factory, Action<string> listner,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, listner, Timeout.InfiniteTimeSpan, null, onCompled);
+        => CreateListner(factory, listner, timeout: null, name: null, onCompled);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Reporter reporter, TimeSpan timeout,
+        IActorRefFactory factory, Reporter reporter, in Duration? timeout,
         Action<Task<IOperationResult>> onCompled)
-        => CreateListner(factory, reporter.Send, timeout, null, onCompled);
+        => CreateListner(factory, reporter.Send, timeout, name: null, onCompled);
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+        IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         string? name, out Task<IOperationResult> onCompled)
     {
         var source = new TaskCompletionSource<IOperationResult>();
-        var actor = CreateListner(factory, listner, source, timeout, name);
+        IActorRef actor = CreateListner(factory, listner, source, timeout, name);
         onCompled = source.Task;
 
         return actor;
     }
 
     public static IActorRef CreateListner(
-        IActorRefFactory factory, Action<string> listner, TimeSpan timeout,
+        IActorRefFactory factory, Action<string> listner, in Duration? timeout,
         out Task<IOperationResult> onCompled)
-        => CreateListner(factory, listner, timeout, null, out onCompled);
+        => CreateListner(factory, listner, timeout, name: null, out onCompled);
 
     public Reporter Listen(IActorRef actor)
     {
-        if (_reporter.IsNobody()) return this;
+        if(_reporter.IsNobody()) return this;
 
-        if (_compledCalled.Value)
+        if(_compledCalled.Value)
             throw new InvalidOperationException("Reporter is Compled");
 
         _reporter.Tell(new ListeningActor(actor));
@@ -125,9 +126,9 @@ public sealed class Reporter
 
     public void Send(string message)
     {
-        if (_reporter.IsNobody()) return;
+        if(_reporter.IsNobody()) return;
 
-        if (_compledCalled.Value)
+        if(_compledCalled.Value)
             throw new InvalidOperationException("Reporter is Compled");
 
         _reporter.Tell(new TransferedMessage(message));
@@ -135,9 +136,9 @@ public sealed class Reporter
 
     public void Compled(IOperationResult result)
     {
-        if (_reporter.IsNobody()) return;
+        if(_reporter.IsNobody()) return;
 
-        if (_compledCalled.GetAndSet(newValue: true))
+        if(_compledCalled.GetAndSet(newValue: true))
             throw new InvalidOperationException("Reporter is Compled");
 
         _reporter.Tell(result);
@@ -148,13 +149,13 @@ public sealed class Reporter
         private bool _compled;
 
         #pragma warning disable GU0073
-        public Listner(Action<string> listner, Action<IOperationResult> onCompled, TimeSpan timeSpan)
+        public Listner(Action<string> listner, Action<IOperationResult> onCompled, Duration? timeSpan)
             #pragma warning restore GU0073
         {
             Receive<IOperationResult>(
                 c =>
                 {
-                    if (_compled) return;
+                    if(_compled) return;
 
                     _compled = true;
                     Context.Stop(Self);
@@ -162,10 +163,10 @@ public sealed class Reporter
                 });
             Receive<TransferedMessage>(m => listner(m.Message));
 
-            if (timeSpan == Timeout.InfiniteTimeSpan)
+            if(timeSpan is null)
                 return;
 
-            Task.Delay(timeSpan).PipeTo(Self, success: () => OperationResult.Failure(new Error(TimeoutError, TimeoutError)));
+            Task.Delay(timeSpan.Value.ToTimeSpan()).PipeTo(Self, success: () => OperationResult.Failure(new Error(TimeoutError, TimeoutError)));
             //Timers.StartSingleTimer(timeSpan, OperationResult.Failure(new Error(TimeoutError, TimeoutError)), timeSpan);
         }
     }
@@ -181,13 +182,13 @@ public sealed class Reporter
             Receive<TransferedMessage>(
                 msg =>
                 {
-                    foreach (var actorRef in _listner) actorRef.Forward(msg);
+                    foreach (IActorRef actorRef in _listner) actorRef.Forward(msg);
                 });
 
             Receive<IOperationResult>(
                 msg =>
                 {
-                    foreach (var actorRef in _listner) actorRef.Forward(msg);
+                    foreach (IActorRef actorRef in _listner) actorRef.Forward(msg);
                     Context.Stop(Self);
                 });
 
@@ -205,38 +206,4 @@ public sealed class Reporter
     private sealed record ListeningActor(IActorRef Actor);
 
     private sealed record TransferedMessage(string Message);
-}
-
-[PublicAPI]
-public static class ReporterExtensions
-{
-    public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, string message)
-        where TMessage : IReporterMessage
-        => input.Select(
-            i =>
-            {
-                i.Reporter.Send(message);
-
-                return i;
-            });
-
-    public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, Func<string> message)
-        where TMessage : IReporterMessage
-        => input.Select(
-            i =>
-            {
-                i.Reporter.Send(message());
-
-                return i;
-            });
-
-    public static IObservable<ReporterEvent<TMessage, TState>> Report<TMessage, TState>(this IObservable<ReporterEvent<TMessage, TState>> input, Func<TMessage, string> message)
-        where TMessage : IReporterMessage
-        => input.Select(
-            i =>
-            {
-                i.Reporter.Send(message(i.Event));
-
-                return i;
-            });
 }

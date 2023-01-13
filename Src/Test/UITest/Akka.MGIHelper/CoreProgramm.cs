@@ -3,8 +3,6 @@ using Microsoft.Extensions.Hosting;
 using NLog;
 using Tauron.AkkaHost;
 using Tauron.Application.Logging;
-using Tauron.Application.Wpf.SerilogViewer;
-using Tauron.Localization;
 
 namespace Akka.MGIHelper
 {

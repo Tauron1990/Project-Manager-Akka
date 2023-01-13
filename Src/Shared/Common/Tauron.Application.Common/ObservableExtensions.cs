@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -13,6 +14,15 @@ namespace Tauron;
 [DebuggerStepThrough]
 public static class ObservableExtensions
 {
+    #region Pause
+
+    public static IObservable<TData> TakeWhile<TData>(this IObservable<TData> input, IObservable<bool> condition)
+        => input.CombineLatest(condition.StartWith(true), (d, b) => (Data: d, CanRun: b))
+           .Where(p => p.CanRun)
+           .Select(p => p.Data);
+
+    #endregion
+
     #region Common
 
     /// <summary>
@@ -24,21 +34,20 @@ public static class ObservableExtensions
     /// <param name="maxDuration">Max duration to buffer before returning</param>
     public static IObservable<IList<T>> BufferUntilCalm<T>(this IObservable<T> source, TimeSpan calmDuration, int? maxCount = null, TimeSpan? maxDuration = null)
     {
-        if (source == null)
+        if(source is null)
             throw new ArgumentNullException(nameof(source));
 
         var closes = source.Throttle(calmDuration);
-        if (maxCount != null)
+        if(maxCount is not null)
         {
             var overflows = source.Where((_, index) => index + 1 >= maxCount);
             closes = closes.Amb(overflows);
         }
 
-        if (maxDuration != null)
-        {
-            var ages = source.Delay(maxDuration.Value);
-            closes = closes.Amb(ages);
-        }
+        if(maxDuration is null) return source.Window(() => closes).SelectMany(window => window.ToList());
+
+        var ages = source.Delay(maxDuration.Value);
+        closes = closes.Amb(ages);
 
         return source.Window(() => closes).SelectMany(window => window.ToList());
     }
@@ -64,7 +73,7 @@ public static class ObservableExtensions
     }
 
     public static IObservable<Option<TData>> Lookup<TKey, TData>(this IDictionary<TKey, TData> dic, TKey key)
-        => Observable.Return(dic.TryGetValue(key, out var data) ? data.AsOption() : default);
+        => Observable.Return(dic.TryGetValue(key, out TData? data) ? data.AsOption() : default);
 
     public static IObservable<TData> NotDefault<TData>(this IObservable<TData?> source)
         => source.Where(d => !Equals(d, default(TData)))!;
@@ -74,6 +83,22 @@ public static class ObservableExtensions
 
     public static IObservable<string> NotEmpty(this IObservable<string?> source)
         => source.Where(s => !string.IsNullOrWhiteSpace(s))!;
+
+    public static IObservable<TData> OnErrorResumeNext<TData>(this IObservable<TData> obs, Func<Exception, IObservable<TData>> handler)
+    {
+        return Observable.Create<TData>(
+            o =>
+            {
+                var disposer = new SerialDisposable();
+
+                disposer.Disposable = obs.Subscribe(
+                    o.OnNext,
+                    e => disposer.Disposable = handler(e).Subscribe(o),
+                    o.OnCompleted);
+
+                return disposer;
+            });
+    }
 
     public static IObservable<CallResult<TResult>> SelectSafe<TEvent, TResult>(
         this IObservable<TEvent> observable,
@@ -85,6 +110,24 @@ public static class ObservableExtensions
                 try
                 {
                     return new SucessCallResult<TResult>(selector(evt));
+                }
+                catch (Exception e)
+                {
+                    return new ErrorCallResult<TResult>(e);
+                }
+            });
+    }
+
+    public static IObservable<CallResult<TResult>> SelectManySafe<TEvent, TResult>(
+        this IObservable<TEvent> observable,
+        Func<TEvent, Task<TResult>> selector)
+    {
+        return observable.SelectMany<TEvent, CallResult<TResult>>(
+            async evt =>
+            {
+                try
+                {
+                    return new SucessCallResult<TResult>(await selector(evt).ConfigureAwait(false));
                 }
                 catch (Exception e)
                 {
@@ -110,7 +153,7 @@ public static class ObservableExtensions
         {
             SucessCallResult<TResult> sucess => onSucess(sucess.Result),
             ErrorCallResult<TResult> err => error(err.Error),
-            _ => throw new InvalidOperationException("Incompatiple Call Result")
+            _ => throw new InvalidOperationException("Incompatiple Call Result"),
         };
     }
 
@@ -146,7 +189,7 @@ public static class ObservableExtensions
         return source.SelectMany(
             async _ =>
             {
-                await action();
+                await action().ConfigureAwait(false);
 
                 return Unit.Default;
             });
@@ -157,7 +200,7 @@ public static class ObservableExtensions
         return source.SelectMany(
             async m =>
             {
-                await action(m);
+                await action(m).ConfigureAwait(false);
 
                 return Unit.Default;
             });
@@ -167,7 +210,7 @@ public static class ObservableExtensions
         => obs.Select(
             d =>
             {
-                if (when(d))
+                if(when(d))
                     apply(d);
 
                 return d;
@@ -192,7 +235,7 @@ public static class ObservableExtensions
 
         public bool ReSubscribe(Action subscription, Exception? cause)
         {
-            if (cause is ObjectDisposedException) return false;
+            if(cause is ObjectDisposedException) return false;
 
             subscription();
 
@@ -235,7 +278,7 @@ public static class ObservableExtensions
 
         public void OnError(Exception error)
         {
-            if (_errorHandler(error) && _strategy.ReSubscribe(AddSubscription, error)) return;
+            if(_errorHandler(error) && _strategy.ReSubscribe(AddSubscription, error)) return;
 
             using (this)
             {
@@ -251,7 +294,7 @@ public static class ObservableExtensions
             }
             catch (Exception e)
             {
-                if (!_errorHandler(e))
+                if(!_errorHandler(e))
                 {
                     _target.OnError(e);
                     Dispose();
@@ -311,7 +354,7 @@ public static class ObservableExtensions
 
     private static Func<Exception, bool>? CreateErrorHandler(Action<Exception>? handler)
     {
-        if (handler == null) return null;
+        if(handler == null) return null;
 
         return e =>
                {
@@ -320,15 +363,6 @@ public static class ObservableExtensions
                    return true;
                };
     }
-
-    #endregion
-
-    #region Pause
-
-    public static IObservable<TData> TakeWhile<TData>(this IObservable<TData> input, IObservable<bool> condition)
-        => input.CombineLatest(condition.StartWith(true), (d, b) => (Data: d, CanRun: b))
-           .Where(p => p.CanRun)
-           .Select(p => p.Data);
 
     #endregion
 }

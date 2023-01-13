@@ -16,7 +16,7 @@ public abstract class SingleValueDataFactory<TData> : AdvancedDataSourceFactory
     {
         return () =>
                {
-                   if (_source != null) return (IExtendedDataSource<TRealData>)(object)_source;
+                   if(_source != null) return (IExtendedDataSource<TRealData>)(object)_source;
 
                    lock (_lock)
                    {
@@ -49,9 +49,9 @@ public abstract class SingleValueDataFactory<TData> : AdvancedDataSourceFactory
 
         public async Task<TData> GetData(IQuery query)
         {
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
-            return await _value;
+            return await _value.ConfigureAwait(false);
         }
 
         public Task SetData(IQuery query, TData data)

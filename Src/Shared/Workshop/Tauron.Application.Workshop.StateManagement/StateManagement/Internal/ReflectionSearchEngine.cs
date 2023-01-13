@@ -30,23 +30,23 @@ public class ReflectionSearchEngine
         var factorys = new List<AdvancedDataSourceFactory>();
         var processors = new List<Type>();
 
-        foreach (var type in _types)
+        foreach (Type type in _types)
             foreach (var customAttribute in type.GetCustomAttributes(inherit: false))
                 ProcessAttribute(builder, customAttribute, states, type, reducers, factorys, processors);
 
-        if (factorys.Count != 0)
+        if(factorys.Count != 0)
         {
             factorys.Add((AdvancedDataSourceFactory)factory);
             factory = MergeFactory.Merge(factorys.ToArray());
         }
 
-        foreach (var (type, key, dataType) in states.SelectMany(i => i.DataTypes.Select(e => (i.TargetState, i.Key, e))))
+        foreach ((Type type, string? key, Type dataType) in states.SelectMany(i => i.DataTypes.Select(e => (i.TargetState, i.Key, e))))
         {
-            var actualMethod = ConfigurateStateMethod.MakeGenericMethod(dataType);
+            MethodInfo actualMethod = ConfigurateStateMethod.MakeGenericMethod(dataType);
             actualMethod.Invoke(null, new object?[] { type, builder, factory, reducers, key, metadata });
         }
 
-        foreach (var processor in processors)
+        foreach (Type processor in processors)
             builder.Driver.CreateProcessor(processor, $"Processor--{processor.Name}");
     }
 
@@ -86,7 +86,7 @@ public class ReflectionSearchEngine
 
     private Func<TType> CreateFactory<TType>(Type target, ManagerBuilder builder)
     {
-        if (builder.ServiceProvider != null)
+        if(builder.ServiceProvider != null)
             return () => (TType)(builder.ServiceProvider.GetService(target) ?? Activator.CreateInstance(target))!;
 
         return () => (TType)Activator.CreateInstance(target)!;
@@ -95,78 +95,78 @@ public class ReflectionSearchEngine
     private static void ConfigurateState<TData>(Type target, ManagerBuilder builder, IDataSourceFactory factory, GroupDictionary<Type, Type> reducerMap, string? key, CreationMetadata? metadata)
         where TData : class, IStateEntity
     {
-        if (builder.StateRegistrated<TData>(target))
+        if(builder.StateRegistrated<TData>(target))
             return;
 
         var config = builder.WithDataSource(factory.Create<TData>(metadata));
 
-        if (!string.IsNullOrWhiteSpace(key))
+        if(!string.IsNullOrWhiteSpace(key))
             config.WithKey(key);
 
         config.WithStateType(target);
 
         var dispatcherAttrOption = target.GetCustomAttribute<DispatcherAttribute>();
 
-        if (dispatcherAttrOption.HasValue)
+        if(dispatcherAttrOption.HasValue)
         {
-            var dispatcherAttr = dispatcherAttrOption.Value;
-            if (string.IsNullOrWhiteSpace(dispatcherAttr.Name))
+            DispatcherAttribute dispatcherAttr = dispatcherAttrOption.Value;
+            if(string.IsNullOrWhiteSpace(dispatcherAttr.Name))
                 config.WithDispatcher(dispatcherAttr.CreateConfig());
             else
                 config.WithDispatcher(dispatcherAttr.Name, dispatcherAttr.CreateConfig());
         }
 
-        if (!reducerMap.TryGetValue(target, out var reducers)) return;
+        if(!reducerMap.TryGetValue(target, out var reducers)) return;
 
         var methods = new Dictionary<Type, MethodInfo>();
         var validators = new Dictionary<Type, object>();
 
-        foreach (var reducer in reducers)
+        foreach (Type reducer in reducers)
         {
             ProcessReducerMethods(reducer, methods);
             ProcessReducerPropertys(reducer, validators);
         }
 
-        foreach (var (actionType, reducer) in methods) 
+        foreach ((Type actionType, MethodInfo reducer) in methods)
             ConfigurateReducer(reducer, actionType, validators, config);
     }
 
     private static void ConfigurateReducer<TData>(MethodInfo reducer, Type actionType, IReadOnlyDictionary<Type, object> validators, IStateBuilder<TData> config) where TData : class, IStateEntity
     {
-        var reducerBuilder = ReducerBuilder.Create<TData>(reducer, actionType);
+        ReducerBuilderBase? reducerBuilder = ReducerBuilder.Create<TData>(reducer, actionType);
 
-        if (reducerBuilder is null) return;
+        if(reducerBuilder is null) return;
 
         object? validator = null;
-        if (validators.ContainsKey(actionType))
+        if(validators.ContainsKey(actionType))
             validator = validators[actionType];
 
-        var constructedReducer = typeof(DelegateReducer<,>).MakeGenericType(actionType, typeof(TData));
-        var reducerInstance = Activator.CreateInstance(constructedReducer, reducerBuilder, validator) ??
-                              throw new InvalidOperationException("Reducer Creation Failed");
+        Type constructedReducer = typeof(DelegateReducer<,>).MakeGenericType(actionType, typeof(TData));
+        object reducerInstance = Activator.CreateInstance(constructedReducer, reducerBuilder, validator) ??
+                                 throw new InvalidOperationException("Reducer Creation Failed");
 
         config.WithReducer(() => (IReducer<TData>)reducerInstance);
     }
 
     private static void ProcessReducerPropertys(IReflect reducer, IDictionary<Type, object> validators)
     {
-        foreach (var (property, potenialValidator) in from prop in reducer.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
-                                                      where prop.HasAttribute<ValidatorAttribute>()
-                                                      let potentialValidator = prop.PropertyType
-                                                      where potentialValidator.IsAssignableTo(typeof(IValidator))
-                                                      select (prop, potentialValidator))
+        foreach ((PropertyInfo? property, Type? potenialValidator) in from prop in reducer.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+                                                                      where prop.HasAttribute<ValidatorAttribute>()
+                                                                      let potentialValidator = prop.PropertyType
+                                                                      where potentialValidator.IsAssignableTo(typeof(IValidator))
+                                                                      select (prop, potentialValidator))
         {
-            var validatorType = potenialValidator.GetInterface(typeof(IValidator<>).Name);
-            if (validatorType is null && potenialValidator.IsGenericType &&
-                potenialValidator.GetGenericTypeDefinition() == typeof(IValidator<>))
+            Type? validatorType = potenialValidator.GetInterface(typeof(IValidator<>).Name);
+            if(validatorType is null && potenialValidator.IsGenericType &&
+               potenialValidator.GetGenericTypeDefinition() == typeof(IValidator<>))
                 validatorType = potenialValidator;
 
-            if (validatorType is null)
+            if(validatorType is null)
                 continue;
 
-            var validator = property.GetValue(null);
+            object? validator = property.GetValue(null);
 
-            if (validator is null)
+            if(validator is null)
                 continue;
 
             validators[validatorType.GenericTypeArguments[0]] = validator;
@@ -177,12 +177,12 @@ public class ReflectionSearchEngine
     {
         foreach (var method in reducer.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
         {
-            if (!method.HasAttribute<ReducerAttribute>())
+            if(!method.HasAttribute<ReducerAttribute>())
                 continue;
 
             var parms = method.GetParameters();
 
-            if (parms.Length != 2)
+            if(parms.Length != 2)
                 continue;
 
             methods[parms[1].ParameterType] = method;
@@ -199,60 +199,62 @@ public class ReflectionSearchEngine
         [UsedImplicitly]
         // ReSharper disable once CognitiveComplexity
         // No Better Way?
+        #pragma warning disable MA0051
         private static ReducerBuilderBase? Create<TData, TAction>(MethodInfo info)
+            #pragma warning restore MA0051
         {
-            var returnType = info.ReturnType;
+            Type returnType = info.ReturnType;
             var parms = info.GetParameterTypes().ToArray();
 
-            if (parms.Length != 2 && parms[1] != typeof(TAction))
+            if(parms.Length != 2 && parms[1] != typeof(TAction))
                 return null;
 
-            var parm = parms[0];
+            Type parm = parms[0];
 
             //Observable Variants
-            if (parm == typeof(IObservable<MutatingContext<TData>>) && returnType == typeof(IObservable<ReducerResult<TData>>))
+            if(parm == typeof(IObservable<MutatingContext<TData>>) && returnType == typeof(IObservable<ReducerResult<TData>>))
                 return new ReducerBuilder<TData, TAction>.ContextToResultMap(info);
-            if (parm == typeof(IObservable<MutatingContext<TData>>) && returnType == typeof(IObservable<MutatingContext<TData>>))
+            if(parm == typeof(IObservable<MutatingContext<TData>>) && returnType == typeof(IObservable<MutatingContext<TData>>))
                 return new ReducerBuilder<TData, TAction>.ContextToContextMap(info);
-            if (parm == typeof(IObservable<MutatingContext<TData>>) && returnType == typeof(IObservable<TData>))
+            if(parm == typeof(IObservable<MutatingContext<TData>>) && returnType == typeof(IObservable<TData>))
                 return new ReducerBuilder<TData, TAction>.ContextToDataMap(info);
 
-            if (parm == typeof(IObservable<TData>) && returnType == typeof(IObservable<ReducerResult<TData>>))
+            if(parm == typeof(IObservable<TData>) && returnType == typeof(IObservable<ReducerResult<TData>>))
                 return new ReducerBuilder<TData, TAction>.DataToResultMap(info);
-            if (parm == typeof(IObservable<TData>) && returnType == typeof(IObservable<MutatingContext<TData>>))
+            if(parm == typeof(IObservable<TData>) && returnType == typeof(IObservable<MutatingContext<TData>>))
                 return new ReducerBuilder<TData, TAction>.DataToContextMap(info);
-            if (parm == typeof(IObservable<TData>) && returnType == typeof(IObservable<TData>))
+            if(parm == typeof(IObservable<TData>) && returnType == typeof(IObservable<TData>))
                 return new ReducerBuilder<TData, TAction>.DataToDataMap(info);
 
             //Direct Variants
-            if (parm == typeof(TData) && returnType == typeof(ReducerResult<TData>))
+            if(parm == typeof(TData) && returnType == typeof(ReducerResult<TData>))
                 return new ReducerBuilder<TData, TAction>.DirectDataToResultMap(info);
-            if (parm == typeof(TData) && returnType == typeof(MutatingContext<TData>))
+            if(parm == typeof(TData) && returnType == typeof(MutatingContext<TData>))
                 return new ReducerBuilder<TData, TAction>.DirectDataToContextMap(info);
-            if (parm == typeof(TData) && returnType == typeof(TData))
+            if(parm == typeof(TData) && returnType == typeof(TData))
                 return new ReducerBuilder<TData, TAction>.DirectDataToDataMap(info);
 
 
-            if (parm == typeof(MutatingContext<TData>) && returnType == typeof(ReducerResult<TData>))
+            if(parm == typeof(MutatingContext<TData>) && returnType == typeof(ReducerResult<TData>))
                 return new ReducerBuilder<TData, TAction>.DirectContextToResultMap(info);
-            if (parm == typeof(MutatingContext<TData>) && returnType == typeof(MutatingContext<TData>))
+            if(parm == typeof(MutatingContext<TData>) && returnType == typeof(MutatingContext<TData>))
                 return new ReducerBuilder<TData, TAction>.DirectContextToContextMap(info);
-            if (parm == typeof(MutatingContext<TData>) && returnType == typeof(TData))
+            if(parm == typeof(MutatingContext<TData>) && returnType == typeof(TData))
                 return new ReducerBuilder<TData, TAction>.DirectContextToDataMap(info);
 
             //Async Variants
-            if (parm == typeof(MutatingContext<TData>) && returnType == typeof(Task<ReducerResult<TData>>))
+            if(parm == typeof(MutatingContext<TData>) && returnType == typeof(Task<ReducerResult<TData>>))
                 return new ReducerBuilder<TData, TAction>.AsyncContextToResultMap(info);
-            if (parm == typeof(MutatingContext<TData>) && returnType == typeof(Task<MutatingContext<TData>>))
+            if(parm == typeof(MutatingContext<TData>) && returnType == typeof(Task<MutatingContext<TData>>))
                 return new ReducerBuilder<TData, TAction>.AsyncContextToContextMap(info);
-            if (parm == typeof(MutatingContext<TData>) && returnType == typeof(Task<TData>))
+            if(parm == typeof(MutatingContext<TData>) && returnType == typeof(Task<TData>))
                 return new ReducerBuilder<TData, TAction>.AsyncContextToDataMap(info);
 
-            if (parm == typeof(TData) && returnType == typeof(Task<ReducerResult<TData>>))
+            if(parm == typeof(TData) && returnType == typeof(Task<ReducerResult<TData>>))
                 return new ReducerBuilder<TData, TAction>.AsyncDataToResultMap(info);
-            if (parm == typeof(TData) && returnType == typeof(Task<MutatingContext<TData>>))
+            if(parm == typeof(TData) && returnType == typeof(Task<MutatingContext<TData>>))
                 return new ReducerBuilder<TData, TAction>.AsyncDataToContextMap(info);
-            if (parm == typeof(TData) && returnType == typeof(Task<TData>))
+            if(parm == typeof(TData) && returnType == typeof(Task<TData>))
                 return new ReducerBuilder<TData, TAction>.AsyncDataToDataMap(info);
 
             return null;

@@ -1,69 +1,72 @@
 ﻿@using System.Windows.Input
-@inherits NonAutoRenderingView<JobSidebarViewModel>
+@using SimpleProjectManager.Client.Shared.Data.States
+@inherits NonAutoRenderingView<SimpleProjectManager.Client.Shared.ViewModels.CurrentJobs.JobSidebarViewModel>
+
+@{
+    var currentJobs = ViewModel?.CurrentJobs;
+}
 
 <MudGrid>
     <MudItem lg="12">
-        <MudCommandButton Class="ma-3" StartIcon="@Icons.Filled.NewLabel" @ref="NewJob">Neuer Job</MudCommandButton>
+        <MudCommandButton Class="ma-3" StartIcon="@Icons.Material.Filled.NewLabel" @ref="NewJob">Neuer Job</MudCommandButton>
     </MudItem>
-    <StateAwaiter State="@ViewModel?.State">
 
-        @if (context == null || context.Count == 0 || ViewModel == null)
-        {
-            <MudItem lg="12">
-                <MudText>Kein Aktiven Aufträge</MudText>
-            </MudItem>
-        }
-        else
-        {
-            <MudItem lg="12">
-                <JobPriorityControl 
-                    ActivePairs="@context.Where(p => p.Info.Status is ProjectStatus.Entered or ProjectStatus.Pending).ToImmutableList()"/>
-            </MudItem>
-            <MudItem lg="12">
-                <MudList Clickable="true" SelectedValue="@ViewModel.SelectedValue" SelectedValueChanged="@(((ICommand)ViewModel.NewItemSelected).Execute)">
-                    @foreach (var job in context)
-                    {
-                        <MudListItem @key="job.Info.Project" Value="job">
-                            <MudPaper Class="pa-2">
-                                <MudGrid>
-                                    <MudItem lg="12" Class="mb-n2">
-                                        <MudText Typo="Typo.h4">@job.Info.Name.Value</MudText>
-                                    </MudItem>
-                                    <MudItem lg="8" Class="my-n2">
-                                        @if (job.Info.Deadline == null)
-                                        {
-                                            <MudText Typo="Typo.body1">Kein Termin</MudText>
-                                        }
-                                        else
-                                        {
-                                            <MudText Typo="Typo.body1">Termin: @job.Info.Deadline.Value.LocalDateTime.ToString("d")</MudText>
-                                        }
-                                    </MudItem>
-                                    <MudItem lg="2" Style="height: 48px" Class="my-n2">
-                                        @if (job.Order.IsPriority)
-                                        {
-                                            <MudTooltip Text="Dieser Job hat Priorität">
-                                                <MudIcon Icon="@Icons.Rounded.Warning" Color="Color.Warning"/>
-                                            </MudTooltip>
-                                        }
-                                    </MudItem>
-                                    <MudItem lg="2" Style="height: 48px" Class="my-n2">
-                                        @if (!job.Info.FilesPresent)
-                                        {
-                                            <MudTooltip Text="Für diesen Job wurden keine Daten Hochgeladen">
-                                                <MudIcon Icon="@Icons.Rounded.FileUpload" Color="Color.Warning" />
-                                            </MudTooltip>
-                                        }
-                                    </MudItem>
-                                    <MudItem lg="12" Class="mt-n2">
-                                        <MudText Typo="Typo.body1">Status: @JobTranslator.GetString(job.Info.Status)</MudText>
-                                    </MudItem>
-                                </MudGrid>
-                            </MudPaper>
-                        </MudListItem>
-                    }
-                </MudList>
-            </MudItem>
-        }
-    </StateAwaiter>
+    @if(currentJobs == null || currentJobs.Count == 0 || ViewModel == null)
+    {
+        <MudItem lg="12">
+            <MudText>Kein Aktiven Aufträge</MudText>
+        </MudItem>
+    }
+    else
+    {
+        <MudItem lg="12">
+            <JobPriorityControl
+                ActivePairs="@currentJobs.Where(p => p.Info.Status is ProjectStatus.Entered or ProjectStatus.Pending).ToImmutableList()"/>
+        </MudItem>
+        <MudItem lg="12">
+            <MudList Clickable="true" SelectedValue="@ViewModel.SelectedValue" SelectedValueChanged="@(((ICommand)ViewModel.NewItemSelected).Execute)">
+                @foreach (JobSortOrderPair? job in currentJobs)
+                {
+                    <MudListItem @key="job.Info.Project" Value="job">
+                        <MudPaper Class="pa-2">
+                            <MudGrid>
+                                <MudItem lg="12" Class="mb-n2">
+                                    <MudText Typo="Typo.h4">@job.Info.Name.Value</MudText>
+                                </MudItem>
+                                <MudItem lg="8" Class="my-n2">
+                                    @if(job.Info.Deadline == null)
+                                    {
+                                        <MudText Typo="Typo.body1">Kein Termin</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body1">Termin: @job.Info.Deadline.Value.ToLocalTime().ToString("d")</MudText>
+                                    }
+                                </MudItem>
+                                <MudItem lg="2" Style="height: 48px" Class="my-n2">
+                                    @if(job.Order.IsPriority)
+                                    {
+                                        <MudTooltip Text="Dieser Job hat Priorität">
+                                            <MudIcon Icon="@Icons.Material.Rounded.Warning" Color="Color.Warning"/>
+                                        </MudTooltip>
+                                    }
+                                </MudItem>
+                                <MudItem lg="2" Style="height: 48px" Class="my-n2">
+                                    @if(!job.Info.FilesPresent)
+                                    {
+                                        <MudTooltip Text="Für diesen Job wurden keine Daten Hochgeladen">
+                                            <MudIcon Icon="@Icons.Material.Rounded.FileUpload" Color="Color.Warning"/>
+                                        </MudTooltip>
+                                    }
+                                </MudItem>
+                                <MudItem lg="12" Class="mt-n2">
+                                    <MudText Typo="Typo.body1">Status: @JobTranslator.GetString(job.Info.Status)</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudListItem>
+                }
+            </MudList>
+        </MudItem>
+    }
 </MudGrid>

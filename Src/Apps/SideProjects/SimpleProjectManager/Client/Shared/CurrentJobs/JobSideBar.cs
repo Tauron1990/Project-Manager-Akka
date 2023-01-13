@@ -1,17 +1,10 @@
-﻿using System.Reactive.Disposables;
-using Microsoft.AspNetCore.Components;
-using ReactiveUI;
-using SimpleProjectManager.Client.ViewModels;
-using SimpleProjectManager.Shared.Services;
+﻿using ReactiveUI;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Shared.CurrentJobs;
 
 public partial class JobSideBar
 {
-    [Parameter]
-    public JobInfo[]? CurrentJobs { get; set; }
-    
     private MudCommandButton? _newJob;
 
     public MudCommandButton? NewJob
@@ -20,13 +13,8 @@ public partial class JobSideBar
         set => this.RaiseAndSetIfChanged(ref _newJob, value);
     }
 
-    protected override void InitializeModel()
+    protected override IEnumerable<IDisposable> InitializeModel()
     {
-        this.WhenActivated(
-            dispo =>
-            {
-                this.BindCommand(ViewModel, m => m.NewJob, v => v.NewJob)
-                   .DisposeWith(dispo);
-            });
+        yield return this.BindCommand(ViewModel, m => m.NewJob, v => v.NewJob);
     }
 }

@@ -21,6 +21,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using Akka.Persistence.Query;
 using Akkatecture.Aggregates;
 using Akkatecture.Extensions;
@@ -33,17 +34,17 @@ public static class DomainEventMapper
 {
     internal static object FromCommittedEvent(object evt)
     {
-        var eventType = evt.GetType();
+        Type eventType = evt.GetType();
 
-        if (evt is not ICommittedEvent || eventType.GenericTypeArguments.Length != 3) return evt;
+        if(evt is not ICommittedEvent || eventType.GenericTypeArguments.Length != 3) return evt;
 
-        var genericType = typeof(DomainEvent<,,>)
+        Type genericType = typeof(DomainEvent<,,>)
            .MakeGenericType(
                 eventType.GetGenericArguments()[0],
                 eventType.GetGenericArguments()[1],
                 eventType.GetGenericArguments()[2]);
 
-        var domainEvent = FastReflection.Shared.FastCreateInstance(
+        object domainEvent = FastReflection.Shared.FastCreateInstance(
             genericType,
             evt.GetPropertyValue("AggregateIdentity")!,
             evt.GetPropertyValue("AggregateEvent")!,
@@ -57,7 +58,7 @@ public static class DomainEventMapper
     [PublicAPI]
     public static EventEnvelope FromEnvelope(EventEnvelope eventEnvelope)
     {
-        var domainEvent = FromCommittedEvent(eventEnvelope.Event);
+        object domainEvent = FromCommittedEvent(eventEnvelope.Event);
 
         var newEventEnvelope = new EventEnvelope(
             eventEnvelope.Offset,

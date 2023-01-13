@@ -23,23 +23,23 @@ public sealed class HeaderedFile
 
         var compled = false;
 
-        foreach (var textLine in reader.EnumerateTextLines())
+        foreach (string textLine in reader.EnumerateTextLines())
         {
-            if (compled)
+            if(compled)
             {
                 builder.AppendLine(textLine);
 
                 continue;
             }
 
-            var textLineTemp = textLine.Trim();
-            var temp = textLineTemp.Split(new[] { ' ' }, 2);
-            if (Context.IsKeyword(temp[0]))
+            string textLineTemp = textLine.Trim();
+            string[] temp = textLineTemp.Split(new[] { ' ' }, 2);
+            if(Context.IsKeyword(temp[0]))
             {
-                var key = temp[0];
+                string key = temp[0];
                 var content = string.Empty;
 
-                if (temp.Length < 1) content = temp[1];
+                if(temp.Length < 1) content = temp[1];
 
                 Context.Add(new ContextEntry(key, content));
             }

@@ -18,10 +18,10 @@ public sealed class EventLoopExecutor
         do
         {
             // ReSharper disable InconsistentlySynchronizedField
-            if (_mutations.TryDequeue(out var mut))
+            if(_mutations.TryDequeue(out var mut))
             {
-                await mut();
-                
+                await mut().ConfigureAwait(false);
+
                 if(_needYield)
                     await Task.Yield();
             }
@@ -29,9 +29,10 @@ public sealed class EventLoopExecutor
             {
                 lock (_mutations)
                 {
-                    if (!_mutations.IsEmpty) continue;
+                    if(!_mutations.IsEmpty) continue;
 
                     _running = 0;
+
                     break;
                 }
             }
@@ -47,7 +48,7 @@ public sealed class EventLoopExecutor
             if(_running == 1) return;
 
             _running = 1;
-            Task.Run(RunMutaions);
+            Task.Run(RunMutaions).Ignore();
         }
     }
 }

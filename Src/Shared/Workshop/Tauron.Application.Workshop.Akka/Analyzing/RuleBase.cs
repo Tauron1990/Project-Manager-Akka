@@ -15,9 +15,9 @@ public abstract class RuleBase<TWorkspace, TData> : IRule<TWorkspace, TData>
 
     public void Init(object metadata, TWorkspace workspace)
     {
-        if (metadata is not IActorRefFactory factory)
+        if(metadata is not IActorRefFactory factory)
             throw new InvalidOperationException("Actor Rule Base is Only Compatible with Actor Analyser");
-        
+
         Workspace = workspace;
 
         factory.ActorOf(() => new InternalRuleActor(ActorConstruct), Name);

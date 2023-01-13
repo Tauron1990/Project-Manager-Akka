@@ -1,22 +1,21 @@
 ﻿@page "/TaskManager"
-
-@using SimpleProjectManager.Shared.Services.Tasks
+@using SimpleProjectManager.Client.Shared.Data
 @using SimpleProjectManager.Client.Shared.Tasks
+@using SimpleProjectManager.Shared.Services.Tasks
+@inherits NonAutoRenderingComponent
 
-@inherits ComputedStateComponent<PendingTask[]>
-
-@inject ITaskManager _taskManager
+@inject GlobalState GlobalState
 
 <PageTitle>Task Manager</PageTitle>
 
-<StateAwaiter State="State">
-    <ObservableCollectionView SourceParameter="context">
+<StateAwaiter State="_pendingTasks">
+    <ObservableCollectionView SourceParameter="context.PendingTasks">
         <EmptyRender>
             <MudText Align="Align.Center" Typo="Typo.h3">Aktuell Keine Aufgaben</MudText>
         </EmptyRender>
         <ListRender Context="items">
             <MudList>
-                @foreach (var item in items)
+                @foreach (PendingTask item in items)
                 {
                     <MudListItem @key="item.Id">
                         <PendingTaskDisplay PendingTask="item"/>

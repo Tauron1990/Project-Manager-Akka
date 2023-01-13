@@ -12,7 +12,7 @@ public sealed class IncomingDataTransfer : TransferMessages.TransferMessage
 {
     private readonly Timer _denyTimer;
 
-    public IncomingDataTransfer(string operationId, DataTransferManager manager, string? data)
+    public IncomingDataTransfer(FileOperationId operationId, DataTransferManager manager, TransferData data)
         : base(operationId)
     {
         Manager = manager;
@@ -23,13 +23,13 @@ public sealed class IncomingDataTransfer : TransferMessages.TransferMessage
 
     public DataTransferManager Manager { get; }
 
-    public string? Data { get; }
+    public TransferData Data { get; }
 
-    public event Action? DenyEvent;
+    public event EventHandler? DenyEvent;
 
     public void Deny()
     {
-        DenyEvent?.Invoke();
+        DenyEvent?.Invoke(this, EventArgs.Empty);
         _denyTimer.Dispose();
         Manager.Actor.Tell(new TransferMessages.RequestDeny(OperationId));
     }

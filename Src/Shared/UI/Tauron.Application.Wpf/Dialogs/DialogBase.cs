@@ -124,7 +124,7 @@ public abstract class DialogBase : Control
             new Action(
                 () =>
                 {
-                    if (TryFindResource("Storyboard.Dialogs.Show") is Storyboard res)
+                    if(TryFindResource("Storyboard.Dialogs.Show") is Storyboard res)
                         res.Begin(this);
                     else
                         Opacity = 1;
@@ -133,28 +133,28 @@ public abstract class DialogBase : Control
 
     private void ContentChanged(DependencyPropertyChangedEventArgs args)
     {
-        if (_content == null) return;
+        if(_content == null) return;
 
         _content.Content = args.NewValue;
     }
 
     private void TitleChanged(DependencyPropertyChangedEventArgs args)
     {
-        if (_title == null) return;
+        if(_title == null) return;
 
         _title.Text = args.NewValue as string;
     }
 
     private void TopChanged(DependencyPropertyChangedEventArgs args)
     {
-        if (_top == null) return;
+        if(_top == null) return;
 
         _top.Content = args.NewValue;
     }
 
     private void ButtomChaned(DependencyPropertyChangedEventArgs args)
     {
-        if (_bottom == null) return;
+        if(_bottom == null) return;
 
         _bottom.Content = args.NewValue;
     }
@@ -162,19 +162,19 @@ public abstract class DialogBase : Control
     public override void OnApplyTemplate()
     {
         _content = (ContentPresenter?)GetTemplateChild("PART_Content");
-        if (_content != null)
+        if(_content != null)
             _content.Content = Content;
 
         _top = (ContentPresenter?)GetTemplateChild("PART_Top");
-        if (_top != null)
+        if(_top != null)
             _top.Content = Top;
 
         _title = (TextBlock?)GetTemplateChild("PART_Title");
-        if (_title != null)
+        if(_title != null)
             _title.Text = Title;
 
         _bottom = (ContentPresenter?)GetTemplateChild("PART_Bottom");
-        if (_bottom != null)
+        if(_bottom != null)
             _bottom.Content = Bottom;
 
         base.OnApplyTemplate();
@@ -188,7 +188,7 @@ public static class DialogExtensions
         var source = new TaskCompletionSource<TResult>();
 
         ele.DataContext = factory(source);
-        if (ele.DataContext is IDisposable disposable)
+        if(ele.DataContext is IDisposable disposable)
             ele.Unloaded += (_, _) => disposable.Dispose();
 
         return source.Task;
@@ -199,10 +199,10 @@ public static class DialogExtensions
         return Observable.Create<TResult>(
                 o =>
                 {
-                    var context = factory(o);
+                    object context = factory(o);
                     ele.DataContext = context;
 
-                    if (context is IDisposable disposable)
+                    if(context is IDisposable disposable)
                         return disposable;
 
                     return Disposable.Empty;

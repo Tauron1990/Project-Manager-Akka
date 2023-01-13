@@ -45,11 +45,11 @@ public class UICollectionProperty<TData> : IReadOnlyList<TData>, INotifyCollecti
     {
         add
         {
-            if (_collection != null) _collection.CollectionChanged += value;
+            if(_collection != null) _collection.CollectionChanged += value;
         }
         remove
         {
-            if (_collection != null) _collection.CollectionChanged -= value;
+            if(_collection != null) _collection.CollectionChanged -= value;
         }
     }
 
@@ -61,11 +61,11 @@ public class UICollectionProperty<TData> : IReadOnlyList<TData>, INotifyCollecti
     {
         add
         {
-            if (_collection != null) _collection.PropertyChanged += value;
+            if(_collection != null) _collection.PropertyChanged += value;
         }
         remove
         {
-            if (_collection != null) _collection.PropertyChanged -= value;
+            if(_collection != null) _collection.PropertyChanged -= value;
         }
     }
 

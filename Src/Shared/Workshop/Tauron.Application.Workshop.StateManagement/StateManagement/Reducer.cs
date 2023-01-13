@@ -1,5 +1,6 @@
 ﻿using System.Reactive.Linq;
 using FluentValidation;
+using FluentValidation.Results;
 using JetBrains.Annotations;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.ObservableExt;
@@ -24,7 +25,7 @@ public abstract class Reducer<TAction, TData> : IReducer<TData>
         return state =>
                {
                    var typedAction = (TAction)action;
-                   var validation = Validator?.Validate(typedAction);
+                   ValidationResult? validation = Validator?.Validate(typedAction);
 
                    return
                        state.ConditionalSelect()

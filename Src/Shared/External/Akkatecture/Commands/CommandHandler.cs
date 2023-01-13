@@ -59,7 +59,7 @@ public abstract class CommandHandler<TAggregate, TIdentity, TCommand> :
         IActorContext context,
         TCommand command)
     {
-        var logger = context.GetLogger();
+        ILoggingAdapter? logger = context.GetLogger();
         Handle(aggregate, context, command);
         logger.Debug(
             "Command of Type={0} handled in CommandHandler of Type={1}",

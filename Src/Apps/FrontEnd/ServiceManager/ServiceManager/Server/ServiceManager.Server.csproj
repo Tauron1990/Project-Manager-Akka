@@ -6,17 +6,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="AppCore\Identity\Data\ServiceManagerServerContext.cs" />
-        <Compile Remove="AppCore\Identity\Data\ServiceManagerServerUser.cs" />
-        <Compile Remove="AppCore\Identity\IdentityHostingStartup.cs" />
+        <Compile Remove="AppCore\Identity\Data\ServiceManagerServerContext.cs"/>
+        <Compile Remove="AppCore\Identity\Data\ServiceManagerServerUser.cs"/>
+        <Compile Remove="AppCore\Identity\IdentityHostingStartup.cs"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Content Remove="C:\Users\user\.nuget\packages\sharprepository.mongodbrepository\2.1.1\contentFiles\any\netstandard1.5\repository.mongoDb.json" />
+        <Content Remove="C:\Users\user\.nuget\packages\sharprepository.mongodbrepository\2.1.1\contentFiles\any\netstandard1.5\repository.mongoDb.json"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="akka.conf" />
+        <None Remove="akka.conf"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -26,13 +26,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="AppCore\Identity\Data\ServiceManagerServerContext.cs" />
-        <None Include="AppCore\Identity\Data\ServiceManagerServerUser.cs" />
-        <None Include="AppCore\Identity\IdentityHostingStartup.cs" />
+        <None Include="AppCore\Identity\Data\ServiceManagerServerContext.cs"/>
+        <None Include="AppCore\Identity\Data\ServiceManagerServerUser.cs"/>
+        <None Include="AppCore\Identity\IdentityHostingStartup.cs"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="DynamicData" Version="7.3.1" />
+        <PackageReference Include="DynamicData" Version="7.3.1"/>
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -41,45 +41,45 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="GridMvcCore" Version="4.1.10" />
+        <PackageReference Include="GridMvcCore" Version="4.1.10"/>
         <PackageReference Include="Gu.Analyzers" Version="1.8.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Analyzers" Version="5.0.10" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.10" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.10" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Analyzers" Version="5.0.10"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.10"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.10"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.10"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.10">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.10" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.10"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.10">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
-        <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
-        <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion.EntityFramework" Version="1.10.6" />
-        <PackageReference Include="Stl.Fusion.Server" Version="1.10.6" />
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2"/>
+        <PackageReference Include="MongoDB.Driver" Version="2.13.1"/>
+        <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="Stl.Fusion.EntityFramework" Version="1.10.6"/>
+        <PackageReference Include="Stl.Fusion.Server" Version="1.10.6"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\..\..\..\Tauron.Application.MongoExtensions\Tauron.Application.MongoExtensions.csproj" />
-        <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj" />
-        <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Application.Settings\Tauron.Application.Settings.csproj" />
-        <ProjectReference Include="..\..\..\..\Backend\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj" />
-        <ProjectReference Include="..\..\..\..\Backend\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj" />
-        <ProjectReference Include="..\..\..\..\Backend\ServiceHost\ServiceHost.Client.Shared\ServiceHost.Client.Shared.csproj" />
-        <ProjectReference Include="..\..\..\..\Backend\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj" />
-        <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
-        <ProjectReference Include="..\Client\ServiceManager.Client.csproj" />
-        <ProjectReference Include="..\Shared\ServiceManager.Shared.csproj" />
+        <ProjectReference Include="..\..\..\..\..\..\Tauron.Application.MongoExtensions\Tauron.Application.MongoExtensions.csproj"/>
+        <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj"/>
+        <ProjectReference Include="..\..\..\..\..\Shared\Tauron.Application.Settings\Tauron.Application.Settings.csproj"/>
+        <ProjectReference Include="..\..\..\..\Backend\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj"/>
+        <ProjectReference Include="..\..\..\..\Backend\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj"/>
+        <ProjectReference Include="..\..\..\..\Backend\ServiceHost\ServiceHost.Client.Shared\ServiceHost.Client.Shared.csproj"/>
+        <ProjectReference Include="..\..\..\..\Backend\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj"/>
+        <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj"/>
+        <ProjectReference Include="..\Client\ServiceManager.Client.csproj"/>
+        <ProjectReference Include="..\Shared\ServiceManager.Shared.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
