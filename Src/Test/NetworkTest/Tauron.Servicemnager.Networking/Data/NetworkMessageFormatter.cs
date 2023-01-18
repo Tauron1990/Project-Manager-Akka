@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Tauron.Servicemnager.Networking.Data;
 
-public sealed class NetworkMessageFormatter
+public sealed class NetworkMessageFormatter : INetworkMessageFormatter<NetworkMessage>
 {
     private static readonly byte[] Head = Encoding.ASCII.GetBytes("HEAD");
 
@@ -125,7 +125,7 @@ public sealed class NetworkMessageFormatter
 
     [DebuggerHidden]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool CheckPresence(Span<byte> buffer, IEnumerable<byte> target, ref int pos)
+    public static bool CheckPresence(Span<byte> buffer, IEnumerable<byte> target, ref int pos)
     {
         foreach (byte ent in target)
         {

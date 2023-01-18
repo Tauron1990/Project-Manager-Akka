@@ -3,6 +3,8 @@ using Akka.Remote.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
 using SimpleProjectManager.Operation.Client.Device;
@@ -67,6 +69,7 @@ public sealed class ClientRunner
                    .AddSingleton<HostStarter>()
                    .AddSingleton<IHostedService>(sp => sp.GetRequiredService<HostStarter>()))
            .RegisterStartUp<ImageEditorStartup>(e => e.Run())
-           .RegisterStartUp<DeviceStartUp>(d => d.Run());
+           .RegisterStartUp<DeviceStartUp>(d => d.Run())
+           .RegisterStartUp<LoggingProvider>(p => p.Run());
     }
 }

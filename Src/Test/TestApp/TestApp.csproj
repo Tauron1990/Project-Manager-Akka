@@ -6,37 +6,7 @@
         <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="AutoMapper" Version="12.0.0"/>
-        <PackageReference Include="Be.Vlaanderen.Basisregisters.Generators.Guid.Deterministic" Version="3.0.1"/>
-        <PackageReference Include="DotNetZip" Version="1.16.0"/>
-        <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="ErrorProne.NET.Structs" Version="0.1.2">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="FastExpressionCompiler" Version="3.3.3"/>
-        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Hyperion" Version="0.12.2"/>
-        <PackageReference Include="LiteDB.Async" Version="0.1.1"/>
-        <PackageReference Include="Meziantou.Analyzer" Version="1.0.752">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Polly.Caching.Distributed" Version="3.0.1"/>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
-        <PackageReference Include="System.Management" Version="7.0.0"/>
-        <PackageReference Include="UnitsNet" Version="4.149.0"/>
-        <PackageReference Include="Vogen" Version="3.0.4"/>
-    </ItemGroup>
+    
 
     <ItemGroup>
         <Compile Update="Program.cs">
@@ -45,25 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="AkkaRedux\TestApp.cs"/>
-        <None Include="AkkaRedux\TestApp.cs"/>
-        <Compile Remove="Test\Operator\ChannelCastOperator.cs"/>
-        <None Include="Test\Operator\ChannelCastOperator.cs"/>
-        <Compile Remove="Test\Operator\ChannelOperatorBase.cs"/>
-        <None Include="Test\Operator\ChannelOperatorBase.cs"/>
-        <Compile Remove="Test\Operator\ChannelSelect.cs"/>
-        <None Include="Test\Operator\ChannelSelect.cs"/>
-        <Compile Remove="Test\Operator\ChannelSelectComplex.cs"/>
-        <None Include="Test\Operator\ChannelSelectComplex.cs"/>
-        <Compile Remove="Test\Operator\ChannelWhere.cs"/>
-        <None Include="Test\Operator\ChannelWhere.cs"/>
-        <Compile Remove="Test\ChannelExtensions.cs"/>
-        <None Include="Test\ChannelExtensions.cs"/>
-        <Compile Remove="Test\TestApp.cs"/>
-        <None Include="Test\TestApp.cs"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
     </ItemGroup>
 </Project>

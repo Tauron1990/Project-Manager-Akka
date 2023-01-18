@@ -12,7 +12,7 @@ namespace Tauron.Servicemnager.Networking.Server;
 [PublicAPI]
 public sealed class DataServer : IDataServer
 {
-    private readonly ConcurrentDictionary<string, MessageBuffer> _clients = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, MessageBuffer<NetworkMessage>> _clients = new(StringComparer.Ordinal);
     private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
     private readonly SimpleTcpServer _server;
 
@@ -27,7 +27,9 @@ public sealed class DataServer : IDataServer
 
         _server.Events.ClientConnected += (_, args) =>
                                           {
-                                              _clients.TryAdd(args.IpPort, new MessageBuffer(MemoryPool<byte>.Shared));
+                                              _clients.TryAdd(args.IpPort, new MessageBuffer<NetworkMessage>(
+                                                  NetworkMessageFormatter.Shared, 
+                                                  MemoryPool<byte>.Shared));
                                               ClientConnected?.Invoke(this, new ClientConnectedArgs(Client.From(args.IpPort)));
                                           };
         _server.Events.ClientDisconnected += (sender, args) =>
@@ -64,7 +66,9 @@ public sealed class DataServer : IDataServer
 
     private void EventsOnDataReceived(object? sender, DataReceivedEventArgs e)
     {
-        MessageBuffer buffer = _clients.GetOrAdd(e.IpPort, _ => new MessageBuffer(MemoryPool<byte>.Shared));
+        var buffer = _clients.GetOrAdd(e.IpPort, _ => new MessageBuffer<NetworkMessage>(
+                                                     NetworkMessageFormatter.Shared, 
+                                                     MemoryPool<byte>.Shared));
         NetworkMessage? msg = buffer.AddBuffer(e.Data);
 
         if(msg != null)
