@@ -1,4 +1,7 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 
 namespace Tauron.Servicemnager.Networking.Data;
@@ -17,30 +20,32 @@ public sealed class MessageBuffer<TMessage> : IDisposable
         _pool = pool;
     }
 
-    public TMessage? AddBuffer(Memory<byte> buffer)
-        => AddBuffer(new OrphanOwner(buffer));
+    public TMessage? AddBuffer(Memory<byte> buffer, int lenght = -1)
+        => AddBuffer(new OrphanOwner(buffer), lenght);
     
-    public TMessage? AddBuffer(IMemoryOwner<byte> bufferOwner)
+    public TMessage? AddBuffer(IMemoryOwner<byte> bufferOwner, int msgLenght = -1)
     {
+        if(msgLenght != -1)
+            bufferOwner = new LinkedOwner(bufferOwner, bufferOwner.Memory[..msgLenght]);
+            
         var buffer = bufferOwner.Memory;
-        
-        if(_incomming.Count == 0 && !_messageFormatter.HasHeader(buffer))
-            throw new InvalidOperationException("Incomming Message has no header");
 
-        if(_incomming.Count != 0 && buffer.Length < NetworkMessageFormatter.End.Length)
+        if(CheckHead(bufferOwner, buffer))
+            return null;
+
+        if(_incomming.Count != 0 && buffer.Length < _messageFormatter.TailLength)
         {
             _incomming.Add(bufferOwner);
 
-            var temp = Merge();
-            var merge = temp.Memory;
+            (var memory, int lenght) = Merge();
 
-            if(_messageFormatter.HasTail(merge.Memory))
+            if(_messageFormatter.HasTail(memory.Memory))
             {
-                using(merge)
-                    return _messageFormatter.ReadMessage(merge.Memory);
+                using(memory)
+                    return _messageFormatter.ReadMessage(memory.Memory);
             }
 
-            _incomming.Add(new LinkedOwner(merge, merge.Memory[..temp.Lenght]));
+            _incomming.Add(new LinkedOwner(memory, memory.Memory[..lenght]));
 
             return null;
         }
@@ -66,6 +71,32 @@ public sealed class MessageBuffer<TMessage> : IDisposable
         _incomming.Add(bufferOwner);
 
         return null;
+    }
+
+    private bool CheckHead(IMemoryOwner<byte> bufferOwner, Memory<byte> buffer)
+    {
+        if(_incomming.Count != 0 || _messageFormatter.HasHeader(buffer))
+            return false;
+
+        if(buffer.Length == _messageFormatter.HeaderLength)
+            throw new InvalidOperationException("Incomming Message has no header");
+
+        if(_incomming.Count == 0)
+        {
+            _incomming.Add(bufferOwner);
+
+            return true;
+        }
+
+        var merged = Merge();
+
+        if(merged.Lenght >= _messageFormatter.TailLength && !_messageFormatter.HasTail(merged.Memory.Memory))
+            throw new InvalidOperationException("Incomming Message has no header");
+
+        _incomming.Add(merged.Memory);
+
+        return true;
+
     }
 
     private (IMemoryOwner<byte> Memory, int Lenght) Merge()

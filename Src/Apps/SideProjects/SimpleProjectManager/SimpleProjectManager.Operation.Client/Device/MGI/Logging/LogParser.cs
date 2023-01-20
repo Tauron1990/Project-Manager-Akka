@@ -1,5 +1,7 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using Tauron.Servicemnager.Networking.Data;
 
@@ -7,8 +9,12 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 
 public class LogParser : IDisposable
 {
-    private static readonly string[] Separator =  { "<!C>" };
+    internal static readonly string[] Separator =  { "<!C>" };
 
+    internal const string BeginmsgStr = "<!M>";
+
+    internal const string EndmsgStr =  "<M!>";
+    
     private static readonly byte[] Beginmsg = "<!M>"u8.ToArray();
 
     private static readonly byte[] Endmsg =  "<M!>"u8.ToArray();
@@ -17,83 +23,67 @@ public class LogParser : IDisposable
         new StringFormatter(),
         MemoryPool<byte>.Shared);
 
-    public LogInfo? Push(IMemoryOwner<byte> msg)
+    public LogInfo? Push(IMemoryOwner<byte> msg, int msgLenght)
     {
-	    string? newMessage = _dataBuffer.AddBuffer(msg);
-
-	    if(string.IsNullOrWhiteSpace(newMessage)) return null;
-
-	    string[] messageSegments = newMessage.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
-
-	    if(messageSegments.Length == 0) return null;
-
-	    switch (Enum.Parse<MessageType>(messageSegments[0]))
+	    try
 	    {
-		    case MessageType.Commnd:
-			    var commandType = Enum.Parse<Command>(messageSegments[1]);
-			    switch (commandType)
-			    {
-				    case Command.SetApp:
-					    stateObject.Application = array2[2];
+		    string? newMessage = _dataBuffer.AddBuffer(msg, msgLenght);
 
-					    break;
-				    case Command.Save:
-					    LoggerAsync.Log(LogInfo.CreateSave());
-					    LoggerAsync.Save("S");
+		    if(string.IsNullOrWhiteSpace(newMessage)) return null;
 
-					    break;
-				    case Command.Disconnect:
-					    stateObject.StopHeartBeat();
-					    clientStates.Remove(stateObject);
-					    connectedClients--;
-					    workSocket.Close();
-					    allDone.Set();
-					    LoggerAsync.Log(LogInfo.CreateError("Client " + stateObject.Application + " asked to close socket"));
-					    flag = true;
+		    string[] messageSegments = newMessage.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
 
-					    break;
-				    case Command.ShowConsole:
+		    if(messageSegments.Length == 0) return null;
+
+		    switch (Enum.Parse<MessageType>(messageSegments[0]))
+		    {
+			    case MessageType.Commnd:
+				    var commandType = Enum.Parse<Command>(messageSegments[1]);
+				    switch (commandType)
 				    {
-					    bool num2 = bool.Parse(array2[2]);
-					    if(num2 && !consoleShown)
-					    {
-						    ShowConsole();
-					    }
-					    if(!num2 && consoleShown)
-					    {
-						    HideConsole();
-					    }
+					    case Command.SetApp:
+						    string name = messageSegments[2];
 
-					    break;
+						    return LogInfo.CreateCommad(commandType, name);
+					    case Command.Save:
+						    return LogInfo.CreateSave();
+					    case Command.Disconnect:
+						    return LogInfo.CreateCommad(commandType, "Socked Close");
+					    case Command.ShowConsole:
+						    return null;
+					    case Command.SaveBdd:
+						    int idInfo = int.Parse(messageSegments[2], NumberStyles.Any, CultureInfo.InvariantCulture);
+						    string information = messageSegments[3];
+						    #pragma warning disable MA0076
+						    var message = $"Sent {idInfo}, {information} to DataBase+";
+						    #pragma warning restore MA0076
+
+						    return new LogInfo(DateTime.Now, "KernelLogger-Proxy", "Bdd", message, commandType);
 				    }
-				    case CommandType.SaveBdd:
-					    idInfo = int.Parse(array2[2]);
-					    information = array2[3];
-					    Task.Factory.StartNew(
-						    delegate
-						    {
-							    try
-							    {
-								    LoggerAsync.Log(new LogInfo(LogInfo.getTime(), "KernelLogger", "Bdd", toConsole: true, permanent: true, "Sent " + idInfo + ", " + information + " to DataBase+"));
-							    }
-							    catch (Exception ex3)
-							    {
-								    LoggerAsync.Log(LogInfo.CreateError(ex3.Message));
-							    }
-						    });
 
-					    break;
-			    }
-
-			    break;
-		    case MessageType.Log:
-			    break;
-		    default:
-			    throw new UnreachableException("Invalid MessageType for Log");
+				    break;
+			    case MessageType.Log:
+				    return new LogInfo(
+					    LogInfo.ToDateTime(messageSegments[1]), 
+					    "", 
+					    messageSegments[2], 
+					    messageSegments[messageSegments.Length < 6 ? 4 : 5], 
+					    Command.Log);
+			    default:
+				    #pragma warning disable EX006
+				    throw new UnreachableException("Invalid MessageType for Log");
+			    #pragma warning restore EX006
+		    }
 	    }
+	    catch (Exception e)
+	    {
+		    return LogInfo.CreateError(e.ToStringDemystified());
+	    }
+
+	    return null;
     }
 
-    private enum MessageType
+    internal enum MessageType
     {
         Commnd,
         Log,

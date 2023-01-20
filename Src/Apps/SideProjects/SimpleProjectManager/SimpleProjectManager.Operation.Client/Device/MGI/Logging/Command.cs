@@ -7,4 +7,5 @@ public enum Command
     Save,
     Disconnect,
     ShowConsole,
+    SaveBdd,
 }
