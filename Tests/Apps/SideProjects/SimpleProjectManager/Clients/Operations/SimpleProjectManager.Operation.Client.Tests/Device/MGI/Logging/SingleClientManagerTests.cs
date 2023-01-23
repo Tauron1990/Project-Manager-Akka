@@ -1,9 +1,8 @@
 ﻿using System.Buffers;
 using System.Net.Sockets;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Channels;
-using Akka.Actor;
-using Akka.Streams.Implementation.Fusing;
 using Akka.TestKit.Xunit;
 using FluentAssertions;
 using SimpleProjectManager.Operation.Client.Device.MGI;
@@ -42,21 +41,34 @@ public sealed class SingleClientManagerTests : TestKit
     private sealed class TestSocket : ISocket
     {
         private readonly int _lenght;
-        private readonly IMemoryOwner<byte> _data;
+        private readonly Memory<byte> _data;
         private readonly Random _random = new();
+        private readonly IDisposable _disposable;
         
         private int _index;
-        public TestSocket()
+        public TestSocket(bool single)
         {
-            var messages = GetMessages();
+            if(single)
+            {
+                byte[] array =Encoding.UTF8.GetBytes(LogInfo.Format(new LogInfo(DateTime.Now, "", "Type1", "Message1", Command.Log)));
 
-            _lenght = messages.Lenght;
-            _index = 0;
-            _data = messages.Data;
+                _lenght = array.Length;
+                _data = array;
+                _disposable = Disposable.Empty;
+            }
+            else
+            {
+                var messages = GetMessages();
+
+                _lenght = messages.Lenght;
+                _index = 0;
+                _data = messages.Data.Memory;
+                _disposable = messages.Data;
+            }
         }
 
         public void Dispose()
-            => _data.Dispose();
+            => _disposable.Dispose();
 
         public bool Poll(int timeout, SelectMode selectMode)
             => _index < _lenght;
@@ -70,7 +82,7 @@ public sealed class SingleClientManagerTests : TestKit
             if(toRead == 0)
                 return ValueTask.FromResult(0);
             
-            _data.Memory.Span[_index..toRead].CopyTo(buffer.Span);
+            _data.Span[_index..(_index + toRead)].CopyTo(buffer.Span);
 
             _index += toRead;
             return ValueTask.FromResult(toRead);
@@ -83,11 +95,13 @@ public sealed class SingleClientManagerTests : TestKit
     [Fact]
     public async Task TestClient()
     {
+        using var source = new CancellationTokenSource(TimeSpan.FromSeconds(10000));
+        
         var channel = Channel.CreateUnbounded<LogInfo>();
 
-        IActorRef? client = ActorOf(() => new SingleClientManager(new TestSocket(), channel.Writer));
+        ActorOf(() => new SingleClientManager(new TestSocket(true), channel.Writer));
 
-        var result = await channel.Reader.ReadAllAsync().ToListAsync().ConfigureAwait(false);
+        var result = await channel.Reader.ReadAllAsync(source.Token).ToListAsync(source.Token).ConfigureAwait(false);
 
         result.Count.Should().Be(6);
     }

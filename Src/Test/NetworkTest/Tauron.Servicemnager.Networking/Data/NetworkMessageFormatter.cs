@@ -8,9 +8,9 @@ namespace Tauron.Servicemnager.Networking.Data;
 
 public sealed class NetworkMessageFormatter : INetworkMessageFormatter<NetworkMessage>
 {
-    private static readonly byte[] Head = Encoding.ASCII.GetBytes("HEAD");
+    private static readonly byte[] Head = "HEAD"u8.ToArray();
 
-    public static readonly byte[] End = Encoding.ASCII.GetBytes("ENDING");
+    public static readonly byte[] End = "ENDING"u8.ToArray();
 
     public static readonly NetworkMessageFormatter Shared = new(MemoryPool<byte>.Shared);
 
@@ -75,6 +75,9 @@ public sealed class NetworkMessageFormatter : INetworkMessageFormatter<NetworkMe
             throw;
         }
     }
+
+    public int HeaderLength => Head.Length;
+    public int TailLength => End.Length;
 
     public bool HasHeader(Memory<byte> buffer)
     {

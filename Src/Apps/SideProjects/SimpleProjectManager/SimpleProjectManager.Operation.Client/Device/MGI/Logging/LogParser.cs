@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
@@ -19,7 +18,7 @@ public class LogParser : IDisposable
 
     private static readonly byte[] Endmsg =  "<M!>"u8.ToArray();
 
-    private readonly MessageBuffer<string> _dataBuffer = new(
+    private readonly MessageReader<string> _dataReader = new(
         new StringFormatter(),
         MemoryPool<byte>.Shared);
 
@@ -27,7 +26,7 @@ public class LogParser : IDisposable
     {
 	    try
 	    {
-		    string? newMessage = _dataBuffer.AddBuffer(msg, msgLenght);
+		    string? newMessage = _dataReader.AddBuffer(msg, msgLenght);
 
 		    if(string.IsNullOrWhiteSpace(newMessage)) return null;
 
@@ -91,7 +90,10 @@ public class LogParser : IDisposable
     
     private sealed class StringFormatter : INetworkMessageFormatter<string>
     {
-        public bool HasHeader(Memory<byte> buffer)
+	    public int HeaderLength => Beginmsg.Length;
+	    public int TailLength => Endmsg.Length;
+
+	    public bool HasHeader(Memory<byte> buffer)
         {
             var pos = 0;
 
@@ -113,5 +115,5 @@ public class LogParser : IDisposable
     }
 
     public void Dispose()
-        => _dataBuffer.Dispose();
+        => _dataReader.Dispose();
 }

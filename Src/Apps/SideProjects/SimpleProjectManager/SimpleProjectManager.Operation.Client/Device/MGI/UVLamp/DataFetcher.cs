@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using SimpleProjectManager.Operation.Client.Device.MGI.UVLamp.Events;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.UVLamp

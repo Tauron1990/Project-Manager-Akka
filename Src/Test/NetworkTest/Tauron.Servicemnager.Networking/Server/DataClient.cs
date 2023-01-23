@@ -9,7 +9,7 @@ namespace Tauron.Servicemnager.Networking.Server;
 public sealed class DataClient : IDataClient
 {
     private readonly SimpleTcpClient _client;
-    private readonly MessageBuffer<NetworkMessage> _messageBuffer = new(NetworkMessageFormatter.Shared,  MemoryPool<byte>.Shared);
+    private readonly MessageReader<NetworkMessage> _messageReader = new(NetworkMessageFormatter.Shared,  MemoryPool<byte>.Shared);
     private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
 
     public DataClient(string host, int port = 0)
@@ -25,7 +25,7 @@ public sealed class DataClient : IDataClient
 
         _client.Events.DataReceived += (_, args) =>
                                        {
-                                           NetworkMessage? msg = _messageBuffer.AddBuffer(args.Data);
+                                           NetworkMessage? msg = _messageReader.AddBuffer(args.Data);
                                            if(msg != null)
                                                OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(msg));
                                        };
