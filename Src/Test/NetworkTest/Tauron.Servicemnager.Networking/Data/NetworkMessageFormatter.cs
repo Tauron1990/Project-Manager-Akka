@@ -1,22 +1,16 @@
 ﻿using System.Buffers;
 using System.Buffers.Binary;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Tauron.Servicemnager.Networking.Data;
 
 public sealed class NetworkMessageFormatter : INetworkMessageFormatter<NetworkMessage>
 {
-    private static readonly byte[] Head = "HEAD"u8.ToArray();
-
-    public static readonly byte[] End = "ENDING"u8.ToArray();
-
     public static readonly NetworkMessageFormatter Shared = new(MemoryPool<byte>.Shared);
 
     private readonly MemoryPool<byte> _pool;
 
-    public NetworkMessageFormatter(MemoryPool<byte> pool) => _pool = pool;
+    private NetworkMessageFormatter(MemoryPool<byte> pool) => _pool = pool;
 
     public (IMemoryOwner<byte> Message, int Lenght) WriteMessage(NetworkMessage msg, Func<int, (IMemoryOwner<byte> Memory, int Start)>? allocate = null)
     {
@@ -78,66 +72,38 @@ public sealed class NetworkMessageFormatter : INetworkMessageFormatter<NetworkMe
 
     public int HeaderLength => Head.Length;
     public int TailLength => End.Length;
+    
 
-    public bool HasHeader(Memory<byte> buffer)
+    private static readonly byte[] Head = "HEAD"u8.ToArray();
+
+    private static readonly byte[] End = "ENDING"u8.ToArray();
+
+    public Memory<byte> Header => Head;
+    public Memory<byte> Tail => End;
+
+    public NetworkMessage ReadMessage(in ReadOnlySequence<byte> bufferMemory)
     {
-        var pos = 0;
+        var buffer = new SequenceReader<byte>(bufferMemory);
 
-        return CheckPresence(buffer.Span, Head, ref pos);
-    }
+        if(!buffer.TryReadLittleEndian(out int _))
+            throw InvalidFormat("Lenght");
+        if(!buffer.TryReadLittleEndian(out int typeLenght))
+            throw InvalidFormat("Type Lenght");
+        if(!buffer.TryReadExact(typeLenght, out var typeData))
+            throw InvalidFormat("Type Data");
 
-    public bool HasTail(Memory<byte> buffer)
-    {
-        if(buffer.Length < End.Length)
-            return false;
+        string type = Encoding.UTF8.GetString(typeData);
 
-        int pos = buffer.Length - End.Length;
+        if(!buffer.TryReadLittleEndian(out int dataLenght))
+            throw InvalidFormat("Data Lenght");
 
-        return CheckPresence(buffer.Span, End, ref pos);
-    }
-
-    public NetworkMessage ReadMessage(Memory<byte> bufferMemory)
-    {
-        var bufferPos = 0;
-        var buffer = bufferMemory.Span;
-
-        if(!CheckPresence(buffer, Head, ref bufferPos))
-            throw new InvalidOperationException("Invalid Message Format");
-
-        int fullLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
-        bufferPos += 4;
-
-        int typeLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
-        bufferPos += 4;
-
-        string type = Encoding.UTF8.GetString(
-            buffer[bufferPos..(bufferPos + typeLenght)]); //Encoding.UTF8.GetString(buffer, bufferPos, typeLenght);
-        bufferPos += typeLenght;
-
-        int dataLenght = BinaryPrimitives.ReadInt32LittleEndian(buffer[bufferPos..]);
-        bufferPos += 4;
-
-        byte[] data = buffer[bufferPos..(bufferPos + dataLenght)].ToArray();
-        bufferPos += dataLenght;
-
-        if(!CheckPresence(buffer, End, ref bufferPos) || fullLenght != bufferPos)
-            throw new InvalidOperationException("Invalid Message Format");
-
-        return new NetworkMessage(type, data, -1);
-    }
-
-    [DebuggerHidden]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool CheckPresence(Span<byte> buffer, IEnumerable<byte> target, ref int pos)
-    {
-        foreach (byte ent in target)
+        if(buffer.TryReadExact(dataLenght, out var data))
         {
-            if(buffer[pos] != ent)
-                return false;
-
-            pos++;
+            return new NetworkMessage(type, data.ToArray(), -1);
         }
-
-        return true;
+        throw InvalidFormat("Data");
     }
+
+    private static Exception InvalidFormat(string type)
+        => new InvalidOperationException($"Invalid Message Format: {type}");
 }

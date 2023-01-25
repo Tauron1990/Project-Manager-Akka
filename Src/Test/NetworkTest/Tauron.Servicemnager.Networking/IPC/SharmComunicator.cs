@@ -147,7 +147,9 @@ public sealed class SharmComunicator : IDisposable
             string from = Encoding.ASCII.GetString(arg2, 31, 32).Trim();
 
             if(id.StartsWith(Client.All.Value, StringComparison.Ordinal) || id == ProcessId)
-                OnMessage?.Invoke(_messageFormatter.ReadMessage(arg2.AsMemory()[63..]), arg1, Client.From(from));
+                OnMessage?.Invoke(
+                    _messageFormatter.ReadMessage(new ReadOnlySequence<byte>(arg2, 63, arg2.Length - 63)),
+                    arg1, Client.From(from));
         }
     }
 }

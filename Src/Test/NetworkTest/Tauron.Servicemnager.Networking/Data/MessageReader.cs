@@ -19,8 +19,17 @@ public class MessageReader<TMessage> : IDisposable
         _pipe = new Pipe(pipeOptions ?? PipeOptions.Default);
     }
 
-    public Task ReadAsync(ChannelWriter<TMessage> channel, CancellationToken token)
-        => Task.WhenAll(DoWrite(_pipe.Writer, token), DoRead(_pipe.Reader, channel, token));
+    public async Task ReadAsync(ChannelWriter<TMessage> channel, CancellationToken token)
+    {
+        try
+        {
+            await Task.WhenAll(DoWrite(_pipe.Writer, token), DoRead(_pipe.Reader, channel, token)).ConfigureAwait(false);
+        }
+        finally
+        {
+            channel.Complete();
+        }
+    }
 
     private async Task DoWrite(PipeWriter writer, CancellationToken token)
     {
@@ -28,6 +37,12 @@ public class MessageReader<TMessage> : IDisposable
         {
             while (_messageStream.Connected() && !token.IsCancellationRequested)
             {
+                if(!_messageStream.DataAvailable)
+                {
+                    await Task.Delay(1000, token).ConfigureAwait(false);
+                    continue;
+                }
+                
                 var mem = writer.GetMemory();
 
                 int num = await _messageStream.ReadStream.ReadAsync(mem, token).ConfigureAwait(false);
@@ -35,45 +50,95 @@ public class MessageReader<TMessage> : IDisposable
                 writer.Advance(num);
 
                 FlushResult flush = await writer.FlushAsync(token).ConfigureAwait(false);
-                
+
                 if(flush.IsCanceled || flush.IsCompleted) break;
             }
         }
-        finally
+        catch (Exception ex)
         {
-            await writer.CompleteAsync().ConfigureAwait(false);
+            
+            await writer.CompleteAsync(ex).ConfigureAwait(false);
+            throw;
         }
+
+        await writer.CompleteAsync().ConfigureAwait(false);
     }
+
 
     private async Task DoRead(PipeReader pipeReader, ChannelWriter<TMessage> channel, CancellationToken token)
     {
+        var messages = new List<TMessage>();
+        
         try
         {
             while (true)
             {
                 ReadResult read = await pipeReader.ReadAsync(token).ConfigureAwait(false);
 
-                if(read.IsCanceled || read.IsCompleted) break;
+                if(ReadIsCompletedOrEmpty(read)) break;
 
                 var buffer = read.Buffer;
-                
-                if(buffer.IsEmpty) continue;
 
-                TMessage? msg = TryRead(buffer, out SequencePosition end);
-                if(msg is null) continue;
+                ReadBuffer(buffer, messages, out SequencePosition end);
+
+                foreach (TMessage message in messages)
+                    await channel.WriteAsync(message, token).ConfigureAwait(false);
+                messages.Clear();
                 
                 pipeReader.AdvanceTo(buffer.Start, end);
+                
+                if(ReadIsCompleted(read)) break;
             }
         }
-        finally
+        catch (Exception ex)
         {
-            await pipeReader.CompleteAsync().ConfigureAwait(false):
+            await pipeReader.CompleteAsync(ex).ConfigureAwait(false);
+
+            throw;
+        }
+        await pipeReader.CompleteAsync().ConfigureAwait(false);
+    }
+
+    private static bool ReadIsCompleted(ReadResult read)
+        => read.IsCanceled || read.IsCompleted;
+
+    private static bool ReadIsCompletedOrEmpty(ReadResult read)
+        => (read.IsCanceled || read.IsCompleted) && read.Buffer.IsEmpty;
+
+    private void ReadBuffer(ReadOnlySequence<byte> buffer, ICollection<TMessage> messages, out SequencePosition end)
+    {
+        end = buffer.Start;
+
+        while (true)
+        {
+            if(buffer.IsEmpty) return;
+
+            TMessage? msg = TryRead(buffer, out end);
+
+            if(msg is not null)
+                messages.Add(msg);
+
+            buffer = buffer.Slice(end);
         }
     }
 
     private TMessage? TryRead(in ReadOnlySequence<byte> buffer, out SequencePosition end)
     {
+        var reader = new SequenceReader<byte>(buffer);
+        end = reader.Position;
+
+        if(!reader.TryReadTo(out ReadOnlySequence<byte> messageData, _formatter.Header.Span))
+            return null;
+
+        end = reader.Position;
         
+        if(!reader.TryReadTo(out messageData, _formatter.Tail.Span))
+            return null;
+
+        end = reader.Position;
+        return _formatter.ReadMessage(messageData);
+
+
     }
 
     public void Dispose()

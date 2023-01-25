@@ -1,13 +1,11 @@
-﻿using SuperSimpleTcp;
-
-namespace Tauron.Servicemnager.Networking;
+﻿namespace Tauron.Servicemnager.Networking;
 
 public sealed class ClientDisconnectedArgs : EventArgs
 {
-    public ClientDisconnectedArgs(in Client connection, DisconnectReason reason)
+    public ClientDisconnectedArgs(in Client connection, Exception? cause)
     {
         Connection = connection;
-        Reason = reason;
+        Cause = cause;
     }
 
     /// <summary>
@@ -15,6 +13,5 @@ public sealed class ClientDisconnectedArgs : EventArgs
     /// </summary>
     public Client Connection { get; }
 
-    /// <summary>The reason for the disconnection.</summary>
-    public DisconnectReason Reason { get; }
+    public Exception? Cause { get; }
 }

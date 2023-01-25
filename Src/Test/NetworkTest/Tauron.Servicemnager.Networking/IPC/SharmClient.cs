@@ -1,51 +1,58 @@
-﻿using SuperSimpleTcp;
+﻿using System.Threading.Channels;
 using Tauron.Servicemnager.Networking.Data;
 
 namespace Tauron.Servicemnager.Networking.IPC;
 
-public sealed class SharmClient : IDataClient, IDisposable
+public sealed class SharmClient : IDataClient
 {
     private readonly SharmComunicator _comunicator;
+    private readonly Channel<NetworkMessage> _channel;
 
     public SharmClient(SharmProcessId uniqeName, Action<string, Exception> errorHandler)
     {
         _comunicator = new SharmComunicator(uniqeName, errorHandler);
         _comunicator.OnMessage += ComunicatorOnOnMessage;
+        _channel = Channel.CreateUnbounded<NetworkMessage>();
     }
 
-    public bool Connect()
+    public Task Run(CancellationToken token)
     {
         _comunicator.Connect();
 
-        return Send(NetworkMessage.Create(SharmComunicatorMessage.RegisterClient.Value));
+        bool result = Send(NetworkMessage.Create(SharmComunicatorMessage.RegisterClient.Value));
+        if(result)
+            return Task.CompletedTask;
+
+        return Task.FromException(new InvalidOperationException("First Message Send Failed"));
     }
 
-    public event EventHandler<ClientConnectedArgs>? Connected;
-    public event EventHandler<ClientDisconnectedArgs>? Disconnected;
-    public event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
+    public ChannelReader<NetworkMessage> OnMessageReceived => _channel.Reader;
 
     public bool Send(NetworkMessage msg)
         => _comunicator.Send(msg, Client.All);
 
-    public void Dispose() => _comunicator.Dispose();
+    public void Dispose()
+    {
+        Close();
+        _comunicator.Dispose();
+    }
 
     private void ComunicatorOnOnMessage(NetworkMessage message, ulong messageid, in Client processsid)
     {
         if(message.Type == SharmComunicatorMessage.RegisterClient)
+            return;
+
+        if(message.Type == SharmComunicatorMessage.UnRegisterClient)
         {
-            Connected?.Invoke(this, new ClientConnectedArgs(processsid));
-        }
-        else if(message.Type == SharmComunicatorMessage.UnRegisterClient)
-        {
-            Disconnected?.Invoke(this, new ClientDisconnectedArgs(processsid, DisconnectReason.Normal));
             Dispose();
+            return;
         }
-        else
-        {
-            OnMessageReceived?.Invoke(this, new MessageFromServerEventArgs(message));
-        }
+        _channel.Writer.WriteAsync(message);
     }
 
-    public void Disconnect()
-        => _comunicator.Send(NetworkMessage.Create(SharmComunicatorMessage.UnRegisterClient.Value), Client.All);
+    public void Close()
+    {
+        _comunicator.Send(NetworkMessage.Create(SharmComunicatorMessage.UnRegisterClient.Value), Client.All);
+        _channel.Writer.Complete();
+    }
 }

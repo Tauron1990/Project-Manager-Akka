@@ -1,5 +1,4 @@
-﻿using SuperSimpleTcp;
-using Tauron.Servicemnager.Networking.Data;
+﻿using Tauron.Servicemnager.Networking.Data;
 
 namespace Tauron.Servicemnager.Networking.IPC;
 
@@ -21,9 +20,15 @@ public sealed class SharmServer : IDataServer
 
     public event EventHandler<MessageFromClientEventArgs>? OnMessageReceived;
 
-    public void Start() => _comunicator.Connect();
+    public Task Start()
+    {
+        _comunicator.Connect();
+        
+        return Task.CompletedTask;
+    }
 
-    public bool Send(in Client client, NetworkMessage message) => _comunicator.Send(message, client);
+    public ValueTask<bool> Send(Client client, NetworkMessage message) 
+        => ValueTask.FromResult(_comunicator.Send(message, client));
 
     private void ComunicatorOnOnMessage(NetworkMessage message, ulong messageId, in Client processId)
     {
@@ -37,7 +42,7 @@ public sealed class SharmServer : IDataServer
         else if(message.Type == SharmComunicatorMessage.UnRegisterClient)
         {
             _comunicator.Send(message, processId);
-            ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(processId, DisconnectReason.Normal));
+            ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(processId, cause: null));
 
         }
         else

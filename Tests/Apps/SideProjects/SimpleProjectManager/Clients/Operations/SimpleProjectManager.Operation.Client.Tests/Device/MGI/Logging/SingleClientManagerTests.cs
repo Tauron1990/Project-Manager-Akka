@@ -1,12 +1,11 @@
 ﻿using System.Buffers;
-using System.Net.Sockets;
 using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Channels;
 using Akka.TestKit.Xunit;
 using FluentAssertions;
-using SimpleProjectManager.Operation.Client.Device.MGI;
 using SimpleProjectManager.Operation.Client.Device.MGI.Logging;
+using Tauron.Servicemnager.Networking.Data;
 
 namespace SimpleProjectManager.Operation.Client.Tests.Device.MGI.Logging;
 
@@ -38,62 +37,82 @@ public sealed class SingleClientManagerTests : TestKit
         return (data, lenght);
     }
 
-    private sealed class TestSocket : ISocket
+    private sealed class TestSocket : IMessageStream
     {
-        private readonly int _lenght;
-        private readonly Memory<byte> _data;
-        private readonly Random _random = new();
+        private readonly TestByteReader _byteReader;
         private readonly IDisposable _disposable;
         
-        private int _index;
+        private ReadOnlySequence<byte> _buffer;
+        
         public TestSocket(bool single)
         {
             if(single)
             {
                 byte[] array =Encoding.UTF8.GetBytes(LogInfo.Format(new LogInfo(DateTime.Now, "", "Type1", "Message1", Command.Log)));
 
-                _lenght = array.Length;
-                _data = array;
+                _buffer = new ReadOnlySequence<byte>(array);
                 _disposable = Disposable.Empty;
             }
             else
             {
                 var messages = GetMessages();
 
-                _lenght = messages.Lenght;
-                _index = 0;
-                _data = messages.Data.Memory;
+                _buffer = new ReadOnlySequence<byte>(messages.Data.Memory);
                 _disposable = messages.Data;
+            }
+
+            _byteReader = new TestByteReader(_buffer);
+        }
+
+        public bool DataAvailable => _byteReader.HasData;
+
+        public IByteReader ReadStream => _byteReader;
+        
+        public bool Connected()
+            => _byteReader.HasData;
+
+        private sealed class TestByteReader : IByteReader
+        {
+            private readonly Random _random = new();
+            
+            private ReadOnlySequence<byte> _buffer;
+            private SequencePosition _sequencePosition;
+            
+            public TestByteReader(ReadOnlySequence<byte> buffer)
+                => _buffer = buffer;
+
+            public void Dispose()
+                => _buffer = default;
+
+            public bool HasData => !_sequencePosition.Equals(_buffer.End);
+
+            public ValueTask<int> ReadAsync(Memory<byte> mem, CancellationToken token)
+            {
+                int toRead = _random.Next(1, (int)Math.Min(10, _buffer.Length - _sequencePosition.GetInteger()));
+
+                var reader = new SequenceReader<byte>(_buffer);
+                reader.Advance(_sequencePosition.GetInteger());
+
+                if(!reader.TryReadExact(toRead, out var data))
+                    return ValueTask.FromResult(0);
+
+                data.CopyTo(mem.Span);
+                _sequencePosition = reader.Position;
+
+                return ValueTask.FromResult(toRead);
             }
         }
 
         public void Dispose()
-            => _disposable.Dispose();
-
-        public bool Poll(int timeout, SelectMode selectMode)
-            => _index < _lenght;
-
-        public long Available => _lenght - _index;
-
-        public ValueTask<int> ReceiveAsync(Memory<byte> buffer)
         {
-            int toRead = _random.Next(0, Math.Min(20, (int)Available));
-            
-            if(toRead == 0)
-                return ValueTask.FromResult(0);
-            
-            _data.Span[_index..(_index + toRead)].CopyTo(buffer.Span);
-
-            _index += toRead;
-            return ValueTask.FromResult(toRead);
+            _byteReader.Dispose();
+            _disposable.Dispose();
+            _buffer = default;
         }
-
-        public void Close()
-            => _index = _lenght;
     }
     
     [Fact]
-    public async Task TestClient()
+    public async Task TestSingleClient()
     {
         using var source = new CancellationTokenSource(TimeSpan.FromSeconds(10000));
         
@@ -103,6 +122,6 @@ public sealed class SingleClientManagerTests : TestKit
 
         var result = await channel.Reader.ReadAllAsync(source.Token).ToListAsync(source.Token).ConfigureAwait(false);
 
-        result.Count.Should().Be(6);
+        result.Count.Should().Be(1);
     }
 }

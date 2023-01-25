@@ -1,9 +1,12 @@
 using System;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
+using Stl.Channels;
 using Tauron.Application.AkkaNode.Bootstrap.IpcMessages;
 using Tauron.Servicemnager.Networking;
 using Tauron.Servicemnager.Networking.Data;
@@ -16,7 +19,8 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
     private readonly Subject<NetworkMessage> _messageHandler = new();
     private IDataClient? _dataClient;
     private IDataServer? _dataServer;
-
+    private Task _messageHandlerTask = Task.CompletedTask;
+    
     internal IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
     {
         try
@@ -46,7 +50,8 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
                     }
 
                     _dataClient = new SharmClient(AppNode.IpcName, errorHandler);
-                    _dataClient.OnMessageReceived += (_, args) => _messageHandler.OnNext(args.Message);
+                    _messageHandlerTask = _dataClient.OnMessageReceived.ToAsyncEnumerable()
+                       .ForEachAsync(_messageHandler.OnNext);
 
                     break;
                 case IpcApplicationType.NoIpc:
@@ -56,7 +61,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
                     break;
                 default:
                     #pragma warning disable EX006
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                    throw new ArgumentOutOfRangeException(nameof(type), type, message: null);
                 #pragma warning restore EX006
             }
         }
@@ -73,7 +78,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
     public void Dispose()
     {
         _messageHandler.Dispose();
-        (_dataClient as IDisposable)?.Dispose();
+        _dataClient?.Dispose();
         _dataServer?.Dispose();
 
         _dataClient = null;
@@ -95,7 +100,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
            .SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))!);
     }
 
-    public bool SendMessage<TMessage>(in Client to, TMessage message)
+    public async ValueTask<bool> SendMessage<TMessage>(Client to, TMessage message)
     {
         if(!IsReady)
             return false;
@@ -109,12 +114,12 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
         if(_dataClient != null)
             return _dataClient.Send(nm);
 
-        return _dataServer != null && _dataServer.Send(to, nm);
+        return _dataServer != null && await _dataServer.Send(to, nm).ConfigureAwait(false);
     }
 
-    public bool SendMessage<TMessage>(TMessage message) => SendMessage(Client.All, message);
+    public ValueTask<bool> SendMessage<TMessage>(TMessage message) => SendMessage(Client.All, message);
 
-    internal void Start(string serviceName)
+    internal async Task Start(string serviceName)
     {
         try
         {
@@ -122,9 +127,9 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
 
             if(_dataClient is null) return;
 
-            _dataClient.Connect();
-
-            if(SendMessage(new RegisterNewClient(SharmComunicator.ProcessId, serviceName)))
+            await _dataClient.Run(default).ConfigureAwait(false);
+            
+            if(await SendMessage(new RegisterNewClient(SharmComunicator.ProcessId, serviceName)).ConfigureAwait(false))
                 return;
 
             IsReady = false;
@@ -146,6 +151,6 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
     internal void Disconnect()
     {
         if(_dataClient is SharmClient client)
-            client.Disconnect();
+            client.Close();
     }
 }

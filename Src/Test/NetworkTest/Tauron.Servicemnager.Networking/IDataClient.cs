@@ -1,12 +1,14 @@
-﻿using Tauron.Servicemnager.Networking.Data;
+﻿using System.Threading.Channels;
+using Tauron.Servicemnager.Networking.Data;
 
 namespace Tauron.Servicemnager.Networking;
 
-public interface IDataClient
+public interface IDataClient : IDisposable
 {
-    bool Connect();
-    event EventHandler<ClientConnectedArgs>? Connected;
-    event EventHandler<ClientDisconnectedArgs>? Disconnected;
-    event EventHandler<MessageFromServerEventArgs>? OnMessageReceived;
+    Task Run(CancellationToken token);
+
+    void Close();
+
+    ChannelReader<NetworkMessage> OnMessageReceived { get; }
     bool Send(NetworkMessage msg);
 }

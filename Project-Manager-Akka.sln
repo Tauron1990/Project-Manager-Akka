@@ -247,6 +247,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Operations", "Operations", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleProjectManager.Operation.Client.Tests", "Tests\Apps\SideProjects\SimpleProjectManager\Clients\Operations\SimpleProjectManager.Operation.Client.Tests\SimpleProjectManager.Operation.Client.Tests.csproj", "{EC911974-2964-40FB-B0DB-AB1620EA4B81}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{823027CE-A53B-4A14-86E4-373AAA3C4ADC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tauron.Servicemnager.Networking.Tests", "Tests\Apps\Shared\Tauron.Servicemnager.Networking.Tests\Tauron.Servicemnager.Networking.Tests.csproj", "{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1841,6 +1845,26 @@ Global
 		{EC911974-2964-40FB-B0DB-AB1620EA4B81}.Release|x64.Build.0 = Release|Any CPU
 		{EC911974-2964-40FB-B0DB-AB1620EA4B81}.Release|x86.ActiveCfg = Release|Any CPU
 		{EC911974-2964-40FB-B0DB-AB1620EA4B81}.Release|x86.Build.0 = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|ARM.Build.0 = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|x64.Build.0 = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Debug|x86.Build.0 = Debug|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|ARM.ActiveCfg = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|ARM.Build.0 = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|ARM64.Build.0 = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|x64.ActiveCfg = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|x64.Build.0 = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|x86.ActiveCfg = Release|Any CPU
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1963,6 +1987,8 @@ Global
 		{A65B6E88-7166-432E-A37C-FB80AA5599F0} = {BF1DD950-CA65-46F1-9FFC-EC0AA209A9ED}
 		{94D06B1E-669B-4F9E-9090-C6B579723925} = {A65B6E88-7166-432E-A37C-FB80AA5599F0}
 		{EC911974-2964-40FB-B0DB-AB1620EA4B81} = {94D06B1E-669B-4F9E-9090-C6B579723925}
+		{823027CE-A53B-4A14-86E4-373AAA3C4ADC} = {30BB365A-2A96-4BB4-AC91-55022D1F0FDB}
+		{1664BF2C-DB2C-4BB9-9107-D9C02B2103DC} = {823027CE-A53B-4A14-86E4-373AAA3C4ADC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F63AD2ED-4320-43AB-8761-A3FEBC507539}

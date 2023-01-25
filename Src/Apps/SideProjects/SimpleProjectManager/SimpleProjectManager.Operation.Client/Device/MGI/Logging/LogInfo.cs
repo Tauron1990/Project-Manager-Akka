@@ -8,10 +8,10 @@ public sealed record LogInfo(DateTime TimeStamp, string Application, string Type
     public static LogInfo CreateError(string error) 
         => new(DateTime.Now, "KernelLogger-Proxy", "ERROR", error, Command.Log);
 
-    public static LogInfo CreateSave() 
+    public static LogInfo? CreateSave() 
         => new(DateTime.Now, "KernelLogger-Proxy", "SAVE", "Saving Log", Command.Log);
 
-    public static LogInfo CreateCommad(Command command, string info) 
+    public static LogInfo? CreateCommad(Command command, string info) 
         => new(DateTime.Now, "KernelLogger-Proxy", "COMMAND", info, command);
 
     public static DateTime ToDateTime(string valueString)

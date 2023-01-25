@@ -3,10 +3,11 @@
 namespace Tauron.Servicemnager.Networking.Data;
 
 public interface INetworkMessageFormatter<out TMessage>
+    where TMessage : class
 {
-    byte[] Header { get; }
+    Memory<byte> Header { get; }
     
-    byte[] Tail { get; }
+    Memory<byte> Tail { get; }
     
-    TMessage ReadMessage(Memory<byte> bufferMemory);
+    TMessage ReadMessage(in ReadOnlySequence<byte> bufferMemory);
 }

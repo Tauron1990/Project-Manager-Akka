@@ -1,10 +1,9 @@
-﻿using System.Buffers;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
+using System.Threading.Channels;
 using JetBrains.Annotations;
-using SuperSimpleTcp;
 using Tauron.Servicemnager.Networking.Data;
 
 namespace Tauron.Servicemnager.Networking.Server;
@@ -12,66 +11,136 @@ namespace Tauron.Servicemnager.Networking.Server;
 [PublicAPI]
 public sealed class DataServer : IDataServer
 {
-    private readonly ConcurrentDictionary<string, MessageReader<NetworkMessage>> _clients = new(StringComparer.Ordinal);
-    private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
-    private readonly SimpleTcpServer _server;
-
-    private EndPoint? _endPoint;
-
-    public DataServer(string host, int port = 0)
+    private sealed record ClientMeta(Socket Socket, MessageReader<NetworkMessage> Reader, CancellationTokenSource Token, Task Runner)
+        : IDisposable
     {
-        _server = new SimpleTcpServer(host, port, ssl: false, pfxCertFilename: null, pfxPassword: null)
-                  {
-                      Keepalive = { EnableTcpKeepAlives = true },
-                  };
-
-        _server.Events.ClientConnected += (_, args) =>
-                                          {
-                                              _clients.TryAdd(args.IpPort, new MessageReader<NetworkMessage>(
-                                                  NetworkMessageFormatter.Shared, 
-                                                  MemoryPool<byte>.Shared));
-                                              ClientConnected?.Invoke(this, new ClientConnectedArgs(Client.From(args.IpPort)));
-                                          };
-        _server.Events.ClientDisconnected += (sender, args) =>
-                                             {
-                                                 _clients.TryRemove(args.IpPort, out _);
-                                                 ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(Client.From(args.IpPort), args.Reason));
-                                             };
-        _server.Events.DataReceived += EventsOnDataReceived;
+        public void Dispose()
+        {
+            Socket.Close();
+            Token.Cancel();
+            Reader.Dispose();
+            Socket.Dispose();
+            Token.Dispose();
+        }
     }
 
-    public EndPoint EndPoint
-        // ReSharper disable once ConstantNullCoalescingCondition
-        => _endPoint ??=
-            ((TcpListener)_server.GetType().GetField("_listener", BindingFlags.Instance | BindingFlags.NonPublic)
-              ?.GetValue(_server)!).LocalEndpoint;
+    private readonly ConcurrentDictionary<string, ClientMeta> _clients = new(StringComparer.Ordinal);
+    private readonly TcpListener _tcpListener;
+    private readonly CancellationTokenSource _cancellation = new();
+    private readonly NetworkMessageFormatter _messageFormatter = NetworkMessageFormatter.Shared;
+    
+    public DataServer(string host, int port = 0)
+    {
+        _tcpListener = new TcpListener(new IPEndPoint(IPAddress.Parse(host), port));
+        _tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, optionValue: true);
+    }
+
+    public void Dispose()
+    {
+        _cancellation.Cancel();
+        
+        foreach (ClientMeta clientsValue in _clients.Values)
+        {
+            clientsValue.Dispose();
+        }
+        
+        _tcpListener.Stop();
+        _cancellation.Dispose();
+    }
 
     public event EventHandler<ClientConnectedArgs>? ClientConnected;
     public event EventHandler<ClientDisconnectedArgs>? ClientDisconnected;
     public event EventHandler<MessageFromClientEventArgs>? OnMessageReceived;
 
-    public void Start() => _server.Start();
-
-    public bool Send(in Client client, NetworkMessage message)
+    public async Task Start()
     {
-        var data = _messageFormatter.WriteMessage(message);
-        using var memory = data.Message;
-
-        _server.Send(client.Value, memory.Memory[..data.Lenght].ToArray());
-
-        return true;
+        try
+        {
+            await AcceptClients().ConfigureAwait(false);
+        }
+        catch(OperationCanceledException){}
     }
 
-    public void Dispose() => _server.Dispose();
-
-    private void EventsOnDataReceived(object? sender, DataReceivedEventArgs e)
+    private async Task AcceptClients()
     {
-        var buffer = _clients.GetOrAdd(e.IpPort, _ => new MessageReader<NetworkMessage>(
-                                                     NetworkMessageFormatter.Shared, 
-                                                     MemoryPool<byte>.Shared));
-        NetworkMessage? msg = buffer.AddBuffer(e.Data);
+        _tcpListener.Start();
+        
+        while (!_cancellation.IsCancellationRequested)
+        {
+            if(_tcpListener.Pending())
+            {
+                Socket client = await _tcpListener.AcceptSocketAsync(_cancellation.Token).ConfigureAwait(false);
+                client.SetKeepAlive(1000, 1000);
+                var name = client.RemoteEndPoint!.ToString();
+                Debug.Assert(!string.IsNullOrWhiteSpace(name), "Client Ip is Null or Empty");
+                
+                var reader = new MessageReader<NetworkMessage>(new SocketMessageStream(client), _messageFormatter);
+                var cancel = CancellationTokenSource.CreateLinkedTokenSource(_cancellation.Token);
+                
+                var meta = new ClientMeta(
+                    client,
+                    reader,
+                    cancel, 
+                    ClientRunner(name, reader, cancel.Token));
 
-        if(msg != null)
-            OnMessageReceived?.Invoke(this, new MessageFromClientEventArgs(msg, Client.From(e.IpPort)));
+                ClientConnected?.Invoke(this, new ClientConnectedArgs(Client.From(name)));
+                
+                _clients[name] = meta;
+            }
+            else
+                await Task.Delay(1000, _cancellation.Token).ConfigureAwait(false);
+        }
+    }
+
+    private async Task ClientRunner(string name, MessageReader<NetworkMessage> reader, CancellationToken token)
+    {
+        try
+        {
+            var pair = Channel.CreateUnbounded<NetworkMessage>();
+
+            Task readTask = reader.ReadAsync(pair.Writer, token);
+            Task drainTask = DrainChannel(pair.Reader, name, token);
+
+            await Task.WhenAll(readTask, drainTask).ConfigureAwait(false);
+            
+            ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(Client.From(name), cause: null));
+        }
+        catch(OperationCanceledException){}
+        catch (Exception e)
+        {
+            ClientDisconnected?.Invoke(this, new ClientDisconnectedArgs(Client.From(name), e));
+        }
+    }
+
+    private async Task DrainChannel(ChannelReader<NetworkMessage> channelReader, string name, CancellationToken token)
+    {
+        await foreach (NetworkMessage msg in channelReader.ReadAllAsync(token).ConfigureAwait(false))
+            OnMessageReceived?.Invoke(this, new MessageFromClientEventArgs(msg, Client.From(name)));
+    }
+
+    public async ValueTask<bool> Send(Client client, NetworkMessage message)
+    {
+        if(!_clients.TryGetValue(client.Value, out ClientMeta? clientData))
+        {
+            if(client != Client.All)
+                return false;
+        }
+
+        var msg = _messageFormatter.WriteMessage(message);
+        using var data = msg.Message;
+        var actualData = data.Memory[..msg.Lenght];
+        
+        if(client == Client.All)
+        {
+            foreach (var meta in _clients)
+                await meta.Value.Socket.SendAsync(actualData, _cancellation.Token).ConfigureAwait(false);
+
+            return true;
+        }
+        
+        await clientData!.Socket.SendAsync(actualData, _cancellation.Token).ConfigureAwait(false);
+
+        return true;
+
     }
 }

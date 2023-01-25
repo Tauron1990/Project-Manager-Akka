@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using System.Threading.Channels;
 using Tauron.Servicemnager.Networking.Data;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
@@ -18,68 +19,112 @@ public class LogParser : IDisposable
 
     private static readonly byte[] Endmsg =  "<M!>"u8.ToArray();
 
-    private readonly MessageReader<string> _dataReader = new(
-        new StringFormatter(),
-        MemoryPool<byte>.Shared);
+    private readonly MessageReader<string> _dataReader;
 
-    public LogInfo? Push(IMemoryOwner<byte> msg, int msgLenght)
+    public LogParser(IMessageStream messageStream)
     {
+	    _dataReader = new MessageReader<string>(messageStream, new StringFormatter());
+    }
+    
+    public async Task Run(ChannelWriter<LogInfo> logs)
+    {
+	    var messages = Channel.CreateUnbounded<string>();
 	    try
 	    {
-		    string? newMessage = _dataReader.AddBuffer(msg, msgLenght);
+		    Task runner = _dataReader.ReadAsync(messages.Writer, default);
 
-		    if(string.IsNullOrWhiteSpace(newMessage)) return null;
-
-		    string[] messageSegments = newMessage.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
-
-		    if(messageSegments.Length == 0) return null;
-
-		    switch (Enum.Parse<MessageType>(messageSegments[0]))
+		    await foreach (string newMessage in messages.Reader.ReadAllAsync().ConfigureAwait(false))
 		    {
-			    case MessageType.Commnd:
-				    var commandType = Enum.Parse<Command>(messageSegments[1]);
-				    switch (commandType)
-				    {
-					    case Command.SetApp:
-						    string name = messageSegments[2];
+			    try
+			    {
+				    string[] messageSegments = newMessage.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
 
-						    return LogInfo.CreateCommad(commandType, name);
-					    case Command.Save:
-						    return LogInfo.CreateSave();
-					    case Command.Disconnect:
-						    return LogInfo.CreateCommad(commandType, "Socked Close");
-					    case Command.ShowConsole:
-						    return null;
-					    case Command.SaveBdd:
-						    int idInfo = int.Parse(messageSegments[2], NumberStyles.Any, CultureInfo.InvariantCulture);
-						    string information = messageSegments[3];
-						    #pragma warning disable MA0076
-						    var message = $"Sent {idInfo}, {information} to DataBase+";
-						    #pragma warning restore MA0076
+				    if(messageSegments.Length == 0) continue;
 
-						    return new LogInfo(DateTime.Now, "KernelLogger-Proxy", "Bdd", message, commandType);
-				    }
+				    LogInfo? log = CreateLogInfo(messageSegments);
 
-				    break;
-			    case MessageType.Log:
-				    return new LogInfo(
-					    LogInfo.ToDateTime(messageSegments[1]), 
-					    "", 
-					    messageSegments[2], 
-					    messageSegments[messageSegments.Length < 6 ? 4 : 5], 
-					    Command.Log);
-			    default:
-				    #pragma warning disable EX006
-				    throw new UnreachableException("Invalid MessageType for Log");
-			    #pragma warning restore EX006
+				    if(log is null) continue;
+
+				    await logs.WriteAsync(log).ConfigureAwait(false);
+
+			    }
+			    catch (Exception e)
+			    {
+				    await logs.WriteAsync(LogInfo.CreateError(e.ToStringDemystified())).ConfigureAwait(false);
+			    }
 		    }
+
+		    await runner.ConfigureAwait(false);
 	    }
-	    catch (Exception e)
+	    finally
 	    {
-		    return LogInfo.CreateError(e.ToStringDemystified());
+		    messages.Writer.Complete();
+	    }
+    }
+
+    private static LogInfo? CreateLogInfo(IReadOnlyList<string> messageSegments)
+    {
+	    LogInfo? log;
+	    switch (Enum.Parse<MessageType>(messageSegments[0]))
+	    {
+		    case MessageType.Commnd:
+			    var commandType = Enum.Parse<Command>(messageSegments[1]);
+			    log = ProcessCommand(messageSegments, commandType);
+
+			    break;
+		    case MessageType.Log:
+			    log = new LogInfo(
+				    LogInfo.ToDateTime(messageSegments[1]),
+				    "",
+				    messageSegments[2],
+				    messageSegments[messageSegments.Count < 6 ? 4 : 5],
+				    Command.Log);
+
+			    break;
+		    default:
+			    throw new UnreachableException("Invalid MessageType for Log");
+	    }
+	    return log;
+    }
+
+    private static LogInfo? ProcessCommand(IReadOnlyList<string> messageSegments, Command commandType)
+    {
+	    LogInfo? log = null;
+	    switch (commandType)
+	    {
+		    case Command.SetApp:
+			    string name = messageSegments[2];
+
+			    log = LogInfo.CreateCommad(commandType, name);
+
+			    break;
+		    case Command.Save:
+			    log = LogInfo.CreateSave();
+
+			    break;
+		    case Command.Disconnect:
+			    log = LogInfo.CreateCommad(commandType, "Socked Close");
+
+			    break;
+		    case Command.ShowConsole:
+			    break;
+		    case Command.SaveBdd:
+			    int idInfo = int.Parse(messageSegments[2], NumberStyles.Any, CultureInfo.InvariantCulture);
+			    string information = messageSegments[3];
+			    #pragma warning disable MA0076
+			    var message = $"Sent {idInfo}, {information} to DataBase+";
+			    #pragma warning restore MA0076
+
+			    log = new LogInfo(DateTime.Now, "KernelLogger-Proxy", "Bdd", message, commandType);
+
+			    break;
+		    case Command.Log:
+			    break;
+		    default:
+			    throw new UnreachableException("Invalid CommandType for Log");
 	    }
 
-	    return null;
+	    return log;
     }
 
     internal enum MessageType
@@ -90,30 +135,13 @@ public class LogParser : IDisposable
     
     private sealed class StringFormatter : INetworkMessageFormatter<string>
     {
-	    public int HeaderLength => Beginmsg.Length;
-	    public int TailLength => Endmsg.Length;
-
-	    public bool HasHeader(Memory<byte> buffer)
-        {
-            var pos = 0;
-
-            return NetworkMessageFormatter.CheckPresence(buffer.Span, Beginmsg, ref pos);
-        }
-
-        public bool HasTail(Memory<byte> buffer)
-        {
-            if(buffer.Length < Endmsg.Length)
-                return false;
-
-            int pos = buffer.Length - Endmsg.Length;
-
-            return NetworkMessageFormatter.CheckPresence(buffer.Span, Endmsg, ref pos);
-        }
-
-        public string ReadMessage(Memory<byte> bufferMemory)
-            => Encoding.UTF8.GetString(bufferMemory[Beginmsg.Length..^Endmsg.Length].Span);
+	    public Memory<byte> Header => Beginmsg;
+	    public Memory<byte> Tail => Endmsg;
+	    
+	    public string ReadMessage(in ReadOnlySequence<byte> bufferMemory)
+		    => Encoding.UTF8.GetString(bufferMemory);
     }
-
+    
     public void Dispose()
         => _dataReader.Dispose();
 }

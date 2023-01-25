@@ -5,6 +5,7 @@ using Akka;
 using Akka.Actor;
 using Akka.Streams;
 using Akka.Streams.Dsl;
+using Tauron.Servicemnager.Networking.Data;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 
@@ -37,7 +38,7 @@ public sealed class LoggerClient : ReceiveActor, IDisposable
         Context.ActorOf(Props.Create(() => new AcceptManager(_server)));
 
         Receive<Socket>(
-            newSocked => Context.ActorOf(Props.Create(() => new SingleClientManager(new RealSocked(newSocked), _channel.Writer))));
+            newSocked => Context.ActorOf(Props.Create(() => new SingleClientManager(new SocketMessageStream(newSocked), _channel.Writer))));
     }
 
     private void OnFailure(Exception error)
