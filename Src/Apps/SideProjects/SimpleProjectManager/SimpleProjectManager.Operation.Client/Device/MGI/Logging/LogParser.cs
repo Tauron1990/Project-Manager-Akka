@@ -26,14 +26,15 @@ public class LogParser : IDisposable
 	    _dataReader = new MessageReader<string>(messageStream, new StringFormatter());
     }
     
-    public async Task Run(ChannelWriter<LogInfo> logs)
+    public async Task Run(ChannelWriter<LogInfo> logs, CancellationToken cancellationToken)
     {
 	    var messages = Channel.CreateUnbounded<string>();
 	    try
 	    {
-		    Task runner = _dataReader.ReadAsync(messages.Writer, default);
+		    // ReSharper disable once MethodSupportsCancellation
+		    Task runner = Task.Run(() => _dataReader.ReadAsync(messages.Writer, cancellationToken));
 
-		    await foreach (string newMessage in messages.Reader.ReadAllAsync().ConfigureAwait(false))
+		    await foreach (string newMessage in messages.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
 		    {
 			    try
 			    {
@@ -45,20 +46,22 @@ public class LogParser : IDisposable
 
 				    if(log is null) continue;
 
-				    await logs.WriteAsync(log).ConfigureAwait(false);
+				    await logs.WriteAsync(log, cancellationToken).ConfigureAwait(false);
 
 			    }
 			    catch (Exception e)
 			    {
-				    await logs.WriteAsync(LogInfo.CreateError(e.ToStringDemystified())).ConfigureAwait(false);
+				    await logs.WriteAsync(LogInfo.CreateError(e.ToStringDemystified()), cancellationToken).ConfigureAwait(false);
 			    }
 		    }
 
 		    await runner.ConfigureAwait(false);
 	    }
+	    catch(OperationCanceledException)
+	    {}
 	    finally
 	    {
-		    messages.Writer.Complete();
+		    logs.TryComplete();
 	    }
     }
 

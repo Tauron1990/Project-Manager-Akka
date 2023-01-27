@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading.Channels;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
 using Tauron.Servicemnager.Networking.Data;
@@ -12,7 +13,7 @@ public sealed partial class SingleClientManager : ReceiveActor, IDisposable
     private readonly ChannelWriter<LogInfo> _writer;
     private readonly LogParser _logParser;
 
-    private string _app = string.Empty;
+    private string _app = "Unkowen";
 
     public SingleClientManager(IMessageStream client, ChannelWriter<LogInfo> writer)
     {
@@ -36,17 +37,20 @@ public sealed partial class SingleClientManager : ReceiveActor, IDisposable
     [LoggerMessage(Level = LogLevel.Error, Message = "Error on Recive Data. {message}")]
     private partial void ReceiveError(Exception? ex, string message);
 
+    [SuppressMessage("ReSharper", "MethodSupportsCancellation")]
     private async Task Run(IActorRef self)
     {
-        var logs = Channel.CreateBounded<LogInfo>(1000);
-        Task runner = _logParser.Run(logs.Writer);
+        using var source = new CancellationTokenSource(); 
         
+        var logs = Channel.CreateBounded<LogInfo>(1000);
+        Task runner = _logParser.Run(logs.Writer, source.Token);
+
         try
         {
             await foreach (LogInfo infoItem in logs.Reader.ReadAllAsync().ConfigureAwait(false))
             {
                 LogInfo info = infoItem;
-                
+
                 if(string.IsNullOrWhiteSpace(info.Application))
                     info = info with { Application = _app };
 
@@ -55,9 +59,11 @@ public sealed partial class SingleClientManager : ReceiveActor, IDisposable
                 {
                     case Command.Disconnect:
                         await _writer.WriteAsync(info).ConfigureAwait(false);
+
                         return;
                     case Command.SetApp:
                         _app = info.Content;
+
                         break;
                 }
 
@@ -69,7 +75,12 @@ public sealed partial class SingleClientManager : ReceiveActor, IDisposable
         {
             self.Tell(ClientError.CreateError("Error on Process Socket Receive Data", e));
         }
-
+        finally
+        {
+            _writer.TryComplete();
+            source.Cancel();
+        }
+        
         await runner.ConfigureAwait(false);
     }
     

@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Threading.Channels;
 
@@ -10,20 +11,26 @@ public class MessageReader<TMessage> : IDisposable
     private readonly IMessageStream _messageStream;
     private readonly INetworkMessageFormatter<TMessage> _formatter;
     private readonly Pipe _pipe;
+    private readonly long _forceAdvanceThreshold;
 
     public MessageReader(IMessageStream messageStream, INetworkMessageFormatter<TMessage> formatter, PipeOptions? pipeOptions = null)
     {
         _messageStream = messageStream;
         _formatter = formatter;
 
-        _pipe = new Pipe(pipeOptions ?? PipeOptions.Default);
+        PipeOptions actualOptions = pipeOptions ?? PipeOptions.Default;
+
+        _forceAdvanceThreshold = actualOptions.PauseWriterThreshold;
+        _pipe = new Pipe(actualOptions);
     }
 
     public async Task ReadAsync(ChannelWriter<TMessage> channel, CancellationToken token)
     {
         try
         {
-            await Task.WhenAll(DoWrite(_pipe.Writer, token), DoRead(_pipe.Reader, channel, token)).ConfigureAwait(false);
+            await Task.WhenAll(
+                Task.Run(() => DoWrite(_pipe.Writer, token), token), 
+                Task.Run(() => DoRead(_pipe.Reader, channel, token), token)).ConfigureAwait(false);
         }
         finally
         {
@@ -52,8 +59,12 @@ public class MessageReader<TMessage> : IDisposable
                 FlushResult flush = await writer.FlushAsync(token).ConfigureAwait(false);
 
                 if(flush.IsCanceled || flush.IsCompleted) break;
+
+                await Task.Delay(1000, token).ConfigureAwait(false);
             }
         }
+        catch(OperationCanceledException)
+        {}
         catch (Exception ex)
         {
             
@@ -85,6 +96,8 @@ public class MessageReader<TMessage> : IDisposable
                     await channel.WriteAsync(message, token).ConfigureAwait(false);
                 messages.Clear();
                 
+                Debug.Assert(!buffer.Start.Equals(end));
+                
                 pipeReader.AdvanceTo(buffer.Start, end);
                 
                 if(ReadIsCompleted(read)) break;
@@ -107,30 +120,36 @@ public class MessageReader<TMessage> : IDisposable
 
     private void ReadBuffer(ReadOnlySequence<byte> buffer, ICollection<TMessage> messages, out SequencePosition end)
     {
-        end = buffer.Start;
+        bool isMax = _forceAdvanceThreshold <= buffer.Length;
 
         while (true)
         {
+            end = buffer.Start;
+            
             if(buffer.IsEmpty) return;
 
-            TMessage? msg = TryRead(buffer, out end);
+            TMessage? msg = TryRead(buffer, isMax, out end);
 
             if(msg is not null)
                 messages.Add(msg);
 
+            if(end.Equals(buffer.Start))
+                break;
+            
             buffer = buffer.Slice(end);
         }
     }
 
-    private TMessage? TryRead(in ReadOnlySequence<byte> buffer, out SequencePosition end)
+    private TMessage? TryRead(in ReadOnlySequence<byte> buffer, bool isMax, out SequencePosition end)
     {
         var reader = new SequenceReader<byte>(buffer);
         end = reader.Position;
 
         if(!reader.TryReadTo(out ReadOnlySequence<byte> messageData, _formatter.Header.Span))
             return null;
-
-        end = reader.Position;
+        
+        if(isMax)
+            end = reader.Position;
         
         if(!reader.TryReadTo(out messageData, _formatter.Tail.Span))
             return null;
