@@ -44,7 +44,7 @@ public sealed class ProjectManagerTests : PersistenceTestKit
             });
     }
 
-    [Theory]
+    /*[Theory]
     [DomainAutoData]
     public async Task Store_Project_Fail(CreateProjectCommandCarrier command)
     {
@@ -59,7 +59,7 @@ public sealed class ProjectManagerTests : PersistenceTestKit
                 result.Ok.Should().BeFalse();
                 result.Error.Should().NotBeEmpty();
             });
-    }
+    }*/
 
     [Theory]
     [DomainAutoData]

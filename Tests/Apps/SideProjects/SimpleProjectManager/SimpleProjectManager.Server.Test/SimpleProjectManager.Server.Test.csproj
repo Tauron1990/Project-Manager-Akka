@@ -9,10 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Cluster.TestKit" Version="1.4.48" />
-        <PackageReference Include="Akka.Persistence.TestKit.Xunit2" Version="1.4.48" />
-        <PackageReference Include="Akka.Streams.TestKit" Version="1.4.48" />
-        <PackageReference Include="Akka.TestKit.Xunit2" Version="1.4.48" />
+        <PackageReference Include="Akka.Cluster.TestKit" Version="1.4.49" />
+        <PackageReference Include="Akka.Persistence.TestKit.Xunit2" Version="1.4.49" />
+        <PackageReference Include="Akka.Streams.TestKit" Version="1.4.49" />
+        <PackageReference Include="Akka.TestKit.Xunit2" Version="1.4.49" />
         <PackageReference Include="AutoFixture.AutoNSubstitute" Version="4.17.0" />
         <PackageReference Include="AutoFixture.Community.Customizations.LoggerFactory" Version="1.0.1" />
         <PackageReference Include="AutoFixture.Community.ImmutableCollections" Version="1.0.0" />

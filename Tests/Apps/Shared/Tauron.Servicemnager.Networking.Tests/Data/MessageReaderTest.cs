@@ -58,7 +58,7 @@ public sealed class MessageReaderTest
         var result = await channel.Reader.ReadAllAsync().ToListAsync();
 
         result.Should().HaveCount(1);
-        var msg = result[0];
+        NetworkMessage msg = result[0];
         msg.Type.Should().Be("Test");
         Encoding.UTF8.GetString(msg.Data).Should().Be("Test");
     }

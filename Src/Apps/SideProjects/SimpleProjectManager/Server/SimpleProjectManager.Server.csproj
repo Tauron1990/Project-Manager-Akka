@@ -18,8 +18,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.40" />
-        <PackageReference Include="Akka.Persistence.Query" Version="1.4.48" />
+        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.48" />
+        <PackageReference Include="Akka.Persistence.Query" Version="1.4.49" />
         <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
@@ -33,7 +33,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.13">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -44,7 +44,7 @@
         </PackageReference>
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion.Server" Version="4.2.4" />
+        <PackageReference Include="Stl.Fusion.Server" Version="4.2.22" />
     </ItemGroup>
 
     <ItemGroup>

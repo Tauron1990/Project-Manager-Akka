@@ -59,8 +59,6 @@ public class MessageReader<TMessage> : IDisposable
                 FlushResult flush = await writer.FlushAsync(token).ConfigureAwait(false);
 
                 if(flush.IsCanceled || flush.IsCompleted) break;
-
-                await Task.Delay(1000, token).ConfigureAwait(false);
             }
         }
         catch(OperationCanceledException)
@@ -90,15 +88,14 @@ public class MessageReader<TMessage> : IDisposable
 
                 var buffer = read.Buffer;
 
-                ReadBuffer(buffer, messages, out SequencePosition end);
+                ReadBuffer(ref buffer, messages, out SequencePosition end);
 
                 foreach (TMessage message in messages)
                     await channel.WriteAsync(message, token).ConfigureAwait(false);
                 messages.Clear();
-                
-                Debug.Assert(!buffer.Start.Equals(end));
-                
-                pipeReader.AdvanceTo(buffer.Start, end);
+
+                pipeReader.AdvanceTo(end);
+
                 
                 if(ReadIsCompleted(read)) break;
             }
@@ -118,33 +115,35 @@ public class MessageReader<TMessage> : IDisposable
     private static bool ReadIsCompletedOrEmpty(ReadResult read)
         => (read.IsCanceled || read.IsCompleted) && read.Buffer.IsEmpty;
 
-    private void ReadBuffer(ReadOnlySequence<byte> buffer, ICollection<TMessage> messages, out SequencePosition end)
+    private void ReadBuffer(ref ReadOnlySequence<byte> buffer, ICollection<TMessage> messages, out SequencePosition end)
     {
         bool isMax = _forceAdvanceThreshold <= buffer.Length;
 
+        end = buffer.Start;
+        
         while (true)
         {
-            end = buffer.Start;
-            
             if(buffer.IsEmpty) return;
 
-            TMessage? msg = TryRead(buffer, isMax, out end);
+            TMessage? msg = TryRead(buffer, end, isMax, out end);
 
             if(msg is not null)
                 messages.Add(msg);
+            else
+                break;
 
             if(end.Equals(buffer.Start))
                 break;
-            
-            buffer = buffer.Slice(end);
         }
     }
 
-    private TMessage? TryRead(in ReadOnlySequence<byte> buffer, bool isMax, out SequencePosition end)
+    private TMessage? TryRead(in ReadOnlySequence<byte> buffer, SequencePosition from, bool isMax, out SequencePosition end)
     {
         var reader = new SequenceReader<byte>(buffer);
-        end = reader.Position;
+        end = from;
 
+        reader.Advance(from.GetInteger());
+        
         if(!reader.TryReadTo(out ReadOnlySequence<byte> messageData, _formatter.Header.Span))
             return null;
         
@@ -156,8 +155,6 @@ public class MessageReader<TMessage> : IDisposable
 
         end = reader.Position;
         return _formatter.ReadMessage(messageData);
-
-
     }
 
     public void Dispose()
