@@ -1,4 +1,5 @@
-﻿using SimpleProjectManager.Client.Operations.Shared.Devices;
+﻿using Akka.Actor;
+using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 
@@ -6,7 +7,7 @@ namespace SimpleProjectManager.Operation.Client.Device;
 
 public interface IMachine
 {
-    Task Init();
+    Task Init(IActorContext );
 
     Task<DeviceInformations> CollectInfo();
 
