@@ -55,8 +55,10 @@ public sealed class DisposableState<TData> : IDisposableState<TData>
     IStateSnapshot IState.Snapshot => ((IState)_state).Snapshot;
 
     public Computed<TData> Computed => _state.Computed;
+    public TData LastNonErrorValue => _state.LastNonErrorValue;
 
-    public TData LatestNonErrorValue => _state.LatestNonErrorValue;
+    object? IState.LastNonErrorValue => ((IState)_state).LastNonErrorValue;
+
 
     event Action<IState<TData>, StateEventKind>? IState<TData>.Invalidated
     {
@@ -80,7 +82,6 @@ public sealed class DisposableState<TData> : IDisposableState<TData>
 
     IComputed IState.Computed => ((IState)_state).Computed;
 
-    object? IState.LatestNonErrorValue => ((IState)_state).LatestNonErrorValue;
 
     event Action<IState, StateEventKind>? IState.Invalidated
     {

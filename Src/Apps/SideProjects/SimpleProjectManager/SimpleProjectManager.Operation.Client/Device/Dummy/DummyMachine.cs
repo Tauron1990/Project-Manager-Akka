@@ -33,14 +33,14 @@ public sealed class DummyMachine : IMachine, IDisposable
 
     public DummyMachine(ILoggerFactory loggerFactory, OperationConfiguration operationConfiguration)
     {
-        _deviceId = DeviceId.ForName($"{DummyId}--{operationConfiguration.Name.Value}");
+        _deviceId = operationConfiguration.CreateDeviceId(DummyId);
         _dummyOperator = new DummyOperator(_deviceId, StateChange, ValueChange, loggerFactory.CreateLogger<DummyOperator>());
     }
 
     public void Dispose()
         => _dummyOperator.Dispose();
 
-    public Task Init()
+    public Task Init(IActorContext context)
     {
         _pairs = new[]
                  {

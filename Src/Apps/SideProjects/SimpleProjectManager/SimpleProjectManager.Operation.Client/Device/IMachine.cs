@@ -7,7 +7,7 @@ namespace SimpleProjectManager.Operation.Client.Device;
 
 public interface IMachine
 {
-    Task Init(IActorContext );
+    Task Init(IActorContext context);
 
     Task<DeviceInformations> CollectInfo();
 

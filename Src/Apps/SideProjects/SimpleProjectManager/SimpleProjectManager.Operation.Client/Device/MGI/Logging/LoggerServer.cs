@@ -1,52 +1,37 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Threading.Channels;
-using Akka;
 using Akka.Actor;
-using Akka.Streams;
-using Akka.Streams.Dsl;
 using Tauron.Servicemnager.Networking.Data;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 
-public sealed class LoggerClient : ReceiveActor, IDisposable
+public sealed class LoggerServer : ReceiveActor, IDisposable
 {
-    private readonly Sink<LogInfo, NotUsed> _logSink;
-    private readonly ActorMaterializer _materializer;
+    private readonly ChannelWriter<LogInfo> _logSink;
     private readonly Socket _server;
     private readonly IPEndPoint _endPoint;
-    private readonly Channel<LogInfo> _channel;
 
-    public LoggerClient(Sink<LogInfo, NotUsed> logSink, int port)
+    public LoggerServer(ChannelWriter<LogInfo> logSink, int port)
     {
         _logSink = logSink;
-        _materializer = Context.Materializer();
         
         IPAddress iPAddress = IPAddress.Parse("127.0.0.1");
         _endPoint = new IPEndPoint(iPAddress, port);
         _server = new Socket(iPAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-        _channel = Channel.CreateUnbounded<LogInfo>();
     }
 
     private void Running()
     {
-        var source = Source.ChannelReader(_channel.Reader);
-
-        source.RunWith(_logSink, _materializer);
-        
         Context.ActorOf(Props.Create(() => new AcceptManager(_server)));
 
         Receive<Socket>(
-            newSocked => Context.ActorOf(Props.Create(() => new SingleClientManager(new SocketMessageStream(newSocked), _channel.Writer))));
+            newSocked => Context.ActorOf(Props.Create(() => new SingleClientManager(new SocketMessageStream(newSocked), _logSink))));
     }
 
     private void OnFailure(Exception error)
     {
-        _logSink.RunWith(
-            Source.Failed<LogInfo>(error),
-            _materializer
-        );
+        _logSink.TryComplete(error);
         
         Self.Tell(PoisonPill.Instance);
     }
@@ -71,13 +56,12 @@ public sealed class LoggerClient : ReceiveActor, IDisposable
     protected override void PostStop()
     {
         _server.Close();
-        _channel.Writer.Complete();
+        _logSink.TryComplete();
         base.PostStop();
     }
 
     public void Dispose()
     {
-        _materializer.Dispose();
         _server.Dispose();
     }
 }

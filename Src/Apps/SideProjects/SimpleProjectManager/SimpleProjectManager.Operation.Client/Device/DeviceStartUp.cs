@@ -50,8 +50,6 @@ public partial class DeviceStartUp
                 return;
             }
 
-            await inter.Init().ConfigureAwait(false);
-
             _actorSystem.ActorOf(
                 DependencyResolver.For(_actorSystem)
                    .Props<MachineManagerActor>(inter),

@@ -2,6 +2,7 @@
 using FluentValidation.Results;
 using Newtonsoft.Json;
 using SimpleProjectManager.Client.Operations.Shared;
+using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Operation.Client.Config;
 
@@ -11,6 +12,9 @@ public sealed record OperationConfiguration(
 {
     public OperationConfiguration()
         : this(Port.Empty, ServerIp.Empty, Port.Empty, Port.Empty, ObjectName.Empty, new DeviceData(), new EditorData()) { }
+
+    public DeviceId CreateDeviceId(string id)
+        => DeviceId.ForName($"{id}--{Name.Value}");
 
     [JsonIgnore]
     public string ServerUrl

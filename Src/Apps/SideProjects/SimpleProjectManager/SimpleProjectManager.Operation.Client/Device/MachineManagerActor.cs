@@ -95,27 +95,27 @@ public sealed partial class MachineManagerActor : ReceiveActor
                .Props(DeviceInformations.ManagerPath, ClusterSingletonProxySettings.Create(Context.System)),
             "ServerConnection");
 
-        IActorRef? self = Self;
-
-        Task.Run(
-                async () =>
-                {
-                    DeviceInformations data = await _machine.CollectInfo().ConfigureAwait(false);
-
-                    _device = data with { DeviceManager = self };
-
-                    return _device;
-                })
+        
+        Init(Context)
            .PipeTo(
                 _serverManager,
-                self,
+                Self,
                 failure: ex =>
-
                          {
                              ErrorOnCollectDeviceinformations(ex, _deviceName);
 
                              return PoisonPill.Instance;
                          })
            .Ignore();
+    }
+
+    private async Task<DeviceInformations> Init(IActorContext context)
+    {
+        await _machine.Init(context).ConfigureAwait(false);
+
+        DeviceInformations data = await _machine.CollectInfo().ConfigureAwait(false);
+        _device = data with { DeviceManager = context.Self };
+
+        return _device;
     }
 }

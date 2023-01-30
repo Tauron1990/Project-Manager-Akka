@@ -26,18 +26,18 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.13">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.14">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-        <PackageReference Include="MongoDB.Driver" Version="2.18.0" />
-        <PackageReference Include="MudBlazor" Version="6.1.7" />
+        <PackageReference Include="MongoDB.Driver" Version="2.19.0" />
+        <PackageReference Include="MudBlazor" Version="6.1.8" />
         <PackageReference Include="ReactiveUI.Blazor" Version="18.4.1" />
         <PackageReference Include="ReactiveUI.Validation" Version="3.0.22" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion.Blazor" Version="4.2.22" />
+        <PackageReference Include="Stl.Fusion.Blazor" Version="4.3.4" />
     </ItemGroup>
 
     <ItemGroup>

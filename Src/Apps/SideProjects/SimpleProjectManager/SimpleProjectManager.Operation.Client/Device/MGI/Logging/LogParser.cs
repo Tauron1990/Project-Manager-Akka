@@ -28,7 +28,12 @@ public class LogParser : IDisposable
     
     public async Task Run(ChannelWriter<LogInfo> logs, CancellationToken cancellationToken)
     {
-	    var messages = Channel.CreateUnbounded<string>();
+	    var messages = Channel.CreateBounded<string>(new BoundedChannelOptions(1000)
+	                                                 {
+		                                                 FullMode = BoundedChannelFullMode.DropOldest,
+		                                                 SingleReader = true,
+		                                                 SingleWriter = true,
+	                                                 } );
 	    try
 	    {
 		    // ReSharper disable once MethodSupportsCancellation
