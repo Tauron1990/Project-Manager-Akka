@@ -17,4 +17,8 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SharpGaming.Akka.Patterns" Version="1.0.4" />
+    </ItemGroup>
 </Project>

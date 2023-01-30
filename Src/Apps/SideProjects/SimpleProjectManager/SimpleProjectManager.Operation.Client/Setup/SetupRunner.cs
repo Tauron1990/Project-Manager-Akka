@@ -2,6 +2,7 @@
 using FluentValidation.Results;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
+using SimpleProjectManager.Operation.Client.Setup.Devices;
 
 namespace SimpleProjectManager.Operation.Client.Setup;
 

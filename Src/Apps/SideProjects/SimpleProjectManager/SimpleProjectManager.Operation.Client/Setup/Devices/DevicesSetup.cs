@@ -3,7 +3,7 @@ using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
 using SimpleProjectManager.Operation.Client.Device;
 
-namespace SimpleProjectManager.Operation.Client.Setup;
+namespace SimpleProjectManager.Operation.Client.Setup.Devices;
 
 public sealed class DevicesSetup : ISetup
 {
@@ -21,9 +21,13 @@ public sealed class DevicesSetup : ISetup
         {
             string newInterface = await _clientInteraction.AskMultipleChoise(
                 configuration.Device.MachineInterface.Value,
-                MachineInterfaces.KnowenInterfaces.Select(ii => ii.Value).ToArray(),
+                MachineInterfaces.All().Select(ii => ii.Value).ToArray(),
                 "Welsche Maschiene wird hir betrieben?").ConfigureAwait(false);
 
+            ISetup? specificSetup = MachineInterfaces.CreateSetup(InterfaceId.From(newInterface));
+            if(specificSetup is not null)
+                configuration = await specificSetup.RunSetup(configuration).ConfigureAwait(false);
+            
             DeviceData device = configuration.Device with { Active = true, MachineInterface = InterfaceId.From(newInterface) };
 
             return configuration with { Device = device, Name = ObjectName.From(newName) };

@@ -1,13 +1,14 @@
-using System;
 using JetBrains.Annotations;
-using Vogen;
 
-namespace SimpleProjectManager.Client.Shared;
+namespace SimpleProjectManager.Shared;
 
 public static class SimpleLazy
 {
     public static Lazy<TData> Create<TData, TArg>(TArg arg, Func<TArg, TData> factory)
         => new StateFullLazy<TData, TArg>(factory, arg);
+
+    public static Lazy<TData> Create<TData>(Func<TData> factory)
+        => new StateLessLazy<TData>(factory);
 
     [PublicAPI]
     public abstract class Lazy<TData>
@@ -47,5 +48,19 @@ public static class SimpleLazy
 
             return result;
         }
+    }
+    
+    private sealed class StateLessLazy<TData> : Lazy<TData>
+    {
+        private readonly Func<TData> _factory;
+
+        internal StateLessLazy(Func<TData> factory)
+        {
+            _factory = factory;
+
+        }
+
+        protected override TData Create()
+            => _factory();
     }
 }

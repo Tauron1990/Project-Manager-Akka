@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
+using SimpleProjectManager.Operation.Client.Setup.Devices;
 
 namespace SimpleProjectManager.Operation.Client.Device;
 

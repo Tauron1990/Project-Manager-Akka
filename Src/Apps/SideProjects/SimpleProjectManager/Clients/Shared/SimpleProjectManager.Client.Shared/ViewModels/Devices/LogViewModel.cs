@@ -8,6 +8,7 @@ using DynamicData;
 using DynamicData.Binding;
 using JetBrains.Annotations;
 using ReactiveUI;
+using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 using Tauron;

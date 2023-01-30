@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reactive.Disposables;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
+using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 

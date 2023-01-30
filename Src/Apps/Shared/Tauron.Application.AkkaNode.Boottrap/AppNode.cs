@@ -39,8 +39,6 @@ public static partial class AppNode
 
         void AkkaConfig(IActorApplicationBuilder ab)
         {
-
-
             ab.ConfigureServices((_, cb) => cb.AddSingleton(AppInfoFactory))
                .ConfigureAkka(ConfigurateAkka);
 
