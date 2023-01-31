@@ -8,6 +8,8 @@ namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 
 public static class DeviceManagerMessages
 {
+    public const string DeviceDataId = $"{nameof(DeviceDataId)}--AFFEA925-812A-4B15-8A5F-2DBEF0657E3B";
+    
     public sealed record DeviceInfoResponse(bool Duplicate, SimpleResult Result);
 
     public interface IDeviceCommand

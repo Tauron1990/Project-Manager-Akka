@@ -1,10 +1,13 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
+using Akka.DistributedData;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
+using SimpleProjectManager.Operation.Client.Device.Core;
 using SimpleProjectManager.Shared.Services.Devices;
 using Tauron;
+using Tauron.Application;
 using Tauron.Operations;
 using Tauron.TAkka;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
@@ -98,7 +101,7 @@ public sealed partial class MachineManagerActor : ReceiveActor
         
         Init(Context)
            .PipeTo(
-                _serverManager,
+                Context.ActorOf<ClusterManager>("ClusterManager"),
                 Self,
                 failure: ex =>
                          {

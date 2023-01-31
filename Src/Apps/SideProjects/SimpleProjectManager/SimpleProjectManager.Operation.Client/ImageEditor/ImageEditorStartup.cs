@@ -17,13 +17,12 @@ public sealed class ImageEditorStartup
         _logger = logger;
     }
 
-    public async void Run()
+    public void Run()
     {
         try
         {
             if(!_configuration.Editor.Active) return;
 
-            await _starter.NameRegistrated.ConfigureAwait(false);
         }
         catch (Exception)
         {

@@ -3,7 +3,6 @@ using System.Reactive.Linq;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
 using Tauron.Features;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.Operations.Shared;
 
@@ -25,7 +24,7 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
 
     public sealed record RegisterName(ObjectName Name, IActorRef From);
 
-    public sealed record RegisterNameResponse(SimpleResult Error, ObjectName? Name, IActorRef From);
+    public sealed record RegisterNameResponse(bool Duplicate, ObjectName? Name, IActorRef From);
 
     public sealed record State(ILogger<NameRegistryFeature> Logger, ImmutableDictionary<ObjectName, IActorRef> CurrentClients);
 
@@ -74,13 +73,13 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
         if(p.State.CurrentClients.ContainsKey(p.Event.Name))
         {
             DuplicateNameFound(p.Event.Name, p.Sender.Path);
-            p.Sender.Tell(new RegisterNameResponse(SimpleResult.Failure($"Duplicate Name {p.Event.Name}"), null, p.Event.From));
+            p.Sender.Tell(new RegisterNameResponse(Duplicate: true, Name: null, p.Event.From));
 
             return p.State;
         }
 
         SuccessfulRegistrated(p.Sender.Path, p.Event.Name);
-        p.Sender.Tell(new RegisterNameResponse(SimpleResult.Success(), p.Event.Name, p.Event.From));
+        p.Sender.Tell(new RegisterNameResponse(Duplicate: false, p.Event.Name, p.Event.From));
         p.Context.Watch(p.Sender);
 
         return p.State with { CurrentClients = p.State.CurrentClients.Add(p.Event.Name, p.Sender) };

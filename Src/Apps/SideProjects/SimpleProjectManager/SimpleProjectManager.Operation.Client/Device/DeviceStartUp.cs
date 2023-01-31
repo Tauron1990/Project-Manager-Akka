@@ -41,8 +41,6 @@ public partial class DeviceStartUp
         {
             if(!_configuration.Device.Active) return;
 
-            await _hostStarter.NameRegistrated.ConfigureAwait(false);
-
             IMachine? inter = MachineInterfaces.Create(_configuration.Device.MachineInterface, _serviceProvider);
             if(inter is null)
             {

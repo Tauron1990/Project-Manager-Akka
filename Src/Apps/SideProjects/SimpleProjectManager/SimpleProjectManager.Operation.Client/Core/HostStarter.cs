@@ -4,30 +4,29 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Operation.Client.Config;
-using Tauron.Features;
+using Tauron.TAkka;
 
 namespace SimpleProjectManager.Operation.Client.Core;
 
 public partial class HostStarter : BackgroundService
 {
     private readonly OperationConfiguration _configuration;
+    private readonly NameService _nameService;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
     private readonly ILogger<HostStarter> _logger;
-    private readonly TaskCompletionSource _nameRegistrar = new();
     private readonly ActorSystem _system;
 
     public HostStarter(
         IHostApplicationLifetime hostApplicationLifetime, ILogger<HostStarter> logger, ActorSystem system,
-        OperationConfiguration configuration)
+        OperationConfiguration configuration, NameService nameService)
     {
         _hostApplicationLifetime = hostApplicationLifetime;
         _logger = logger;
         _system = system;
         _configuration = configuration;
+        _nameService = nameService;
 
     }
-
-    public Task NameRegistrated => _nameRegistrar.Task;
 
     [LoggerMessage(EventId = 56, Level = LogLevel.Critical, Message = "Error on Start Up Operations Client")]
     private partial void FatalErrorWhileStartHost(Exception e);
@@ -40,28 +39,10 @@ public partial class HostStarter : BackgroundService
         try
         {
             await Cluster.Get(_system).JoinAsync(Address.Parse(_configuration.AkkaUrl), stoppingToken).ConfigureAwait(false);
-            IActorRef nameActor = _system.ActorOf("ClientNameManager", NameFeature.Create(_configuration.Name));
-            var result = await NameRequest.Ask(nameActor, _logger).ConfigureAwait(false);
-
-            if(result.IsInValid())
-            {
-                NameRegistrationFailed();
-                _nameRegistrar.TrySetException(new InvalidOperationException("Name Requestation Failed"));
-
-                _hostApplicationLifetime.StopApplication();
-
-                return;
-            }
-
-            _nameRegistrar.TrySetResult();
+            _system.ActorOf(() => new NameClient(_configuration.Name, _nameService), "ClientNameManager");
         }
         catch (Exception e)
         {
-            if(e is OperationCanceledException)
-                _nameRegistrar.TrySetCanceled(stoppingToken);
-            else
-                _nameRegistrar.TrySetException(e);
-
             FatalErrorWhileStartHost(e);
             _hostApplicationLifetime.StopApplication();
             await _system.Terminate().ConfigureAwait(false);

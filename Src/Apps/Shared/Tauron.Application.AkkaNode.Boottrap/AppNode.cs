@@ -6,6 +6,7 @@ using Akka.Cluster;
 using Akka.Cluster.Hosting;
 using Akka.Cluster.Utility;
 using Akka.Configuration;
+using Akka.DistributedData;
 using Akka.Hosting;
 using Akka.Logger.NLog;
 using Akka.Serialization;
@@ -32,7 +33,8 @@ public static partial class AppNode
         {
             configurationBuilder.ConfigureLoggers(lcb => lcb.AddLogger<NLogLogger>())
                .WithCustomSerializer("hyperion", new[] { typeof(object) }, s => new HyperionSerializer(s, s.Settings.Config))
-               .WithExtensions(typeof(ClusterActorDiscoveryId))
+               .WithExtension<DistributedDataProvider>()
+               .WithExtension<ClusterActorDiscoveryId>()
                .WithClusterClientReceptionist()
                .AddHocon(config, HoconAddMode.Append);
         }

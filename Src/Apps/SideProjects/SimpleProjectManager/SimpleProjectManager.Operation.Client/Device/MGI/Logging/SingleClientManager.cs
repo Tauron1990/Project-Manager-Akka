@@ -2,6 +2,7 @@
 using System.Threading.Channels;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
+using SimpleProjectManager.Client.Operations.Shared;
 using Tauron.Servicemnager.Networking.Data;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;

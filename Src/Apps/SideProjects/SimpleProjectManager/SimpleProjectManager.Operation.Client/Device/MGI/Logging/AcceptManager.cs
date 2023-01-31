@@ -1,6 +1,7 @@
 ﻿using System.Net.Sockets;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
+using SimpleProjectManager.Client.Operations.Shared;
 using Tauron;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
