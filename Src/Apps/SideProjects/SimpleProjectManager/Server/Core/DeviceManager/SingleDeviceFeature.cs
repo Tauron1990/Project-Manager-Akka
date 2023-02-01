@@ -28,6 +28,7 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
 
     protected override void ConfigImpl()
     {
+        Receive<DeviceInformations>(obs => obs.Select(NewInfo));
         Receive<InitState>(obs => obs.Select(InitDeviceInfo));
         Receive<UpdateSensor>(obs => obs.Select(UpdateSensor));
         Receive<QuerySensorValue>(obs => obs.ToUnit(FindSensorValue));
@@ -42,6 +43,11 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
 
         IActorRef? loggerActor = Context.ActorOf(LoggerActor.Create(Context.System, CurrentState.Info.DeviceId), $"Logger--{Guid.NewGuid():N}");
         Receive<QueryLoggerBatch>(obs => obs.ToUnit(p => loggerActor.Forward(p.Event)));
+    }
+
+    private State NewInfo(StatePair<DeviceInformations, State> message)
+    {
+        return InitDeviceInfo(message.NewEvent(new InitState(), message.State with { Info = message.Event }));
     }
 
     private static State NewUI(StatePair<NewUIData, State> arg)

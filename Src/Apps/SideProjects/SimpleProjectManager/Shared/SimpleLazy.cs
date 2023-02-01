@@ -10,6 +10,10 @@ public static class SimpleLazy
     public static Lazy<TData> Create<TData>(Func<TData> factory)
         => new StateLessLazy<TData>(factory);
 
+    public static Lazy<TData> Create<TData>()
+        where  TData : new()
+        => new StateLessLazy<TData>(() => new TData());
+    
     [PublicAPI]
     public abstract class Lazy<TData>
     {

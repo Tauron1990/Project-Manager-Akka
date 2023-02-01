@@ -98,7 +98,7 @@ public sealed class DummyMachine : IMachine, IDisposable
         => _stateChanges = _stateChanges.SetItem(identifer, onButtonStateChanged);
 
     public Task<LogBatch> NextLogBatch()
-        => Task.FromResult(_dummyOperator.NextBatch());
+        => _dummyOperator.NextBatch();
 
     private void StateChange(DeviceButton button, bool state)
     {

@@ -6,6 +6,7 @@ using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Device.MGI.Logging;
+using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 using Tauron.TAkka;
@@ -17,13 +18,24 @@ internal sealed class MgiMachine : IMachine
     private const string MgiId = "CFDD2F56-AD5C-4A7C-A3B5-535A46B21EC5";
     private const int Port = 23421;
     
-    private readonly LogCollector _logCollector;
+    private readonly LogCollector<LogInfo> _logCollector;
     private readonly DeviceId _deviceId;
     private readonly ObjectName _clientName;
 
     internal MgiMachine(ILoggerFactory loggerFactory, OperationConfiguration operationConfiguration)
     {
-        _logCollector = new LogCollector(loggerFactory.CreateLogger<LogCollector>());
+        _logCollector = new LogCollector<LogInfo>(
+            "MGI_Client",
+            loggerFactory.CreateLogger<LogCollector<LogInfo>>(),
+            element =>
+                new LogData(
+                    LogLevel.Trace,
+                    LogCategory.From(element.Type),
+                    SimpleMessage.From(element.Content),
+                    element.TimeStamp,
+                    ImmutableDictionary<string, PropertyValue>.Empty
+                       .Add("Application", PropertyValue.From(element.Application))));
+        
         _deviceId = operationConfiguration.CreateDeviceId(MgiId);
         _clientName = operationConfiguration.Name;
     }

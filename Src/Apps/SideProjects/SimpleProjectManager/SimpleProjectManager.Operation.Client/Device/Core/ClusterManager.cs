@@ -6,7 +6,6 @@ using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Shared.Services.Devices;
 using Tauron;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Operation.Client.Device.Core;
 
@@ -57,14 +56,10 @@ public sealed partial class ClusterManager : ReceiveActor
                 newEntry,
                 entry => entry.With(info));
 
-            await _replicator.UpdateAsync(_dictionaryKey, dic, new WriteTo(1, TimeSpan.FromSeconds(20))).ConfigureAwait(false);
-            
-            info.DeviceManager.Tell(new DeviceManagerMessages.DeviceInfoResponse(Duplicate: false, SimpleResult.Success()));
+            await _replicator.UpdateAsync(_dictionaryKey, dic, new WriteTo(2, TimeSpan.FromSeconds(20))).ConfigureAwait(false);
         }
         catch (Exception exception)
         {
-            info.DeviceManager.Tell(new DeviceManagerMessages.DeviceInfoResponse(Duplicate:false, SimpleResult.Failure(exception)));
-
             if(exception is not TimeoutException)
                 throw;
 

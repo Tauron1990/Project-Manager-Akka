@@ -31,7 +31,11 @@ public static partial class AppNode
 
         void ConfigurateAkka(HostBuilderContext _, AkkaConfigurationBuilder configurationBuilder)
         {
-            configurationBuilder.ConfigureLoggers(lcb => lcb.AddLogger<NLogLogger>())
+            configurationBuilder.ConfigureLoggers(lcb =>
+                                                  {
+                                                      lcb.ClearLoggers();
+                                                      lcb.AddLogger<NLogLogger>();
+                                                  })
                .WithCustomSerializer("hyperion", new[] { typeof(object) }, s => new HyperionSerializer(s, s.Settings.Config))
                .WithExtension<DistributedDataProvider>()
                .WithExtension<ClusterActorDiscoveryId>()

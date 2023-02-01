@@ -8,7 +8,8 @@ public static class MachineInterfaces
 {
     private static readonly ImmutableDictionary<InterfaceId, Func<IDeviceProvider>> KnowenInterfaces =
         ImmutableDictionary<InterfaceId, Func<IDeviceProvider>>.Empty
-           .Add(InterfaceId.From("Dummy"), SimpleLazy.Create(() => new DummyDeviceProvider()));
+           .Add(InterfaceId.From("Dummy"), SimpleLazy.Create<DummyDeviceProvider>())
+           .Add(InterfaceId.From("Mgi"), SimpleLazy.Create<MgiDeviceProvider>());
 
     public static IEnumerable<InterfaceId> All()
         => KnowenInterfaces.Keys;

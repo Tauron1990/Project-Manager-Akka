@@ -37,7 +37,44 @@ public sealed partial class DeviceClusterManager : ReceiveActor
 
     private void ApplyDictonaryChanges(ORDictionary<string, DeviceInfoEntry> dic)
     {
+        _buffer.Clear();
+
+        foreach (var entry in _infoEntries)
+            _buffer.Add(entry.Key, entry.Value);
         
+        _infoEntries.Clear();
+
+        foreach (var pair in dic)
+        {
+            if(_buffer.Remove(pair.Key, out DeviceInfoEntry? old))
+            {
+                if(!pair.Value.Equals(old))
+                {
+                    Context.Unwatch(old.Client);
+                    Context.Watch(pair.Value.Client);
+
+                    _deathPactEntries[pair.Value.Client] = pair.Key;
+                    Context.Parent.Tell(new DeviceChanged(DeviceChangedType.Changed, pair.Value.DeviceInformations));
+                }
+            }
+            else
+            {
+                _deathPactEntries.Add(pair.Value.Client, pair.Key);
+
+                Context.Watch(pair.Value.Client);
+                Context.Parent.Tell(new DeviceChanged(DeviceChangedType.Add, pair.Value.DeviceInformations));
+            }
+            
+            _infoEntries.Add(pair.Key, pair.Value);
+        }
+
+        foreach (var entry in _buffer)
+        {
+            _deathPactEntries.Remove(entry.Value.Client);
+            Context.Parent.Tell(new DeviceChanged(DeviceChangedType.Remove, entry.Value.DeviceInformations));
+        }
+        
+        _buffer.Clear();
     }
     
     private void CurrentDevices(ORDictionary<string, DeviceInfoEntry> dictionary)

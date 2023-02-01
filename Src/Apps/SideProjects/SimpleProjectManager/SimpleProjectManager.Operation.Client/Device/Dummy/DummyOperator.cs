@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
+using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
+using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
@@ -15,7 +17,12 @@ internal sealed partial class DummyOperator : IDisposable
     
     private readonly Action<DeviceButton, bool> _stateChange;
     private readonly Action<DeviceSensor, DeviceManagerMessages.ISensorBox> _valueChange;
-    private ImmutableList<LogData> _currentLog = ImmutableList<LogData>.Empty;
+
+    private readonly Channel<LogData> _logData;
+    private readonly LogCollector<LogData> _currentLog = new(
+        "Dummy_Operator",
+        LoggingProvider.LoggerFactory.CreateLogger<LogCollector<LogData>>(),
+        e => e);
     private ButtonSensorPair[] _pairs;
 
 
@@ -30,7 +37,7 @@ internal sealed partial class DummyOperator : IDisposable
         _stateChange = stateChange;
         _valueChange = valueChange;
         _logger = logger;
-
+        _logData = Channel.CreateBounded<LogData>(new BoundedChannelOptions(1000) { FullMode = BoundedChannelFullMode.DropOldest });
     }
 
     public void Dispose()
@@ -52,6 +59,7 @@ internal sealed partial class DummyOperator : IDisposable
     // ReSharper disable once CognitiveComplexity
     private async Task Simulation()
     {
+        _currentLog.CollectLogs(_logData.Reader);
         try
         {
             while (!_cancellation.IsCancellationRequested)
@@ -61,17 +69,14 @@ internal sealed partial class DummyOperator : IDisposable
                 foreach (var sensorPair in _pairs)
                     UpdatePair(sensorPair);
 
-                #pragma warning disable GU0011
-                Interlocked.Exchange(
-                    ref _currentLog,
-                    _currentLog.Add(
-                        new LogData(
-                            LogLevel.Information,
-                            LogCategory.From("Test"),
-                            SimpleMessage.From("TestLog"),
-                            DateTime.Now,
-                            ImmutableDictionary<string, PropertyValue>.Empty
-                               .Add("Test", PropertyValue.From("TestValue")))));
+                _logData.Writer.TryWrite(
+                    new LogData(
+                        LogLevel.Information,
+                        LogCategory.From("Test"),
+                        SimpleMessage.From("TestLog"),
+                        DateTime.Now,
+                        ImmutableDictionary<string, PropertyValue>.Empty
+                           .Add("Test", PropertyValue.From("TestValue"))));
             }
         }
         catch (OperationCanceledException) { }
@@ -80,6 +85,7 @@ internal sealed partial class DummyOperator : IDisposable
             CriticalSimulationError(e);
         }
 
+        _logData.Writer.TryComplete();
         _cancellation.Dispose();
     }
 
@@ -111,12 +117,8 @@ internal sealed partial class DummyOperator : IDisposable
         _stateChange(sensorPair.Button, arg2: true);
     }
 
-    internal LogBatch NextBatch()
-    {
-        var current = Interlocked.Exchange(ref _currentLog, ImmutableList<LogData>.Empty);
-
-        return new LogBatch(_deviceId, current);
-    }
+    internal Task<LogBatch> NextBatch()
+        => _currentLog.GetLogs(_deviceId);
 
     internal void ApplyClick(DeviceId id)
         => _pairs.First(p => p.Button.Identifer == id).Clicked = true;

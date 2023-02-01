@@ -28,7 +28,7 @@ public sealed class ConfigurationValidator : AbstractValidator<OperationConfigur
            .WithMessage("Es wurde Kein Pfad zu einem Bild Editor Angegeben")
            .Must((_, value) => !value.Active || !Path.HasExtension(value.Path.Value)).WithMessage("Der Pfad muss eine Datei sein");
 
-        RuleFor(oc => oc.ServerUrl).CustomAsync(
+        /*RuleFor(oc => oc.ServerUrl).CustomAsync(
             async (value, context, _) =>
             {
                 try
@@ -49,6 +49,6 @@ public sealed class ConfigurationValidator : AbstractValidator<OperationConfigur
 
                     context.AddFailure(nameof(OperationConfiguration.ServerUrl), $"Fehler beim versuch den Server zu erreichen: {ex!.Message}");
                 }
-            });
+            });*/
     }
 }

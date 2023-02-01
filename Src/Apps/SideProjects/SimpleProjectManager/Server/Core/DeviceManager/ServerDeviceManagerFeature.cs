@@ -16,7 +16,9 @@ public sealed partial class
 
     protected override void ConfigImpl()
     {
-        Receive<DeviceInformations>(HandleNewDevice);
+        Context.ActorOf<DeviceClusterManager>();
+        
+        Receive<DeviceChanged>(HandleNewDevice);
         Receive<QueryDevices>(obs => obs.ToUnit(p => p.Sender.Tell(new DevicesResponse(p.State.Devices))));
 
         Receive<IDeviceCommand>(obs => obs.ToUnit(p => p.Context.Child(p.Event.DeviceName.Value).Forward(p.Event)));
@@ -24,6 +26,9 @@ public sealed partial class
             obs => obs.Select(
                 p =>
                 {
+                    if(!p.State.Devices.ContainsKey(new DeviceId(p.Event.ActorRef.Path.Name)))
+                        return p.State;
+                    
                     p.State.Events.Publish(new DeviceRemoved(new DeviceId(p.Event.ActorRef.Path.Name)));
 
                     return p.State with { Devices = p.State.Devices.Remove(new DeviceId(p.Event.ActorRef.Path.Name)) };
@@ -35,8 +40,8 @@ public sealed partial class
     private static partial void NewDeviceRegistration(ILogger logger, DeviceId id, DeviceName name, ActorPath path);
     #pragma warning restore EPS05
 
-    [LoggerMessage(EventId = 58, Level = LogLevel.Warning, Message = "Duplicate Device {name} Registration From {path}")]
-    private static partial void DuplicateDeviceRegistration(ILogger logger, DeviceId name, ActorPath path);
+    // [LoggerMessage(EventId = 58, Level = LogLevel.Warning, Message = "Duplicate Device {name} Registration From {path}")]
+    // private static partial void DuplicateDeviceRegistration(ILogger logger, DeviceId name, ActorPath path);
 
     [LoggerMessage(EventId = 59, Level = LogLevel.Warning, Message = "Empty DeviceName form {path}")]
     private static partial void EmptyDeviceNameRegistration(ILogger logger, ActorPath path);
@@ -44,16 +49,14 @@ public sealed partial class
     [LoggerMessage(EventId = 60, Level = LogLevel.Error, Message = "Invalid ActorName from {path}")]
     private static partial void InvalidActorName(ILogger logger, Exception ex, ActorPath path);
 
-    private IObservable<State> HandleNewDevice(IObservable<StatePair<DeviceInformations, State>> obs)
+    private IObservable<State> HandleNewDevice(IObservable<StatePair<DeviceChanged, State>> obs)
         => obs.Select(
             pair =>
             {
-                //TODO Change Way Handle New Devices
-                
-                (DeviceInformations evt, State state) = pair;
-                NewDeviceRegistration(Logger, evt.DeviceId, evt.Name, pair.Sender.Path);
+                ((DeviceChangedType change, DeviceInformations device), State state) = pair;
+                NewDeviceRegistration(Logger, device.DeviceId, device.Name, pair.Sender.Path);
 
-                if(string.IsNullOrWhiteSpace(evt.Name.Value))
+                if(string.IsNullOrWhiteSpace(device.Name.Value))
                 {
                     EmptyDeviceNameRegistration(Logger, pair.Sender.Path);
                     //pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Failure("Empty Device Name")));
@@ -61,35 +64,49 @@ public sealed partial class
                     return state;
                 }
 
-
-                if(state.Devices.ContainsKey(evt.DeviceId))
+                switch (change)
                 {
-                    DuplicateDeviceRegistration(Logger, evt.DeviceId, pair.Sender.Path);
-                    //pair.Sender.Tell(new DeviceInfoResponse(Duplicate: true, Result: SimpleResult.Failure("Duplicate Device Registration")));
+                    case DeviceChangedType.Add:
+                        try
+                        {
+                            State newState = state with
+                                             {
+                                                 Devices = state.Devices.Add(device.DeviceId, device.Name),
+                                             };
 
-                    return state;
+                            pair.Context.Watch(pair.Context.ActorOf(SingleDeviceFeature.New(device, state.Events), device.DeviceId.Value));
+                            state.Events.Publish(new NewDeviceEvent(device));
+                            //pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Success()));
+
+                            return newState;
+                        }
+                        catch (InvalidActorNameException exception)
+                        {
+                            InvalidActorName(Logger, exception, pair.Sender.Path);
+                            //pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Failure(exception.Message)));
+
+                            return state;
+                        }
+                    case DeviceChangedType.Remove:
+                        IActorRef? actor = Context.Child(device.DeviceId.Value);
+                        if(actor is not null)
+                        {
+                            Context.Unwatch(actor);
+                            Context.Stop(actor);
+                            state.Events.Publish(new DeviceRemoved(device.DeviceId));
+
+                            return state with { Devices = state.Devices.Remove(device.DeviceId) };
+                        }
+                        break;
+                    case DeviceChangedType.Changed:
+                        Context.Child(device.DeviceId.Value)?.Tell(device);
+                        state.Events.Publish(new DeviceUpdated(device.DeviceId, device));
+                        break;
+                    default:
+                        return state;
                 }
 
-                try
-                {
-                    State newState = state with
-                                     {
-                                         Devices = state.Devices.Add(evt.DeviceId, evt.Name),
-                                     };
-
-                    pair.Context.Watch(pair.Context.ActorOf(SingleDeviceFeature.New(evt, state.Events), evt.DeviceId.Value));
-                    state.Events.Publish(new NewDeviceEvent(evt));
-                    //pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Success()));
-
-                    return newState;
-                }
-                catch (InvalidActorNameException exception)
-                {
-                    InvalidActorName(Logger, exception, pair.Sender.Path);
-                    //pair.Sender.Tell(new DeviceInfoResponse(Duplicate: false, Result: SimpleResult.Failure(exception.Message)));
-
-                    return state;
-                }
+                return state;
             });
 
     public sealed record State(DeviceEventHandler Events, ImmutableDictionary<DeviceId, DeviceName> Devices);

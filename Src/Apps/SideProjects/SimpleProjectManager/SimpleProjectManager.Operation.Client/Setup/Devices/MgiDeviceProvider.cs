@@ -4,7 +4,7 @@ using Stl.DependencyInjection;
 
 namespace SimpleProjectManager.Operation.Client.Setup.Devices;
 
-public sealed class MgiDeviceProvicer : IDeviceProvider
+public sealed class MgiDeviceProvider : IDeviceProvider
 {
     public ISetup? DeviceSetup()
         => null;
