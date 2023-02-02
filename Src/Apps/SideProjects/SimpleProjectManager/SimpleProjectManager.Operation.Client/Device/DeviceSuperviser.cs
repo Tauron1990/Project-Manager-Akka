@@ -15,8 +15,8 @@ public class DeviceSuperviser : ReceiveActor
     public DeviceSuperviser(IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _clusterManager = Context.ActorOf<ClusterManagerActor>("ClusterManager");
-        Context.ActorOf<ServerDiviceManagerActor>("ServerDeviceManager");
-        Context.ActorOf(() => new MachineManagerActor(machine, configuration, loggerFactory), "MachineManager");
+        IActorRef server = Context.ActorOf<ServerDiviceManagerActor>("ServerDeviceManager");
+        Context.ActorOf(() => new MachineManagerActor(server, machine, configuration, loggerFactory), "MachineManager");
 
         Receive<DeviceInformations>(info => _clusterManager.Forward(info));
         Receive<DeviceServerOffline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));

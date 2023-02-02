@@ -1,20 +1,17 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
-using Akka.DistributedData;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Device.Core;
-using SimpleProjectManager.Shared.Services.Devices;
 using Tauron;
-using Tauron.Application;
 using Tauron.Operations;
 using Tauron.TAkka;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
 
 namespace SimpleProjectManager.Operation.Client.Device;
 
-public sealed partial class MachineManagerActor : ReceiveActor
+public sealed partial class MachineManagerActor : ReceiveActor, IWithStash
 {
     private readonly InterfaceId _deviceName;
     private readonly ILogger<MachineManagerActor> _logger;
@@ -22,15 +19,16 @@ public sealed partial class MachineManagerActor : ReceiveActor
     private readonly IMachine _machine;
 
     private DeviceInformations _device = DeviceInformations.Empty;
-    private IActorRef _serverManager = ActorRefs.Nobody;
+    private IActorRef _serverManager;
 
-    public MachineManagerActor(IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
+    public MachineManagerActor(IActorRef serverManager, IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _deviceName = configuration.Device.MachineInterface;
+        _serverManager = serverManager;
         _machine = machine;
         _logger = loggerFactory.CreateLogger<MachineManagerActor>();
         _loggerFactory = loggerFactory;
-
+        
         Become(Starting);
     }
 
@@ -41,11 +39,23 @@ public sealed partial class MachineManagerActor : ReceiveActor
         base.PostStop();
     }
 
+    private void Starting()
+    {
+        Receive<DeviceInformations>(
+            info =>
+            {
+                _device = info;
+                Context.Parent.Tell(_device);
+                
+                Stash.UnstashAll();
+                Become(Running);
+            });
+        
+        ReceiveAny(_ => Stash.Stash());
+    }
+    
     private void Running()
     {
-        var stack = new Stack<DeviceUiGroup>();
-        stack.Push(_device.RootUi);
-
         _device.CollectButtons().Foreach(
             btn => Context.ActorOf(
                 () => new MachineButtonHandlerActor(_device.DeviceId, _machine, btn.Button, _serverManager, btn.State),
@@ -70,25 +80,6 @@ public sealed partial class MachineManagerActor : ReceiveActor
     #pragma warning disable EPS05
     private partial void ErrorOnRegisterDeviceOnServer(SimpleResult error);
     #pragma warning restore EPS05
-
-    private void Starting()
-    {
-        void Invalid() { }
-
-        Receive<DeviceInfoResponse>(
-            response =>
-            {
-                if(response.Result.IsSuccess())
-                {
-                    Become(Running);
-
-                    return;
-                }
-
-                ErrorOnRegisterDeviceOnServer(response.Result);
-                Become(Invalid);
-            });
-    }
 
     [LoggerMessage(EventId = 65, Level = LogLevel.Error, Message = "Error on Collect Device Informations {deviceName}")]
     private partial void ErrorOnCollectDeviceinformations(Exception ex, in InterfaceId deviceName);
@@ -123,4 +114,6 @@ public sealed partial class MachineManagerActor : ReceiveActor
 
         return _device;
     }
+
+    public IStash Stash { get; set; } = null!;
 }
