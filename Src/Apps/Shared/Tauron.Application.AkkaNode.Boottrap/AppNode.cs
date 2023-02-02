@@ -31,12 +31,30 @@ public static partial class AppNode
 
         void ConfigurateAkka(HostBuilderContext _, AkkaConfigurationBuilder configurationBuilder)
         {
-            configurationBuilder.ConfigureLoggers(lcb =>
-                                                  {
-                                                      lcb.ClearLoggers();
-                                                      lcb.AddLogger<NLogLogger>();
-                                                  })
-               .WithCustomSerializer("hyperion", new[] { typeof(object) }, s => new HyperionSerializer(s, s.Settings.Config))
+            configurationBuilder.ConfigureLoggers(
+                lcb =>
+                {
+                    lcb.ClearLoggers();
+                    lcb.AddLogger<NLogLogger>();
+                });
+
+                var hyperion = 
+                        """
+akka {
+  actor {
+    serializers {
+      hyperion = "Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion"
+    }
+    serialization-bindings {
+      "System.Object" = hyperion
+    }
+  }
+}
+
+""";
+                
+               configurationBuilder
+                  .AddHocon(ConfigurationFactory.ParseString(hyperion), HoconAddMode.Replace)
                .WithExtension<DistributedDataProvider>()
                .WithExtension<ClusterActorDiscoveryId>()
                .WithClusterClientReceptionist()

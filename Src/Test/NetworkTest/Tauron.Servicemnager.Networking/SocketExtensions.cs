@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using System.Runtime.InteropServices;
 
 namespace Tauron.Servicemnager.Networking;
 
@@ -53,8 +54,9 @@ public static class SocketExtensions
             byte[] outValue = BitConverter.GetBytes(0);
 
             // Write SIO_VALS to Socket IOControl.
-            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-            socket.IOControl(IOControlCode.KeepAliveValues, inValue, outValue);
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, optionValue: true);
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                socket.IOControl(IOControlCode.KeepAliveValues, inValue, outValue);
         }
         catch (SocketException)
         {

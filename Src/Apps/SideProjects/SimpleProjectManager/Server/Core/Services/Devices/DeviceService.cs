@@ -12,17 +12,20 @@ namespace SimpleProjectManager.Server.Core.Services.Devices;
 
 public partial class DeviceService : IDeviceService, IDisposable
 {
-    private readonly IActorRef _deviceManagerSelection;
+    private readonly ActorSelection _deviceManagerSelection;
     private readonly ILogger<DeviceService> _logger;
     private readonly IDisposable _subscription;
 
-    //private IActorRef? _deviceManager;
+    private IActorRef? _deviceManager;
     private readonly ConcurrentDictionary<DeviceId, DateTime> _lastLogs = new();
 
     public DeviceService(ActorSystem actorSystem, DeviceEventHandler handler, ILogger<DeviceService> logger)
     {
         _logger = logger;
-        _deviceManagerSelection = actorSystem.ActorOf(
+        _deviceManagerSelection = actorSystem.ActorSelection(DeviceInformations.ManagerPath);
+            
+            actorSystem
+           .ActorOf(
             ClusterSingletonProxy
                .Props(DeviceInformations.ManagerPath, ClusterSingletonProxySettings.Create(actorSystem)));
         //actorSystem.ActorSelection(DeviceInformations.ManagerPath);
@@ -168,12 +171,12 @@ public partial class DeviceService : IDeviceService, IDisposable
         }
     }
 
-    //private Task<IActorRef> GetDeviceManager()
-    //{
-    //_deviceManager ??= await _deviceManagerSelection.ResolveOne(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+    private async Task<IActorRef> GetDeviceManager()
+    {
+        _deviceManager ??= await _deviceManagerSelection.ResolveOne(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 
-    //return _deviceManager ?? ActorRefs.Nobody;
-    //}
+        return _deviceManager ?? ActorRefs.Nobody;
+    }
 
     [LoggerMessage(EventId = 65, Level = LogLevel.Error, Message = "Error on Process Ask DeviceManager")]
     private partial void ErrorOnProcessRequest(Exception ex);
@@ -182,7 +185,7 @@ public partial class DeviceService : IDeviceService, IDisposable
     {
         try
         {
-            return await runner(_deviceManagerSelection /*await GetDeviceManager().ConfigureAwait(false)*/).ConfigureAwait(false);
+            return await runner(await GetDeviceManager().ConfigureAwait(false)).ConfigureAwait(false);
         }
         catch (Exception e)
         {

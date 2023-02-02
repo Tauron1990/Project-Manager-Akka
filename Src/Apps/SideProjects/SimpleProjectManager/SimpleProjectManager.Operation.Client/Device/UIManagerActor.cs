@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
+using SimpleProjectManager.Operation.Client.Device.Core;
 using SimpleProjectManager.Shared.Services.Devices;
 using Tauron;
 
@@ -24,6 +25,9 @@ public sealed partial class UIManagerActor : ReceiveActor
 
         Receive<Status.Failure>(OnFailure);
         Receive<DeviceUiGroup>(OnNewUiGroup);
+        
+        Receive<DeviceServerOffline>(_ => {});
+        Receive<DeviceServerOnline>(_ => { });
     }
 
     private void OnNewUiGroup(DeviceUiGroup uiGroup)

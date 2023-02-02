@@ -76,7 +76,7 @@ public abstract class ValueObject
             type => type
                .GetTypeInfo()
                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-               .OrderBy(info => info.Name)
+               .OrderBy(info => info.Name, StringComparer.Ordinal)
                .ToList());
     }
 }

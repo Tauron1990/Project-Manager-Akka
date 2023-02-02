@@ -35,7 +35,7 @@ public partial class DeviceStartUp
     [LoggerMessage(EventId = 65, Level = LogLevel.Error, Message = "Device {name} not Created")]
     private partial void NoDeviceCreated(in InterfaceId name);
 
-    public async void Run()
+    public void Run()
     {
         try
         {
@@ -51,7 +51,7 @@ public partial class DeviceStartUp
 
             _actorSystem.ActorOf(
                 DependencyResolver.For(_actorSystem)
-                   .Props<MachineManagerActor>(inter),
+                   .Props<DeviceSuperviser>(inter),
                 "ClientDeviceManager");
         }
         catch (Exception e)

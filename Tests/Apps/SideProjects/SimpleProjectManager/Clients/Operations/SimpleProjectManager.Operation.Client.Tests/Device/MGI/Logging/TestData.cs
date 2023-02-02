@@ -9,10 +9,10 @@ namespace SimpleProjectManager.Operation.Client.Tests.Device.MGI.Logging;
 public class TestData
 {
     public static IMessageStream Single()
-        => new TestSocket(true);
+        => new TestSocket(single: true);
 
     public static IMessageStream Multi()
-        => new TestSocket(false);
+        => new TestSocket(single: false);
 
     private static (IMemoryOwner<byte> Data, int Lenght) GetMessages()
     {
@@ -47,7 +47,7 @@ public class TestData
         
         private ReadOnlySequence<byte> _buffer;
         
-        public TestSocket(bool single)
+        internal TestSocket(bool single)
         {
             if(single)
             {
@@ -80,13 +80,13 @@ public class TestData
             private ReadOnlySequence<byte> _buffer;
             private SequencePosition _sequencePosition;
             
-            public TestByteReader(ReadOnlySequence<byte> buffer)
+            internal TestByteReader(ReadOnlySequence<byte> buffer)
                 => _buffer = buffer;
 
             public void Dispose()
                 => _buffer = default;
 
-            public bool HasData => !_sequencePosition.Equals(_buffer.End);
+            internal bool HasData => !_sequencePosition.Equals(_buffer.End);
 
             public ValueTask<int> ReadAsync(Memory<byte> mem, CancellationToken token)
             {

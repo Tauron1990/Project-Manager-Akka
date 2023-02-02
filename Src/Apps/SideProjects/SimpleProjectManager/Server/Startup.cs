@@ -4,6 +4,7 @@ using Akka.Persistence;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
+using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Server.Configuration;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
 using SimpleProjectManager.Server.Core.DeviceManager;
@@ -89,6 +90,7 @@ public class Startup
                     }
                     catch (ObjectDisposedException) { }
                 })
+           .RegisterStartUp<LoggingProvider>(prov => prov.Run())
            .RegisterStartUp<ClusterJoinSelf>(c => c.Run())
            .RegisterStartUp<JobManagerRegistrations>(jm => jm.Run())
            .RegisterStartUp<ProjectionInitializer>(i => i.Run())

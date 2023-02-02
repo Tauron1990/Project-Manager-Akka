@@ -17,8 +17,7 @@ public class DeviceManagerStartUp
     }
 
     public void Run()
-    {
-        Props? singleTon = ClusterSingletonManager.Props(ServerDeviceManagerFeature.Create(_deviceEventHandler), ClusterSingletonManagerSettings.Create(_system));
-        _system.ActorOf(singleTon, DeviceInformations.ManagerName);
-    }
+        => _system.ActorOf(
+            ServerDeviceManagerFeature.Create(_deviceEventHandler), 
+            DeviceInformations.ManagerName);
 }

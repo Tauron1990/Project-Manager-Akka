@@ -48,6 +48,7 @@ public sealed partial class NameClient : ReceiveActor
     private void ActorUp(ClusterActorDiscoveryMessage.ActorUp up)
     {
         NewRegistry(up.Actor.Path);
+        if(_registrys.ContainsKey(up.Actor)) return;
         
         _registrys.Add(up.Actor, default(UnInitialized));
         Context.ActorOf(() => new SingleNameServer(up.Actor, _name));

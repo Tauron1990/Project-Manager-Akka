@@ -10,16 +10,15 @@ namespace SimpleProjectManager.Operation.Client.Device;
 
 public class DeviceSuperviser : ReceiveActor
 {
-    private readonly IActorRef _clusterManager;
-    
     public DeviceSuperviser(IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
     {
-        _clusterManager = Context.ActorOf<ClusterManagerActor>("ClusterManager");
-        IActorRef server = Context.ActorOf<ServerDiviceManagerActor>("ServerDeviceManager");
+        IActorRef clusterManager = Context.ActorOf<ClusterManagerActor>("ClusterManager");
+        IActorRef server = Context.ActorOf(() => new ServerDiviceManagerActor(Self), "ServerDeviceManager");
         Context.ActorOf(() => new MachineManagerActor(server, machine, configuration, loggerFactory), "MachineManager");
 
-        Receive<DeviceInformations>(info => _clusterManager.Forward(info));
+        Receive<DeviceInformations>(info => clusterManager.Forward(info));
         Receive<DeviceServerOffline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
-        Receive<DeviceServerOnline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
+        Receive<DeviceServerOnline>(msg => Context.GetChildren()
+                                       .Foreach(actor => actor.Forward(msg)));
     }
 }

@@ -17,9 +17,9 @@ public sealed partial class MachineManagerActor : ReceiveActor, IWithStash
     private readonly ILogger<MachineManagerActor> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly IMachine _machine;
-
+    private readonly IActorRef _serverManager;
+    
     private DeviceInformations _device = DeviceInformations.Empty;
-    private IActorRef _serverManager;
 
     public MachineManagerActor(IActorRef serverManager, IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
     {
@@ -44,7 +44,7 @@ public sealed partial class MachineManagerActor : ReceiveActor, IWithStash
         Receive<DeviceInformations>(
             info =>
             {
-                _device = info;
+                _device = info with { DeviceManager = Context.Self };
                 Context.Parent.Tell(_device);
                 
                 Stash.UnstashAll();
@@ -72,6 +72,7 @@ public sealed partial class MachineManagerActor : ReceiveActor, IWithStash
             Context.ActorOf(() => new LoggerActor(_machine, _device.DeviceId));
 
         Receive<ButtonClick>(c => Context.Child(c.Identifer.Value).Forward(c));
+        
         Receive<DeviceServerOffline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
         Receive<DeviceServerOnline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
     }
@@ -86,15 +87,8 @@ public sealed partial class MachineManagerActor : ReceiveActor, IWithStash
 
     protected override void PreStart()
     {
-        _serverManager = Context.ActorOf(
-            ClusterSingletonProxy
-               .Props(DeviceInformations.ManagerPath, ClusterSingletonProxySettings.Create(Context.System)),
-            "ServerConnection");
-
-        
         Init(Context)
            .PipeTo(
-                Context.ActorOf<ClusterManagerActor>("ClusterManager"),
                 Self,
                 failure: ex =>
                          {

@@ -23,7 +23,7 @@ public sealed class MessageReaderTest
     {
         private readonly MemoryStream _messages = new();
 
-        public MessageTestSource(IEnumerable<NetworkMessage> messages)
+        internal MessageTestSource(IEnumerable<NetworkMessage> messages)
         {
             foreach (NetworkMessage message in messages)
             {

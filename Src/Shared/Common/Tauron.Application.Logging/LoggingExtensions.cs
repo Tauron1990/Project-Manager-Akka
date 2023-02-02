@@ -10,6 +10,7 @@ using NLog.Layouts;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Tauron.Application.Logging.impl;
+using LogLevel = NLog.LogLevel;
 
 namespace Tauron.Application.Logging;
 
@@ -83,7 +84,7 @@ public static class LoggingExtensions
                         });
 
                     b.Configuration.AddRuleForAllLevels(defaultFile);
-                    b.Configuration.AddRuleForAllLevels(defaultConsole);
+                    b.Configuration.AddRule(LogLevel.Info, LogLevel.Fatal, defaultConsole);
                 });
 
         return loggerConfiguration;

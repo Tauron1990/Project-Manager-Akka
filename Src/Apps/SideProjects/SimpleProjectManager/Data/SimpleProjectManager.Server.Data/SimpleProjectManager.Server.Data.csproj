@@ -42,7 +42,7 @@
         </PackageReference>
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Vogen" Version="3.0.11" />
+        <PackageReference Include="Vogen" Version="3.0.12" />
     </ItemGroup>
 
     <ItemGroup>

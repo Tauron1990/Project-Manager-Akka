@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Reactive.Linq;
 using Akka.Actor;
+using Akka.Cluster.Utility;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Server.Core.DeviceManager.Events;
 using SimpleProjectManager.Shared.Services.Devices;
@@ -8,15 +9,29 @@ using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManager
 
 namespace SimpleProjectManager.Server.Core.DeviceManager;
 
-public sealed partial class
-    ServerDeviceManagerFeature : ActorFeatureBase<ServerDeviceManagerFeature.State>
+public sealed partial class ServerDeviceManagerFeature 
+    : ActorFeatureBase<ServerDeviceManagerFeature.State>
 {
     public static Props Create(DeviceEventHandler deviceEvents)
         => Feature.Props(Feature.Create(() => new ServerDeviceManagerFeature(), _ => new State(deviceEvents, ImmutableDictionary<DeviceId, DeviceName>.Empty)));
 
+    public override void PreStart()
+    {
+        ClusterActorDiscovery.Get(Context.System)
+           .RegisterActor(new ClusterActorDiscoveryMessage.RegisterActor(Context.Self, DeviceDataId));
+        base.PreStart();
+    }
+
+    public override void PostStop()
+    {
+        ClusterActorDiscovery.Get(Context.System)
+           .UnRegisterActor(new ClusterActorDiscoveryMessage.UnregisterActor(Context.Self));
+        base.PostStop();
+    }
+
     protected override void ConfigImpl()
     {
-        Context.ActorOf<DeviceClusterManager>();
+        Context.ActorOf<DeviceClusterManager>("DeviceclusterManager");
         
         Receive<DeviceChanged>(HandleNewDevice);
         Receive<QueryDevices>(obs => obs.ToUnit(p => p.Sender.Tell(new DevicesResponse(p.State.Devices))));

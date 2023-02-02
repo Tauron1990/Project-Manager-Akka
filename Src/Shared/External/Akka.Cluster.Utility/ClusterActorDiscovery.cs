@@ -28,6 +28,6 @@ public sealed class ClusterActorDiscovery : IExtension
     public void RegisterActor(ClusterActorDiscoveryMessage.RegisterActor actor)
         => Discovery.Tell(actor);
 
-    public void UnRegisterActor(ClusterActorDiscoveryMessage.UnmonitorActor actor)
+    public void UnRegisterActor(ClusterActorDiscoveryMessage.UnregisterActor actor)
         => Discovery.Tell(actor);
 }

@@ -25,7 +25,7 @@ public sealed partial class DeviceClusterManager : ReceiveActor
         _dictionaryKey = new ORDictionaryKey<string, DeviceInfoEntry>(DeviceManagerMessages.DeviceDataId);
         
         _replicator.Replicator.Tell(Dsl.Subscribe(_dictionaryKey, Self));
-        _replicator.GetAsync(_dictionaryKey, ReadLocal.Instance)
+        GetData()
            .PipeTo(Self)
            .Ignore();
         
@@ -33,6 +33,10 @@ public sealed partial class DeviceClusterManager : ReceiveActor
         Receive<ORDictionary<string, DeviceInfoEntry>>(CurrentDevices);
         Receive<Changed>(ChangedData);
         Receive<Terminated>(ClientTerminated);
+        
+        async Task<ORDictionary<string, DeviceInfoEntry>> GetData()
+            => await _replicator.GetAsync(_dictionaryKey, ReadLocal.Instance).ConfigureAwait(false) 
+            ?? ORDictionary<string, DeviceInfoEntry>.Empty;
     }
 
     private void ApplyDictonaryChanges(ORDictionary<string, DeviceInfoEntry> dic)
@@ -83,7 +87,7 @@ public sealed partial class DeviceClusterManager : ReceiveActor
     private void ChangedData(Changed obj)
         => ApplyDictonaryChanges(obj.Get(_dictionaryKey));
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Unkowen Client Actor {path}")]
+    [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "Unkowen Client Actor {path}")]
     private partial void UnkowenClientActor(ActorPath path);
     
     private void ClientTerminated(Terminated obj)
@@ -106,7 +110,7 @@ public sealed partial class DeviceClusterManager : ReceiveActor
         await _replicator.UpdateAsync(_dictionaryKey, data.Remove(_cluster, id), new WriteTo(1, TimeSpan.FromSeconds(20))).ConfigureAwait(false);
     }
     
-    [LoggerMessage(Level = LogLevel.Error, Message = "Error on Replicate Data for Server")]
+    [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Error on Replicate Data for Server")]
     private partial void ReplicatorError(Exception ex);
     
     private void OnError(Status.Failure obj)

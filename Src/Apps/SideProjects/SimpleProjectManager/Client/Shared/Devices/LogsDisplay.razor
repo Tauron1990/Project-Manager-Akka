@@ -10,7 +10,7 @@
         @foreach (var group in context)
         {
             <MudTabPanel Text="@group.Key" @key="group.Key">
-                <MudDataGrid T="LogData" Virtualize="true" Items="group.Logs" Dense="true" SortMode="SortMode.Single">
+                <MudDataGrid T="LogData" Virtualize="true" Groupable="true" Items="group.Logs" Dense="true" SortMode="SortMode.Single">
                     <Columns>
                         <HierarchyColumn T="LogData" ButtonDisabledFunc="data => data.Data.IsEmpty"/>
                         <Column T="LogData" Field="LogLevel" Title="Level" ShowFilterIcon="true"

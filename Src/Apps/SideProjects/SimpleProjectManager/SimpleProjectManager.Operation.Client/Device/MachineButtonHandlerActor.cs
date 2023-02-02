@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using SimpleProjectManager.Operation.Client.Device.Core;
 using SimpleProjectManager.Shared.Services.Devices;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
 
@@ -23,6 +24,9 @@ public sealed class MachineButtonHandlerActor : ReceiveActor
 
         Receive<ButtonClick>(OnButtonClick);
         machine.WhenButtonStateChanged(button.Identifer, OnButtonStateChanged);
+        
+        Receive<DeviceServerOffline>(_ => {});
+        Receive<DeviceServerOnline>(_ => { });
     }
 
     private void OnButtonStateChanged(bool state)

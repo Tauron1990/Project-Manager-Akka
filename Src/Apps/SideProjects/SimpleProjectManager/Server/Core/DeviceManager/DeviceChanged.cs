@@ -3,10 +3,3 @@
 namespace SimpleProjectManager.Server.Core.DeviceManager;
 
 public sealed record DeviceChanged(DeviceChangedType Type, DeviceInformations Device);
-
-public enum DeviceChangedType
-{
-    Remove,
-    Add,
-    Changed,
-}

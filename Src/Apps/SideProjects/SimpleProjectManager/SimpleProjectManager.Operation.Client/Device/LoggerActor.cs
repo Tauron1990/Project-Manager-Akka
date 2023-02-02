@@ -1,5 +1,6 @@
 using Akka.Actor;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
+using SimpleProjectManager.Operation.Client.Device.Core;
 using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Operation.Client.Device;
@@ -10,6 +11,8 @@ public sealed class LoggerActor : ReceiveActor, IWithTimers
     private readonly LogDistribution _logDistribution;
     private readonly IMachine _machine;
 
+    private bool _isOnline;
+
     public LoggerActor(IMachine machine, DeviceId deviceName)
     {
         _machine = machine;
@@ -17,6 +20,14 @@ public sealed class LoggerActor : ReceiveActor, IWithTimers
         _logDistribution = new LogDistribution(Context.System);
 
         ReceiveAsync<RunUpdate>(OnSendLog);
+        Receive<DeviceServerOnline>(_ =>
+                                    {
+                                        _isOnline = true;
+                                    });
+        Receive<DeviceServerOffline>(_ =>
+                                     {
+                                         _isOnline = false;
+                                     });
     }
 
     public ITimerScheduler Timers { get; set; } = null!;
@@ -32,12 +43,20 @@ public sealed class LoggerActor : ReceiveActor, IWithTimers
 
     private async Task OnSendLog(RunUpdate _)
     {
-        LogBatch batch = await _machine.NextLogBatch().ConfigureAwait(false);
+        try
+        {
+            if(!_isOnline) return;
 
-        if(batch.IsEmpty) return;
+            LogBatch batch = await _machine.NextLogBatch().ConfigureAwait(false);
 
-        _logDistribution.Publish(batch with { DeviceName = _deviceName });
+            if(batch.IsEmpty) return;
 
-        SheduleUpdate();
+            _logDistribution.Publish(batch with { DeviceName = _deviceName });
+
+        }
+        finally
+        {
+            SheduleUpdate();
+        }
     }
 }

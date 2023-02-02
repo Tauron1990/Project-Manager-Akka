@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+#pragma warning disable EPS02
 
 namespace Tauron.Servicemnager.Networking.Data;
 

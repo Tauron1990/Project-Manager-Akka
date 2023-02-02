@@ -1,7 +1,8 @@
 ﻿using System.Buffers;
-using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Threading.Channels;
+
+#pragma warning disable EPS02
 
 namespace Tauron.Servicemnager.Networking.Data;
 

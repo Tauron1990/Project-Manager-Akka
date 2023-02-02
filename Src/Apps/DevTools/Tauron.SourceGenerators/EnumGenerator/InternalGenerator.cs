@@ -32,7 +32,7 @@ public class InternalGenerator : IIncrementalGenerator
         IncrementalValuesProvider<EnumDeclarationSyntax> enumDeclarations = context.SyntaxProvider
            .CreateSyntaxProvider(
                 BaseTypeDeclarationHelpers.MatchTypeAndHasAttributes<EnumDeclarationSyntax>, // select enums with attributes
-                BaseTypeDeclarationHelpers.GetSemanticTargetForGeneration<EnumDeclarationSyntax>(s => s.ToDisplayString() == EnumGenerationHelper.FullName)) // sect the enum with the [EnumExtensions] attribute
+                BaseTypeDeclarationHelpers.GetSemanticTargetForGeneration<EnumDeclarationSyntax>(s => string.Equals(s.ToDisplayString(), EnumGenerationHelper.FullName, StringComparison.Ordinal))) // sect the enum with the [EnumExtensions] attribute
            .Where(static m => m is not null)!; // filter out attributed enums that we don't care about
 
         // Combine the selected enums with the `Compilation`
@@ -62,7 +62,7 @@ public class InternalGenerator : IIncrementalGenerator
         // EnumToGenerate for it, so make sure we have something to generate
         if(enumsToGenerate.Length <= 0) return;
 
-        var groups = enumsToGenerate.GroupBy(g => g.NamespaceName);
+        var groups = enumsToGenerate.GroupBy(g => g.NamespaceName, StringComparer.Ordinal);
 
         // generate the source code and add it to the output
         foreach (var namespaceGroup in groups)

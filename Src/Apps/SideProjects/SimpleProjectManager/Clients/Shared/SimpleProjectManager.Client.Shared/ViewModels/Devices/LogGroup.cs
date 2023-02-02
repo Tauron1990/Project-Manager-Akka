@@ -21,6 +21,10 @@ public sealed class LogGroup : IDisposable
            .Subscribe();
         Logs = list;
         Key = group.Key;
+        
+        Console.WriteLine("Wire Up New Log Entrys");
+        group.Cache.Connect()
+           .Subscribe(c => Console.WriteLine($"New Log Entrys Count: {c.Count}"));
     }
 
     public void Dispose()

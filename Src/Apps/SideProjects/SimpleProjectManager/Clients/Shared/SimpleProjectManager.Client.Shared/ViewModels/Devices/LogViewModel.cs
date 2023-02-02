@@ -46,14 +46,22 @@ public abstract class LogViewModel : ViewModelBase, IDisposable
         DateTime from = DateTime.Now;
         DeviceId? id = null;
 
-        IState<DateTime> nextDate = StateFactory.NewComputed(new ComputedState<DateTime>.Options(), GetCurrent);
+        var nextDate = StateFactory.NewComputed<(DateTime, DeviceId?)>(GetCurrent);
 
         yield return nextDate
            .ToObservable(ErrorOnFetchCurrentLogs)
            .SelectMany(
-                async date =>
+                async data =>
                 {
-                    if(id is null) return null;
+                    (DateTime date, DeviceId? currentId) = data;
+                    
+                    if(currentId is null) return null;
+
+                    if(currentId != id)
+                    {
+                        id = currentId;
+                        from = DateTime.MinValue;
+                    }
                     
                     try
                     {
@@ -69,9 +77,7 @@ public abstract class LogViewModel : ViewModelBase, IDisposable
                 })
            .NotNull()
            .Subscribe(l => _logEntrys.AddOrUpdate(l.Data.SelectMany(b => b.Logs)));
-        
-        
-        
+
         yield return _logEntrys
            .Connect()
            .Group(ld => ld.Category.Value)
@@ -80,18 +86,16 @@ public abstract class LogViewModel : ViewModelBase, IDisposable
            .Bind(Entrys)
            .Subscribe();
         
-        async Task<DateTime> GetCurrent(IComputedState<DateTime> unused, CancellationToken token)
+        async Task<(DateTime Date, DeviceId? Id)> GetCurrent(IComputedState<(DateTime Date, DeviceId? Id)> unused, CancellationToken token)
         {
             DeviceId? device = await idDevice.Use(token).ConfigureAwait(false);
-            if(device is null) return DateTime.MinValue;
-            
-            if(Equals(device, id))
-                return await _deviceService.CurrentLogs(device, token).ConfigureAwait(false);
+            if(device is null) return (DateTime.MinValue, null);
 
-            id = device;
-            from = DateTime.MinValue;
-
-            return await _deviceService.CurrentLogs(device, token).ConfigureAwait(false);
+            return 
+            (
+                await _deviceService.CurrentLogs(device, token).ConfigureAwait(false),
+                device
+            );
         }
     }
 

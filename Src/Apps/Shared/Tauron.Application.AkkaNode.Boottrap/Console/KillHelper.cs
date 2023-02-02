@@ -38,14 +38,14 @@ public sealed partial class KillHelper
             });
     }
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Error on Start Kill Watch: {errorToReport}")]
+    [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "Error on Start Kill Watch: {errorToReport}")]
     private partial void ErrorStartKillWatch(string errorToReport);
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "Error on Killwatch Recieve")]
+    [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Error on Killwatch Recieve")]
     private partial void ErrorOnMessage(Exception ex);
 
-    [LoggerMessage(Level = LogLevel.Critical, Message = "Error on Initialize Killwatch for {comHandle}")]
-    private partial void InitializationError(Exception ex, string comHandle);
+    [LoggerMessage(EventId = 3, Level = LogLevel.Critical, Message = "Error on Initialize Killwatch for {comHandle}")]
+    private partial void InitializationError(Exception ex, string? comHandle);
     
     public async void Run()
     {

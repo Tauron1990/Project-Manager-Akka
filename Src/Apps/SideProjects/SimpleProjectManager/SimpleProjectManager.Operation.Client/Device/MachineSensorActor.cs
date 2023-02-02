@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Microsoft.Extensions.Logging;
+using SimpleProjectManager.Operation.Client.Device.Core;
 using SimpleProjectManager.Shared.Services.Devices;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
 
@@ -25,8 +26,11 @@ public sealed partial class MachineSensorActor : ReceiveActor, IWithTimers
         _sensorBox = SensorBox.CreateDefault(target.SensorType);
 
         Receive<RunUpdate>(OnUpdate);
-        Receive<Status.Failure>(f => ErrorOnRunUpdate(f.Cause, _target));
+        Receive<Status.Failure>(f => ErrorOnRunUpdate(f.Cause, target));
         Receive<ISensorBox>(ValueRecived);
+        
+        Receive<DeviceServerOffline>(_ => {});
+        Receive<DeviceServerOnline>(_ => { });
     }
 
     public ITimerScheduler Timers { get; set; } = null!;

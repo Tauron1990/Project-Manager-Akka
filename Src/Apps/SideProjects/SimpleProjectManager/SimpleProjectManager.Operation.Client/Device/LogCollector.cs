@@ -29,10 +29,10 @@ internal sealed partial class LogCollector<TSource>
         _localLogger = CreateLocalLogger();
     }
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "Error On Read Logs")]
+    [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Error On Read Logs")]
     private partial void LogReadError(Exception e);
 
-    [LoggerMessage(Level = LogLevel.Critical, Message = "Critical Error On Read Logs: {fromReadError}")]
+    [LoggerMessage(EventId = 2, Level = LogLevel.Critical, Message = "Critical Error On Read Logs: {fromReadError}")]
     private partial void LogCrticalError(Exception e, bool fromReadError);
 
     internal async void CollectLogs(ChannelReader<TSource> log)

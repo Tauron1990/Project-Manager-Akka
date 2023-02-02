@@ -7,6 +7,9 @@ using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Shared.Services.Devices;
 using Tauron;
 
+#pragma warning disable EPS02
+#pragma warning disable SYSLIB1006
+
 namespace SimpleProjectManager.Operation.Client.Device.Core;
 
 public sealed partial class ClusterManagerActor : ReceiveActor
@@ -67,13 +70,15 @@ public sealed partial class ClusterManagerActor : ReceiveActor
                 throw;
 
             ReplicatorUpdateTimeout(info.DeviceId, info.Name);
+            #pragma warning disable ERP022
         }
+        #pragma warning restore ERP022
     }
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Timeout while Updating {name} with id {id}")]
+    [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "Timeout while Updating {name} with id {id}")]
     private partial void ReplicatorUpdateTimeout(DeviceId id, in DeviceName name);
     
-    [LoggerMessage(Level = LogLevel.Information, Message = "New Data for Device {name} with id {id}")]
+    [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "New Data for Device {name} with id {id}")]
     private partial void UpdateDeviceInfo(DeviceId id, in DeviceName name);
     
     [LoggerMessage(Level = LogLevel.Critical, Message = "Critical error on Update Device Data")]

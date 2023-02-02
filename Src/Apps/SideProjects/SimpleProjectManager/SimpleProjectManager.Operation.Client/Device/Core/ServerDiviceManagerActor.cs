@@ -7,11 +7,13 @@ namespace SimpleProjectManager.Operation.Client.Device.Core;
 
 public sealed class ServerDiviceManagerActor : ReceiveActor
 {
+    private readonly IActorRef _test;
     private readonly List<IActorRef> _manager = new();
     private int _actorCount;
 
-    public ServerDiviceManagerActor()
+    public ServerDiviceManagerActor(IActorRef test)
     {
+        _test = test;
         Receive<ClusterActorDiscoveryMessage.ActorUp>(
             up =>
             {
@@ -19,17 +21,19 @@ public sealed class ServerDiviceManagerActor : ReceiveActor
                 _manager.Add(up.Actor);
                 
                 if(_actorCount == 1)
-                    Context.Parent.Tell(DeviceServerOnline.Instance);
+                    test.Tell(new DeviceServerOnline());
             });
 
         Receive<ClusterActorDiscoveryMessage.ActorDown>(
             down =>
             {
+                if(_actorCount == 0) return;
+                
                 _actorCount--;
                 _manager.Remove(down.Actor);
                 
                 if(_actorCount == 0)
-                    Context.Parent.Tell(DeviceServerOffline.Instance);
+                    test.Tell(new DeviceServerOffline());
             });
         
         Receive<DeviceServerOffline>(_ => {});
@@ -40,7 +44,7 @@ public sealed class ServerDiviceManagerActor : ReceiveActor
 
     protected override void PreStart()
     {
-        Context.Parent.Tell(DeviceServerOffline.Instance);
+        _test.Tell(new DeviceServerOffline());
         ClusterActorDiscovery.Get(Context.System).MonitorActor(new ClusterActorDiscoveryMessage.MonitorActor(DeviceManagerMessages.DeviceDataId));
     }
 

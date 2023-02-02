@@ -165,7 +165,7 @@ namespace BeaconLib
             var newBeacons = _currentBeacons
                .Where(location => !location.Equals(newBeacon))
                .Concat(new[] { newBeacon })
-               .OrderBy(location => location.Data)
+               .OrderBy(location => location.Data, StringComparer.Ordinal)
                .ThenBy(location => location.Address, IpEndPointComparer.Instance)
                .ToList();
             var onBeaconsUpdated = BeaconsUpdated;

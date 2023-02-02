@@ -1,19 +1,32 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
+using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Client.Operations.Shared.Devices;
 
-public class LogDistribution
+public sealed partial class LogDistribution
 {
-    private readonly IActorRef _mediator;
+    private readonly ILogger<LogDistribution> _logger = LoggingProvider.LoggerFactory.CreateLogger<LogDistribution>();
+    private readonly DistributedPubSub _distributedPubSub;
 
     public LogDistribution(ActorSystem actorSystem)
-        => _mediator = DistributedPubSub.Get(actorSystem).Mediator;
+        => _distributedPubSub = DistributedPubSub.Get(actorSystem);
 
+    [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "PubSub Mediator for Logdistribution Terminated")]
+    private partial void MediatorTerminated();
+    
     public void Publish(LogBatch batch)
-        => _mediator.Tell(new Publish(nameof(LogDistribution), batch));
+    {
+        if(_distributedPubSub.IsTerminated)
+            MediatorTerminated();
+        _distributedPubSub.Mediator.Tell(new Publish(nameof(LogDistribution), batch));
+    }
 
     public void Subscribe(IActorRef subscriber)
-        => _mediator.Tell(new Subscribe(nameof(LogDistribution), subscriber));
+    {
+        if(_distributedPubSub.IsTerminated)
+            MediatorTerminated();
+        _distributedPubSub.Mediator.Tell(new Subscribe(nameof(LogDistribution), subscriber));
+    }
 }
