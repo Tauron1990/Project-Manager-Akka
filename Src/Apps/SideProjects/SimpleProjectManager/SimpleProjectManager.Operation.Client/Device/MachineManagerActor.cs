@@ -24,11 +24,11 @@ public sealed partial class MachineManagerActor : ReceiveActor
     private DeviceInformations _device = DeviceInformations.Empty;
     private IActorRef _serverManager = ActorRefs.Nobody;
 
-    public MachineManagerActor(IMachine machine, ILogger<MachineManagerActor> logger, OperationConfiguration configuration, ILoggerFactory loggerFactory)
+    public MachineManagerActor(IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _deviceName = configuration.Device.MachineInterface;
         _machine = machine;
-        _logger = logger;
+        _logger = loggerFactory.CreateLogger<MachineManagerActor>();
         _loggerFactory = loggerFactory;
 
         Become(Starting);
@@ -62,6 +62,8 @@ public sealed partial class MachineManagerActor : ReceiveActor
             Context.ActorOf(() => new LoggerActor(_machine, _device.DeviceId));
 
         Receive<ButtonClick>(c => Context.Child(c.Identifer.Value).Forward(c));
+        Receive<DeviceServerOffline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
+        Receive<DeviceServerOnline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
     }
 
     [LoggerMessage(EventId = 66, Level = LogLevel.Error, Message = "Error on Registrating Device with {error}")]
@@ -101,7 +103,7 @@ public sealed partial class MachineManagerActor : ReceiveActor
         
         Init(Context)
            .PipeTo(
-                Context.ActorOf<ClusterManager>("ClusterManager"),
+                Context.ActorOf<ClusterManagerActor>("ClusterManager"),
                 Self,
                 failure: ex =>
                          {

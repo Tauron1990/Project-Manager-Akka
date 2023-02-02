@@ -9,14 +9,14 @@ using Tauron;
 
 namespace SimpleProjectManager.Operation.Client.Device.Core;
 
-public sealed partial class ClusterManager : ReceiveActor
+public sealed partial class ClusterManagerActor : ReceiveActor
 {
-    private readonly ILogger<ClusterManager> _logger = LoggingProvider.LoggerFactory.CreateLogger<ClusterManager>();
+    private readonly ILogger<ClusterManagerActor> _logger = LoggingProvider.LoggerFactory.CreateLogger<ClusterManagerActor>();
     private readonly DistributedData _replicator;
     private readonly ORDictionaryKey<string, DeviceInfoEntry> _dictionaryKey;
     private readonly Cluster _cluster;
     
-    public ClusterManager()
+    public ClusterManagerActor()
     {
         _replicator = Context.System.DistributedData();
         _cluster = Cluster.Get(Context.System);
@@ -30,16 +30,19 @@ public sealed partial class ClusterManager : ReceiveActor
                 FatalErrorOnUpdate(fail.Cause);
                 Context.Stop(Context.Self);
             });
+        
+        Receive<DeviceServerOffline>(_ => {});
+        Receive<DeviceServerOnline>(_ => { });
     }
 
     private void NewDeviceData(DeviceInformations obj)
     {
-        RunUpdate(obj)
+        RunUpdate(obj, Self)
            .PipeTo(Self)
            .Ignore();
     }
 
-    private async Task RunUpdate(DeviceInformations info)
+    private async Task RunUpdate(DeviceInformations info, IActorRef client)
     {
         try
         {
@@ -48,7 +51,7 @@ public sealed partial class ClusterManager : ReceiveActor
             var dic = await _replicator.GetAsync(_dictionaryKey).ConfigureAwait(false)
                    ?? ORDictionary<string, DeviceInfoEntry>.Empty;
 
-            var newEntry = DeviceInfoEntry.Create(info.DeviceManager, info);
+            var newEntry = DeviceInfoEntry.Create(client, info);
 
             dic = dic.AddOrUpdate(
                 _cluster,
