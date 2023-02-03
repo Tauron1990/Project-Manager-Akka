@@ -1,5 +1,6 @@
 ﻿@implements ServiceManager.Client.Shared.Configuration.ConditionEditor.IAddReciever
 @using System.Collections.Immutable
+@using System.Linq
 @using Tauron
 @using ServiceManager.Client.Shared.Configuration.ConditionEditor
 @using ServiceManager.Client.ViewModels.Configuration
@@ -9,7 +10,7 @@
 
 @inject AddHelper _addHelper;
 
-@if (Model == null || ToEdit == null || State == null)
+@if (DocumentFormat.OpenXml.EMMA.Model == null || ToEdit == null || State == null)
 {
     <MudAlert Class="justify-space-around" Variant="Variant.Filled" Severity="Severity.Error">Keine Daten Übergeben</MudAlert>
 }

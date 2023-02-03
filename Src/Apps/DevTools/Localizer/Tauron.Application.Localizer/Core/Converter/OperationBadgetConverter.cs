@@ -1,4 +1,5 @@
 ﻿using System.Windows.Data;
+using Tauron.Application.Wpf.Converter;
 
 namespace Tauron.Application.Localizer.Core.Converter
 {

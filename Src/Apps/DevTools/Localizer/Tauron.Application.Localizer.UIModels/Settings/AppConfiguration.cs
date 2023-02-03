@@ -1,4 +1,7 @@
-﻿namespace Tauron.Application.Localizer.UIModels.Settings
+﻿using Tauron.Application.Settings;
+using Tauron.Application.Settings.Provider;
+
+namespace Tauron.Application.Localizer.UIModels.Settings
 {
     public sealed class AppConfiguration : ISettingProviderConfiguration
     {

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
+using Akka.Hosting;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using ServiceManager.Shared;

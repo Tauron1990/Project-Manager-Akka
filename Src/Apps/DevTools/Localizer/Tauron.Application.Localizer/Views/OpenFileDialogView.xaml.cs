@@ -1,8 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Reactive;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Views;
+using Tauron.Application.Wpf;
 
 namespace Tauron.Application.Localizer.Views
 {

@@ -1,6 +1,11 @@
-﻿using Tauron.Application.Localizer.UIModels.lang;
+﻿using System.Reflection;
+using Akka.Actor;
+using JetBrains.Annotations;
+using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Services;
 using Tauron.Application.Localizer.UIModels.Settings;
+using Tauron.Application.Settings;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Localizer.UIModels
 {

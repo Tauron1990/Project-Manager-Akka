@@ -1,6 +1,12 @@
 ﻿using System;
+using System.Reactive.Subjects;
+using Akka.Actor;
+using JetBrains.Annotations;
 using Tauron.Application.Localizer.DataModel.Workspace.Analyzing;
 using Tauron.Application.Localizer.DataModel.Workspace.Mutating;
+using Tauron.Application.Workshop;
+using Tauron.Application.Workshop.Driver;
+using Tauron.Application.Workshop.Mutating;
 
 namespace Tauron.Application.Localizer.DataModel.Workspace
 {
@@ -11,7 +17,7 @@ namespace Tauron.Application.Localizer.DataModel.Workspace
         private readonly BehaviorSubject<ProjectFile> _projectFile;
 
         public ProjectFileWorkspace(IActorRefFactory factory)
-            : base(new WorkspaceSuperviser(factory, "Project_File_Workspace"))
+            : base(new AkkaDriverFactory())
         {
             _projectFile = new BehaviorSubject<ProjectFile>(new ProjectFile());
 
@@ -42,7 +48,7 @@ namespace Tauron.Application.Localizer.DataModel.Workspace
 
         public Project Get(string name)
         {
-            return ProjectFile.Projects.Find(p => p.ProjectName == name) ?? new Project();
+            return ProjectFile.Projects.Find(p => string.Equals(p.ProjectName, name, StringComparison.Ordinal)) ?? new Project();
         }
 
         protected override MutatingContext<ProjectFile> GetDataInternal()

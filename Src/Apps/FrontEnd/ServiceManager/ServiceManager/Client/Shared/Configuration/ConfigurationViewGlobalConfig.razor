@@ -26,7 +26,7 @@
     <div class="d-flex flex-row ma-1">
         <MudButton Class="d-inline-flex ma-1" OnClick="_model.GenerateDefaultConfig">Standart Generieren</MudButton>
         <MudButton Class="d-inline-flex ma-1" OnClick="() => _model.Reset(config)">Zurücksetzen</MudButton>
-        <MudButton Class="d-inline-flex ma-1" OnClick="@(() => _model.UpdateConfig(Manager))">Speichern</MudButton>
+        <MudButton Class="d-inline-flex ma-1" OnClick="@(() => _model.UpdateConfig(DocumentFormat.OpenXml.ExtendedProperties.Manager))">Speichern</MudButton>
     </div>
     <div class="d-flex flex-row ma-1">
         <ConfigurationOptionsView OptionSelectedEvent="_model.UpdateContent"/>

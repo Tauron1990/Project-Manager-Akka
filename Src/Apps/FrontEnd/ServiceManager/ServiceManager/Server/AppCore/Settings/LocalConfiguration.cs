@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using Tauron.Application.Settings;
+using Tauron.TAkka;
 
 namespace ServiceManager.Server.AppCore.Settings
 {

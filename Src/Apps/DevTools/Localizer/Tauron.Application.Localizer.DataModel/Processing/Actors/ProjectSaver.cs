@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Akka.Actor;
+using Akka.Event;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
@@ -25,10 +27,10 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
         private void TryForceSave(ForceSave obj)
         {
             Timers.Cancel(nameof(InitSave));
-            StartNormalSave(null);
+            StartNormalSave(obj: null);
 
-            var (andSeal, projectFile) = obj;
-            var saveExcetion = TrySave(projectFile);
+            (bool andSeal, ProjectFile projectFile) = obj;
+            Exception? saveExcetion = TrySave(projectFile);
             if (saveExcetion != null)
                 Context.GetLogger().Error(saveExcetion, "Error on force Saving Project");
 
@@ -41,13 +43,13 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
         private void StartNormalSave(InitSave? obj)
         {
             if (_toSave.Count > 1)
-                foreach (var (toSave, sender) in _toSave.Take(_toSave.Count - 1))
-                    sender.Tell(new SavedProject(toSave.OperationId, Ok: true, null));
+                foreach ((SaveProject toSave, IActorRef sender) in _toSave.Take(_toSave.Count - 1))
+                    sender.Tell(new SavedProject(toSave.OperationId, Ok: true, Exception: null));
 
             if (_toSave.Count > 0)
             {
-                var ((operationId, projectFile), send) = _toSave[^1];
-                var result = TrySave(projectFile);
+                ((string operationId, ProjectFile projectFile), IActorRef send) = _toSave[^1];
+                Exception? result = TrySave(projectFile);
                 send.Tell(new SavedProject(operationId, result is null, result));
             }
 
@@ -66,9 +68,9 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
         {
             try
             {
-                if (file.Source.ExisFile())
+                if (File.Exists(file.Source))
                     File.Copy(file.Source, file.Source + ".bak", overwrite: true);
-                using var stream = File.Open(file.Source, FileMode.Create);
+                using FileStream stream = File.Open(file.Source, FileMode.Create);
                 using var writer = new BinaryWriter(stream);
                 file.Write(writer);
 

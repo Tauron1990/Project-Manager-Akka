@@ -1,4 +1,8 @@
-﻿using Tauron.Application.Localizer.DataModel.Workspace.Mutating.Changes;
+﻿using System.Reactive.Linq;
+using JetBrains.Annotations;
+using Tauron.Application.Localizer.DataModel.Workspace.Mutating.Changes;
+using Tauron.Application.Workshop.Mutating;
+using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
 {
@@ -36,7 +40,7 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                                 BuildInfo = mc.Data.BuildInfo with
                                             {
                                                 IntigrateProjects = intigrate
-                                            }
+                                            },
                             })));
         }
 
@@ -47,7 +51,8 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                 obs => obs.Select(
                     mc =>
                     {
-                        if (mc.Data.BuildInfo.ProjectPaths.TryGetValue(project, out var settetPath) && settetPath == path)
+                        if (mc.Data.BuildInfo.ProjectPaths.TryGetValue(project, out var settetPath) 
+                            && string.Equals(settetPath, path, System.StringComparison.Ordinal))
                             return mc;
 
                         return mc.Update(
@@ -57,7 +62,7 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                                 BuildInfo = mc.Data.BuildInfo with
                                             {
                                                 ProjectPaths = mc.Data.BuildInfo.ProjectPaths.SetItem(project, path)
-                                            }
+                                            },
                             });
                     }));
         }

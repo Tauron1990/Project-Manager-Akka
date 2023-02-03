@@ -1,6 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
+using Akka.Actor;
+using Akka.Event;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
@@ -31,7 +36,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 
         private void ProcessRequest(BuildRequest obj)
         {
-            var (idObservable, data) = obj;
+            (var idObservable, ProjectFile data) = obj;
             idObservable
                .Take(1)
                .ObserveOnSelf()
@@ -59,7 +64,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                         }
 
                         var agent = 1;
-                        foreach (var preparedBuild in toBuild)
+                        foreach (PreparedBuild preparedBuild in toBuild)
                         {
                             _remaining++;
                             Context.GetOrAdd<BuildAgent>("Agent-" + agent).Forward(preparedBuild);

@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Configuration;
+using Akka.Hosting;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
 

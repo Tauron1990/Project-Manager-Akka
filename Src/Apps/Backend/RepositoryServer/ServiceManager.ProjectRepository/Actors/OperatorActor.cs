@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using Akka.Actor;
+using Akka.Streams.Implementation.Fusing;
 using Ionic.Zip;
 using Octokit;
 using ServiceManager.ProjectRepository.Core;
@@ -16,6 +17,7 @@ using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
 using Tauron.Features;
 using Tauron.Operations;
+using Tauron.TAkka;
 using Tauron.Temp;
 using RequestResult = Tauron.Application.AkkaNode.Services.Reporting.ReporterEvent<Tauron.Operations.IOperationResult, ServiceManager.ProjectRepository.Actors.OperatorActor.OperatorState>;
 using RegisterRepoEvent = Tauron.Application.AkkaNode.Services.Reporting.ReporterEvent<Tauron.Application.Master.Commands.Deployment.Repository.RegisterRepository, ServiceManager.ProjectRepository.Actors.OperatorActor.OperatorState>;
@@ -41,7 +43,7 @@ namespace ServiceManager.ProjectRepository.Actors
             TryReceive<RegisterRepository>(
                 "RegisterRepository",
                 obs => obs
-                   .Do(i => Log.Info("Incomming Registration Request for Repository {Name}", i.Event.RepoName))
+                   .Do(i => Log<>.Info("Incomming Registration Request for Repository {Name}", i.Event.RepoName))
                    .Do(i => i.Reporter.Send(RepositoryMessages.GetRepo))
                    .Select(i => (Data: i.State.Repos.Get(i.Event.RepoName), Evt: i))
                    .SelectMany(ProcessRegisterRepository)

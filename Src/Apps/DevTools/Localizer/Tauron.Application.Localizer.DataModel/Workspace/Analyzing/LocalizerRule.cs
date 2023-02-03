@@ -1,5 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Akka.Actor;
+using Tauron.Application.Workshop;
+using Tauron.Application.Workshop.Analyzing;
+using Tauron.Application.Workshop.Mutating;
+using Tauron.Application.Workshop.Mutation;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Localizer.DataModel.Workspace.Analyzing
 {

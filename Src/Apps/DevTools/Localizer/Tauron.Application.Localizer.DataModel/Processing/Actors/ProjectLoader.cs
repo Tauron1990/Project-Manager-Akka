@@ -1,26 +1,25 @@
-﻿using System;
+﻿using Akka.Actor;
+using System;
 using System.IO;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
     public sealed class ProjectLoader : ObservableActor
     {
-        public ProjectLoader()
-        {
-            Receive<InternalLoadProject>(obs => obs.SubscribeWithStatus(LoadProjectFile));
-        }
+        public ProjectLoader() => Receive<InternalLoadProject>(obs => obs.SubscribeWithStatus(LoadProjectFile));
 
         private void LoadProjectFile(InternalLoadProject obj)
         {
-            var (loadProjectFile, originalSender) = obj;
+            (LoadProjectFile loadProjectFile, IActorRef originalSender) = obj;
             try
             {
-                using var stream = File.OpenRead(loadProjectFile.Source);
+                using FileStream stream = File.OpenRead(loadProjectFile.Source);
                 using var reader = new BinaryReader(stream);
-                var projectFile = ProjectFile.ReadFile(reader, loadProjectFile.Source, Sender);
+                ProjectFile projectFile = ProjectFile.ReadFile(reader, loadProjectFile.Source, Sender);
 
-                originalSender.Tell(new LoadedProjectFile(loadProjectFile.OperationId, projectFile, null, Ok: true));
+                originalSender.Tell(new LoadedProjectFile(loadProjectFile.OperationId, projectFile, ErrorReason: null, Ok: true));
             }
             catch (Exception e)
             {

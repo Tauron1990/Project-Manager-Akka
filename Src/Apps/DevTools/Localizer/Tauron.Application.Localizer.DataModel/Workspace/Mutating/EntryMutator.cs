@@ -1,4 +1,10 @@
-﻿using Tauron.Application.Localizer.DataModel.Workspace.Mutating.Changes;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
+using JetBrains.Annotations;
+using Tauron.Application.Localizer.DataModel.Workspace.Mutating.Changes;
+using Tauron.Application.Workshop.Mutating;
+using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
 {
@@ -35,12 +41,12 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                 obs => obs.Select(
                     context =>
                     {
-                        var entry = context.Data.Projects.FirstOrDefault(p => p.ProjectName == project)?.Entries
-                           .Find(le => le.Key == name);
+                        LocEntry? entry = context.Data.Projects.FirstOrDefault(p => string.Equals(p.ProjectName, project, System.StringComparison.Ordinal))?.Entries
+                           .Find(le => string.Equals(le.Key, name, System.StringComparison.Ordinal));
 
-                        return entry == null
+                        return entry is null
                             ? context
-                            : context.Update(new RemoveEntryChange(entry), context.Data.ReplaceEntry(entry, null));
+                            : context.Update(new RemoveEntryChange(entry), context.Data.ReplaceEntry(entry, newEntry: null));
                     }));
         }
 
@@ -51,15 +57,15 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                 obs => obs.Select(
                     context =>
                     {
-                        var entry = context.Data.Projects.FirstOrDefault(p => p.ProjectName == project)?.Entries
-                           .Find(le => le.Key == name);
+                        var entry = context.Data.Projects.FirstOrDefault(p => string.Equals(p.ProjectName, project, System.StringComparison.Ordinal))?.Entries
+                           .Find(le => string.Equals(le.Key, name, System.StringComparison.Ordinal));
 
-                        if (entry == null) return context;
+                        if (entry is null) return context;
 
                         var oldContent = entry.Values.GetValueOrDefault(lang);
                         var newEntry = entry with
                                        {
-                                           Values = oldContent == null
+                                           Values = oldContent is null
                                                ? entry.Values.Add(lang, content)
                                                : entry.Values.SetItem(lang, content)
                                        };
@@ -75,12 +81,13 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                 obs => obs.Select(
                     context =>
                     {
-                        var proj = context.Data.Projects.Find(p => p.ProjectName == project);
+                        var proj = context.Data.Projects.Find(p => string.Equals(p.ProjectName, project, System.StringComparison.Ordinal));
 
-                        if (proj == null || proj.Entries.Any(l => l.Key == name)) return context;
+                        if (proj is null || proj.Entries.Any(l => string.Equals(l.Key, name, System.StringComparison.Ordinal)))
+                            return context;
 
                         var newEntry = new LocEntry(project, name);
-                        var newData = context.Data.ReplaceEntry(null, newEntry);
+                        var newData = context.Data.ReplaceEntry(oldEntry: null, newEntry);
 
                         return context.Update(new NewEntryChange(newEntry), newData);
                     }));

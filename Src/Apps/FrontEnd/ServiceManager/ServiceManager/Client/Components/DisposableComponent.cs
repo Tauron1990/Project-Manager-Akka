@@ -2,6 +2,7 @@
 using System.Reactive.Disposables;
 using Microsoft.AspNetCore.Components;
 using Stl.Fusion.Blazor;
+using Tauron;
 
 namespace ServiceManager.Client.Components
 {

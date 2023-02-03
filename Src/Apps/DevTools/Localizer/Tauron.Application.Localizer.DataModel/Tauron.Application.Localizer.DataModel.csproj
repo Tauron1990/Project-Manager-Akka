@@ -27,6 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\..\Shared\Common\Tauron.Application.Common.Localization\Tauron.Application.Common.Localization.csproj" />
       <ProjectReference Include="..\..\..\..\Shared\Workshop\Tauron.Application.Workshop.Akka\Tauron.Application.Workshop.Akka.csproj" />
     </ItemGroup>
 

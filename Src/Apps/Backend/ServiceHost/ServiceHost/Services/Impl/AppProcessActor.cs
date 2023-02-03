@@ -6,6 +6,8 @@ using System.Threading;
 using Akka.Actor;
 using ServiceHost.ApplicationRegistry;
 using Tauron;
+using Tauron.Application.AkkaNode.Bootstrap;
+using Tauron.Application.AkkaNode.Bootstrap.IpcMessages;
 using Tauron.Features;
 using Tauron.ObservableExt;
 

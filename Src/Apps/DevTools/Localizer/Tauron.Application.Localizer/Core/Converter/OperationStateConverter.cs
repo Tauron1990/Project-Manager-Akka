@@ -1,6 +1,7 @@
 ﻿using System.Windows.Data;
 using System.Windows.Media;
 using Tauron.Application.Localizer.UIModels.Services;
+using Tauron.Application.Wpf.Converter;
 
 namespace Tauron.Application.Localizer.Core.Converter
 {

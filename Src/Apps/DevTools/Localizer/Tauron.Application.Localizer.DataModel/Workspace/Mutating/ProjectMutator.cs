@@ -2,7 +2,12 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Reactive.Linq;
+using JetBrains.Annotations;
 using Tauron.Application.Localizer.DataModel.Workspace.Mutating.Changes;
+using Tauron.Application.Workshop;
+using Tauron.Application.Workshop.Mutating;
+using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
 {
@@ -92,8 +97,9 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                 obs => obs.Select(
                     context =>
                     {
-                        var project = context.Data.Projects.First(p => p.ProjectName == name);
-                        var newFile = context.Data.RemoveProject(project);
+                        Project project = context.Data.Projects
+                            .First(p => string.Equals(p.ProjectName, name, System.StringComparison.Ordinal));
+                        ProjectFile newFile = context.Data.RemoveProject(project);
 
                         return context.Update(new RemoveProjectChange(project), newFile);
                     }));
@@ -101,9 +107,9 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
 
         public void AddLanguage(CultureInfo? info)
         {
-            if (info == null) return;
+            if (info is null) return;
 
-            var newLang = ActiveLanguage.FromCulture(info);
+            ActiveLanguage newLang = ActiveLanguage.FromCulture(info);
 
             _engine.Mutate(
                 nameof(AddLanguage) + "Global",
@@ -128,8 +134,9 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                 obs => obs.Select(
                     context =>
                     {
-                        var project = context.Data.Projects.First(p => p.ProjectName == proj);
-                        var lang = ActiveLanguage.FromCulture(info);
+                        Project project = context.Data.Projects
+                            .First(p => string.Equals(p.ProjectName, proj, System.StringComparison.Ordinal));
+                        ActiveLanguage lang = ActiveLanguage.FromCulture(info);
 
                         return project.ActiveLanguages.Contains(lang)
                             ? context
@@ -139,7 +146,7 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
 
         public void AddImport(string projectName, string toAdd)
         {
-            if (projectName == toAdd)
+            if (string.Equals(projectName, toAdd, System.StringComparison.Ordinal))
                 return;
 
             _engine.Mutate(
@@ -147,9 +154,9 @@ namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
                 obs => obs.Select(
                     context =>
                     {
-                        var project = context.Data.Projects.First(p => p.ProjectName == projectName);
+                        var project = context.Data.Projects.First(p => string.Equals(p.ProjectName, projectName, System.StringComparison.Ordinal));
 
-                        if (project.Imports.Contains(toAdd) || context.Data.Projects.All(p => toAdd != p.ProjectName))
+                        if (project.Imports.Contains(toAdd, System.StringComparer.Ordinal) || context.Data.Projects.All(p => !string.Equals(toAdd, p.ProjectName, System.StringComparison.Ordinal)))
                             return context;
 
                         return context.Update(

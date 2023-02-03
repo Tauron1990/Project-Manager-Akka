@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Input;
+using JetBrains.Annotations;
+using Tauron.Application.CommonUI.Commands;
 
 namespace Tauron.Application.Localizer.UIModels
 {

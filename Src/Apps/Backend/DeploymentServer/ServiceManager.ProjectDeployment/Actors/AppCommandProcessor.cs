@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using Akka.Actor;
+using Akka.Streams.Implementation.Fusing;
 using ServiceManager.ProjectDeployment.Build;
 using ServiceManager.ProjectDeployment.Data;
 using SharpRepository.Repository;
@@ -275,7 +276,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                         {
                                             if (reporterEvent.Reporter.IsCompled)
                                                 reporterEvent.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.GerneralCommandError));
-                                            Log.Info("Command Phase 1 {Command} Failed", typeof(TCommand).Name);
+                                            Log<>.Info("Command Phase 1 {Command} Failed", typeof(TCommand).Name);
                                         }));
 
                                 b.When(

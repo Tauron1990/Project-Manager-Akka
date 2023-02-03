@@ -4,6 +4,7 @@ using Akka;
 using Akka.Actor;
 using Akka.Streams;
 using Akka.Streams.Dsl;
+using Akka.Streams.Implementation.Fusing;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
@@ -47,7 +48,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                             switch (p)
                             {
                                 case QueueOfferResult.Failure f:
-                                    Log.Error(f.Cause, "Error In Change Tracker");
+                                    Log<>.Error(f.Cause, "Error In Change Tracker");
 
                                     break;
                                 case QueueOfferResult.QueueClosed _:

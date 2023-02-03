@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Cluster;
+using DotNetty.Transport.Bootstrapping;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.CommandLine;
 using Newtonsoft.Json;
@@ -18,6 +19,7 @@ using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.Master.Commands.ServiceRegistry;
+using Tauron.Servicemnager.Networking.Data;
 
 namespace ServiceHost
 {

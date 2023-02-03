@@ -1,4 +1,6 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using Tauron.AkkaHost;
 using Tauron.Application.Localizer.UIModels;
 
 namespace Tauron.Application.Localizer

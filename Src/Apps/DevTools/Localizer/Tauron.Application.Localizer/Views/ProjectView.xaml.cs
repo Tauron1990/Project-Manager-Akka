@@ -2,7 +2,10 @@
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using Tauron.AkkaHost;
+using Tauron.Application.CommonUI;
 using Tauron.Application.Localizer.UIModels;
+using Tauron.Localization;
 
 namespace Tauron.Application.Localizer.Views
 {

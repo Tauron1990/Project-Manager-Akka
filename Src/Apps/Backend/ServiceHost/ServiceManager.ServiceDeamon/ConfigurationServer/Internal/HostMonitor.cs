@@ -14,6 +14,7 @@ using SharpRepository.Repository;
 using Tauron;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
+using Tauron.TAkka;
 
 namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
 {

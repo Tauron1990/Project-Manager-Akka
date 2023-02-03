@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
+using Akka.Actor;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
+using Tauron.Localization;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {
@@ -41,7 +45,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
         private static Dictionary<string, GroupDictionary<string, (string Id, string Content)>> GetData(
             PreparedBuild build)
         {
-            var files = new Dictionary<string, GroupDictionary<string, (string Id, string Content)>>();
+            var files = new Dictionary<string, GroupDictionary<string, (string Id, string Content)>>(StringComparer.Ordinal);
 
             var imports = new List<(string FileName, Project Project)>
                           {
@@ -49,11 +53,11 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                           };
             imports.AddRange(
                 build.TargetProject.Imports
-                   .Select(pn => build.ProjectFile.Projects.Find(p => p.ProjectName == pn))
+                   .Select(pn => build.ProjectFile.Projects.Find(p => string.Equals(p.ProjectName, pn, StringComparison.Ordinal)))
                    .Where(p => p != null)
                    .Select(p => build.BuildInfo.IntigrateProjects ? (string.Empty, p!) : (p!.ProjectName, p)));
 
-            foreach (var (fileName, project) in imports)
+            foreach ((string fileName, Project project) in imports)
             {
                 if (!files.TryGetValue(fileName, out var entrys))
                 {
@@ -61,8 +65,8 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                     files[fileName] = entrys;
                 }
 
-                foreach (var (_, id, values) in project.Entries)
-                    foreach (var ((shortcut, _), value) in values)
+                foreach ((string _, string id, var values) in project.Entries)
+                    foreach (((string shortcut, string _), string value) in values)
                         entrys.Add(shortcut, (id, value));
             }
 
@@ -76,21 +80,25 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             if (!Directory.Exists(targetPath))
                 Directory.CreateDirectory(targetPath);
 
-            foreach (var (key, value) in data)
-                foreach (var (lang, entrys) in value)
-                {
-                    var fileName = (string.IsNullOrWhiteSpace(key) ? string.Empty : key + ".") + lang + ".json";
-                    using var writer = new StreamWriter(File.Open(targetPath.CombinePath(fileName), FileMode.Create));
-                    var tester = new HashSet<string>();
-                    writer.WriteLine("{");
+            foreach ((string key, var value) in data)
+                foreach ((string lang, var entrys) in value)
+                    WriteEntry(targetPath, key, lang, entrys);
+        }
 
-                    foreach (var (id, content) in entrys)
-                        if (tester.Add(id))
-                            writer.WriteLine($"  \"{id}\": \"{EscapeHelper.Ecode(content)}\",");
+        private static void WriteEntry(string targetPath, string key, string lang, ICollection<(string Id, string Content)> entrys)
+        {
 
-                    writer.WriteLine("}");
-                    writer.Flush();
-                }
+            var fileName = (string.IsNullOrWhiteSpace(key) ? string.Empty : key + ".") + lang + ".json";
+            using var writer = new StreamWriter(File.Open(Path.Combine(targetPath, fileName), FileMode.Create));
+            var tester = new HashSet<string>(StringComparer.Ordinal);
+            writer.WriteLine("{");
+
+            foreach ((string id, string content) in entrys)
+                if(tester.Add(id))
+                    writer.WriteLine($"  \"{id}\": \"{EscapeHelper.Ecode(content)}\",");
+
+            writer.WriteLine("}");
+            writer.Flush();
         }
 
         private static void GenerateCode(
@@ -101,7 +109,7 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
                 data
                    .SelectMany(e => e.Value)
                    .SelectMany(e => e.Value)
-                   .Select(e => e.Id));
+                   .Select(e => e.Id), StringComparer.Ordinal);
 
             var entrys = new GroupDictionary<string, (string FieldName, string Original)>
                          {
@@ -112,29 +120,18 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             {
                 var result = id.Split('_', 2, StringSplitOptions.RemoveEmptyEntries);
                 if (result.Length == 1)
-                    entrys.Add(string.Empty, (result[0].Replace("_", ""), id));
+                    entrys.Add(string.Empty, (result[0].Replace("_", "", StringComparison.Ordinal), id));
                 else
-                    entrys.Add(result[0], (result[1].Replace("_", ""), id));
+                    entrys.Add(result[0], (result[1].Replace("_", "", StringComparison.Ordinal), id));
             }
 
-            using var file = new StreamWriter(File.Open(targetPath.CombinePath("LocLocalizer.cs"), FileMode.Create));
+            using var file = new StreamWriter(File.Open(Path.Combine(targetPath, "LocLocalizer.cs"), FileMode.Create));
 
-            file.WriteLine("using System.CodeDom.Compiler;");
-            file.WriteLine("using System.Threading.Tasks;");
-            file.WriteLine("using Akka.Actor;");
-            file.WriteLine("using JetBrains.Annotations;");
-            file.WriteLine("using Tauron.Localization;");
-            file.WriteLine("using Akka.Util;");
-            file.WriteLine();
-            file.WriteLine("namespace Tauron.Application.Localizer.Generated");
-            file.WriteLine("{");
-            file.WriteLine("\t[PublicAPI, GeneratedCode(\"Localizer\", \"1\")]");
-            file.WriteLine("\tpublic sealed partial class LocLocalizer");
-            file.WriteLine("\t{");
+            WriteHeader(file);
 
             var classes = new List<string>();
 
-            foreach (var (key, value) in entrys)
+            foreach ((string key, var value) in entrys)
             {
                 if (string.IsNullOrWhiteSpace(key)) continue;
 
@@ -169,12 +166,29 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             file.Flush();
         }
 
+        private static void WriteHeader(StreamWriter file)
+        {
+
+            file.WriteLine("using System.CodeDom.Compiler;");
+            file.WriteLine("using System.Threading.Tasks;");
+            file.WriteLine("using Akka.Actor;");
+            file.WriteLine("using JetBrains.Annotations;");
+            file.WriteLine("using Tauron.Localization;");
+            file.WriteLine("using Akka.Util;");
+            file.WriteLine();
+            file.WriteLine("namespace Tauron.Application.Localizer.Generated");
+            file.WriteLine("{");
+            file.WriteLine("\t[PublicAPI, GeneratedCode(\"Localizer\", \"1\")]");
+            file.WriteLine("\tpublic sealed partial class LocLocalizer");
+            file.WriteLine("\t{");
+        }
+
         private static void WriteClassData(
             StreamWriter writer, string className,
             ICollection<(string FieldName, string Original)> entryValue, int tabs,
             Action<Action<string>>? constructorCallback = null)
         {
-            foreach (var (fieldName, _) in entryValue)
+            foreach ((string fieldName, var _) in entryValue)
                 writer.WriteLine(
                     $"{new string('\t', tabs)}private readonly Task<string> {ToRealFieldName(fieldName)};");
 
@@ -186,14 +200,14 @@ namespace Tauron.Application.Localizer.DataModel.Processing.Actors
             // ReSharper disable once AccessToModifiedClosure
             constructorCallback?.Invoke(s => writer.WriteLine($"{new string('\t', tabs)} {s}"));
 
-            foreach (var (fieldName, original) in entryValue)
+            foreach ((string fieldName, string original) in entryValue)
                 writer.WriteLine(
                     $"{new string('\t', tabs)}{ToRealFieldName(fieldName)} = LocLocalizer.ToString(loc.RequestTask(\"{original}\"));");
 
             tabs--;
             writer.WriteLine(new string('\t', tabs) + "}");
 
-            foreach (var (fieldName, _) in entryValue)
+            foreach ((string fieldName, string _) in entryValue)
                 writer.WriteLine(
                     $"{new string('\t', tabs)}public string {fieldName} => {ToRealFieldName(fieldName)}.Result;");
         }

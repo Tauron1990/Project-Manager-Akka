@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
+using Tauron.Application.Settings;
+using Tauron.TAkka;
 
 namespace Tauron.Application.Localizer.UIModels
 {

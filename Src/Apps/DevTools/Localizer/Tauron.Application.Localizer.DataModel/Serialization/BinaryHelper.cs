@@ -11,8 +11,8 @@ namespace Tauron.Application.Localizer.DataModel.Serialization
             Func<BinaryReader, TKey> keyConversion, Func<BinaryReader, TValue> valueConversion)
             where TKey : notnull
         {
-            var count = reader.ReadInt32();
-            var builder = ImmutableDictionary.CreateBuilder<TKey, TValue>();
+            int count = reader.ReadInt32();
+            ImmutableDictionary<TKey, TValue>.Builder builder = ImmutableDictionary.CreateBuilder<TKey, TValue>();
 
             for (var i = 0; i < count; i++)
                 builder.Add(keyConversion(reader), valueConversion(reader));
@@ -23,7 +23,7 @@ namespace Tauron.Application.Localizer.DataModel.Serialization
         public static void WriteDic(ImmutableDictionary<string, string> dic, BinaryWriter writer)
         {
             writer.Write(dic.Count);
-            foreach (var (key, value) in dic)
+            foreach ((string key, string value) in dic)
             {
                 writer.Write(key);
                 writer.Write(value);
@@ -34,7 +34,7 @@ namespace Tauron.Application.Localizer.DataModel.Serialization
             where TKey : IWriteable
         {
             writer.Write(dic.Count);
-            foreach (var (key, value) in dic)
+            foreach ((TKey key, string value) in dic)
             {
                 key.Write(writer);
                 writer.Write(value);
@@ -43,31 +43,29 @@ namespace Tauron.Application.Localizer.DataModel.Serialization
 
         public static ImmutableList<TType> Read<TType>(BinaryReader reader, Func<BinaryReader, TType> converter)
         {
-            var builder = ImmutableList.CreateBuilder<TType>();
-            var count = reader.ReadInt32();
+            ImmutableList<TType>.Builder builder = ImmutableList.CreateBuilder<TType>();
+            int count = reader.ReadInt32();
 
             for (var i = 0; i < count; i++) builder.Add(converter(reader));
 
             return builder.ToImmutable();
         }
 
-        public static ImmutableList<string> ReadString(BinaryReader reader)
-        {
-            return Read(reader, binaryReader => binaryReader.ReadString());
-        }
+        public static ImmutableList<string> ReadString(BinaryReader reader) 
+            => Read(reader, binaryReader => binaryReader.ReadString());
 
         public static void WriteList<TType>(ImmutableList<TType> list, BinaryWriter writer)
             where TType : IWriteable
         {
             writer.Write(list.Count);
-            foreach (var writeable in list)
+            foreach (TType writeable in list)
                 writeable.Write(writer);
         }
 
         public static void WriteList(ImmutableList<string> list, BinaryWriter writer)
         {
             writer.Write(list.Count);
-            foreach (var writeable in list)
+            foreach (string writeable in list)
                 writer.Write(writeable);
         }
     }

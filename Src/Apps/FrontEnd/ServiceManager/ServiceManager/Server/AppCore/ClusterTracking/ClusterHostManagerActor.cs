@@ -13,6 +13,7 @@ using Tauron;
 using Tauron.AkkaHost;
 using Tauron.Application.Master.Commands.ServiceRegistry;
 using Tauron.Features;
+using Tauron.TAkka;
 
 namespace ServiceManager.Server.AppCore.ClusterTracking
 {

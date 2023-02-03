@@ -1,4 +1,6 @@
-﻿namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating.Changes
+﻿using Tauron.Application.Workshop.Mutating.Changes;
+
+namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating.Changes
 {
     public record AddImportChange(string Import, string ProjectName) : MutatingChange
     {
