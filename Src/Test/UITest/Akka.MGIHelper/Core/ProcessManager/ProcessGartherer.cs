@@ -3,14 +3,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using Akka.Actor;
-using Akka.Event;
+using Microsoft.Extensions.Logging;
 
 namespace Akka.MGIHelper.Core.ProcessManager;
 
 public sealed class ProcessGartherer : IDisposable
 {
     private readonly IActorRef _owner;
-    private readonly ILoggingAdapter _log;
+    private readonly ILogger _log;
 
     private readonly ManagementEventWatcher _watcher = new(
         new WqlEventQuery
@@ -18,7 +18,7 @@ public sealed class ProcessGartherer : IDisposable
             EventClassName = "Win32_ProcessStartTrace"
         });
 
-    public ProcessGartherer(IActorRef owner, ILoggingAdapter log)
+    public ProcessGartherer(IActorRef owner, ILogger log)
     {
         _owner = owner;
         _log = log;
@@ -28,7 +28,7 @@ public sealed class ProcessGartherer : IDisposable
 
     private void WatcherOnEventArrived(object sender, EventArrivedEventArgs e)
     {
-        var propertyData = e.NewEvent.Properties.OfType<PropertyData>().FirstOrDefault(d => d.Name == "ProcessID");
+        PropertyData? propertyData = e.NewEvent.Properties.OfType<PropertyData>().FirstOrDefault(d => string.Equals(d.Name, "ProcessID", StringComparison.Ordinal));
         if(propertyData is null) return;
 
         try
@@ -41,7 +41,7 @@ public sealed class ProcessGartherer : IDisposable
         {
             if(exception is ArgumentException or InvalidOperationException) return;
             
-            _log.Error(exception, "Error on Get Process from Event");
+            _log.LogError(exception, "Error on Get Process from Event");
         }
     }
 

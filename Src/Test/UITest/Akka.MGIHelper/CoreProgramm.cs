@@ -1,8 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using NLog;
+using Tauron;
 using Tauron.AkkaHost;
 using Tauron.Application.Logging;
+using Tauron.Localization;
 
 namespace Akka.MGIHelper
 {
@@ -11,12 +12,14 @@ namespace Akka.MGIHelper
         public static async Task Main(string[] args)
         {
             await Host.CreateDefaultBuilder(args)
-               .ConfigureLogging(lb => lb.AddNLog(sb => sb.ConfigDefaultLogging("MGI_Helper").LoadConfiguration(e => e.Configuration.AddRuleForAllLevels(new LoggerViewerSink()))))
-               .ConfigureAkkaApplication(
-                    ab => ab.AddModule<MainModule>()
-                       .ConfigureAkkaSystem((_, s) => s.RegisterLocalization())
-                       .UseWpf<MainWindow, App>())
-               .Build().RunAsync();
+                .ConfigureLogging(
+                    lb => lb.AddNLog(
+                        sb => sb.ConfigDefaultLogging("MGI_Helper")))
+                .ConfigureAkkaApplication(
+                    ab => ab.ConfigureServices((_, sc) => sc.RegisterModule<MainModule>())
+                        .ConfigureAkka((_, c) => c.AddStartup((system, _) => system.RegisterLocalization()))
+                        .UseWpf<MainWindow, App>())
+                .Build().RunAsync().ConfigureAwait(false);
         }
     }
 }

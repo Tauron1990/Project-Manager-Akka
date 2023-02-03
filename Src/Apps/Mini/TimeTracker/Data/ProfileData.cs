@@ -14,8 +14,4 @@ namespace TimeTracker.Data
         public static ProfileData New(string fileName, SystemClock clock)
             => new(fileName, 0, 0, 0, ImmutableDictionary<DateTime, ProfileEntry>.Empty, clock.NowDate, ImmutableList<HourMultiplicator>.Empty, HolidaysSet: false, 0);
     }
-
-    public sealed record ProfileEntry(DateTime Date, TimeSpan? Start, TimeSpan? Finish, DayType DayType);
-
-    public sealed record ProfileBackup(DateTime Data, ImmutableList<ProfileEntry> Entrys, ProfileData CurrentConfiguration);
 }

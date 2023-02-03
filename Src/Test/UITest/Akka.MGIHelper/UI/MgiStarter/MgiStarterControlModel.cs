@@ -26,7 +26,9 @@ namespace Akka.MGIHelper.UI.MgiStarter
         private readonly LocalHelper _localHelper;
         private readonly IActorRef _processManager;
 
-        public MgiStarterControlModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, ProcessConfig config, IDialogFactory dialogFactory)
+#pragma warning disable MA0051
+        public MgiStarterControlModel(IServiceProvider lifetimeScope, IUIDispatcher dispatcher, ProcessConfig config, IDialogFactory dialogFactory)
+#pragma warning restore MA0051
             : base(lifetimeScope, dispatcher)
         {
             Client = RegisterProperty<Process?>(nameof(Client)).OnChange(UpdateLabel);
@@ -41,7 +43,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
             _processManager = Context.ActorOf("Process-Manager", ProcessManagerActor.New());
             var mgiStarting = Context.ActorOf("Mgi-Starter", MgiStartingActor.New(dialogFactory, _processManager));
 
-            var currentStart = new BehaviorSubject<CancellationTokenSource?>(null).DisposeWith(this);
+            var currentStart = new BehaviorSubject<CancellationTokenSource?>(value: null).DisposeWith(this);
             (from start in currentStart
              from state in InternalStart
              where !state
@@ -54,7 +56,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 obs => obs.SubscribeWithStatus(
                     _ =>
                     {
-                        currentStart.OnNext(null);
+                        currentStart.OnNext(value: null);
                         InternalStart += false;
                     }));
             Receive<MgiStartingActor.StartStatusUpdate>(obs => obs.SubscribeWithStatus(s => Status += s.Status));
@@ -113,13 +115,13 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 switch (processChange)
                 {
                     case ProcessChange.Started:
-                        if (_config.Kernel.Contains(name))
+                        if (_config.Kernel.Contains(name, StringComparison.Ordinal))
                         {
                             //ConfigProcess(process);
                             Kernel += process;
                         }
 
-                        if (_config.Client.Contains(name))
+                        if (_config.Client.Contains(name, StringComparison.Ordinal))
                         {
                             //ConfigProcess(process);
                             Client += process;
@@ -127,9 +129,9 @@ namespace Akka.MGIHelper.UI.MgiStarter
 
                         break;
                     case ProcessChange.Stopped:
-                        if (_config.Kernel.Contains(name))
+                        if (_config.Kernel.Contains(name, StringComparison.Ordinal))
                             Kernel += null!;
-                        if (_config.Client.Contains(name))
+                        if (_config.Client.Contains(name, StringComparison.Ordinal))
                             Client += null!;
 
                         break;
@@ -138,10 +140,10 @@ namespace Akka.MGIHelper.UI.MgiStarter
                         throw new InvalidOperationException("Invalid ProcessChange Enum");
                     #pragma warning restore EX006
                 }
-
-                // ReSharper disable ConditionIsAlwaysTrueOrFalse
-                if (Kernel != null && Client != null)
-                    // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                
+                // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+                if (Kernel is null && Client is null)
+                    // ReSharper restore ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                     Status += Context.Loc().RequestString("uistatusstartet").Value;
                 if (Kernel!.Value is null && Client!.Value is null)
                     Status += Context.Loc().RequestString("uistatusstopped").Value;
@@ -170,11 +172,11 @@ namespace Akka.MGIHelper.UI.MgiStarter
             var builder = new StringBuilder();
 
             var status = Status;
-            // ReSharper disable ConditionIsAlwaysTrueOrFalse
-            var kernel = Kernel != null;
-            var client = Client != null;
-            // ReSharper restore ConditionIsAlwaysTrueOrFalse
-            if (!string.IsNullOrWhiteSpace(status) && status.Value?.StartsWith("Fehler:") == true)
+            // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            bool kernel = Kernel is null;
+            bool client = Client is null;
+            // ReSharper restore ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            if (!string.IsNullOrWhiteSpace(status) && status.Value?.StartsWith("Fehler:", StringComparison.Ordinal) == true)
             {
                 StatusLabel = status;
 

@@ -9,7 +9,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
         public async Task Handle(TrackingEvent msg, MessageBus messageBus)
         {
             if (msg.State == State.Power)
-                await messageBus.Publish(new FanStartEvent());
+                await messageBus.Publish(new FanStartEvent()).ConfigureAwait(false);
         }
     }
 }

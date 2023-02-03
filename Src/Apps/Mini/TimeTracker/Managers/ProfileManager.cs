@@ -159,7 +159,7 @@ namespace TimeTracker.Managers
                         if (dic.TryGetValue(free, out var entry) && entry.DayType == DayType.Normal)
                             entry = entry with { DayType = DayType.Holiday };
                         else
-                            entry = new ProfileEntry(free, null, null, DayType.Holiday);
+                            entry = new ProfileEntry(free, Start: null, Finish: null, DayType.Holiday);
                         dic = dic.SetItem(free, entry);
                         _entryCache.AddOrUpdate(entry);
 
@@ -167,19 +167,21 @@ namespace TimeTracker.Managers
                     });
         }
 
+#pragma warning disable MA0051
         public IObservable<bool> Come(IObservable<ComeParameter> dateObs)
+#pragma warning restore MA0051
         {
             return from parameter in dateObs
                    let date = parameter.Time
                    from isHoliday in _holidayManager.IsHoliday(date, date.Day)
                    from result in parameter.CanCreate(_entryCache.Lookup)
                        ? CreateEntry(Observable.Return(date), isHoliday ? DayType.Holiday : DayType.Normal)
-                       : Observable.Return(false)
+                       : Observable.Return(value: false)
                    select result;
 
             IObservable<bool> CreateEntry(IObservable<DateTime> returnDate, DayType type)
                 => from date in returnDate
-                   let entry = new ProfileEntry(date, _clock.NowTime, null, type)
+                   let entry = new ProfileEntry(date, _clock.NowTime, Finish: null, type)
                    from _ in SetEntry(entry)
                    from result in CheckNewMonth(date)
                    select result;
@@ -190,7 +192,7 @@ namespace TimeTracker.Managers
                    let doBackup = current.Month != month.Month || current.Year != month.Year
                    from result in doBackup
                        ? StartBackUp(month)
-                       : Observable.Return(true)
+                       : Observable.Return(value: true)
                    select result;
 
 
@@ -213,7 +215,7 @@ namespace TimeTracker.Managers
             {
                 try
                 {
-                    var (newData, oldData) = obj;
+                    (ProfileData newData, ProfileData oldData) = obj;
 
                     var oldEntrys = oldData.Entries.Values.Where(pe => pe.Date == oldData.CurrentMonth).ToImmutableList();
                     _entryCache.RemoveKeys(oldEntrys.Select(oe => oe.Date));
@@ -223,7 +225,7 @@ namespace TimeTracker.Managers
 
                     if (oldEntrys.Count != 0)
                         File.WriteAllTextAsync(
-                                originalFile.Replace(originalName, $"{originalName}-{oldData.CurrentMonth:d}"),
+                                originalFile.Replace(originalName, $"{originalName}-{oldData.CurrentMonth:d}", StringComparison.Ordinal),
                                 JsonConvert.SerializeObject(oldEntrys)).ToObservable()
                            .Subscribe(_ => { }, _aggregator.ReportError);
                 }
@@ -248,7 +250,7 @@ namespace TimeTracker.Managers
                    let data = _entryCache.Lookup(date)
                    from result in data.HasValue
                        ? MakeUpdate(data.Value)
-                       : Observable.Return(false)
+                       : Observable.Return(value: false)
                    select result;
 
             IObservable<bool> MakeUpdate(ProfileEntry entry)
@@ -314,7 +316,7 @@ namespace TimeTracker.Managers
                    from res in SetEntry(
                        result
                            #pragma warning disable EPS06
-                          .Select(dateTime => new ProfileEntry(dateTime, null, null, DayType.Vacation))
+                          .Select(dateTime => new ProfileEntry(dateTime, Start: null, Finish: null, DayType.Vacation))
                            #pragma warning restore EPS06
                           .ToArray())
                    select res;
@@ -325,7 +327,7 @@ namespace TimeTracker.Managers
 
                 foreach (var date in dates)
                 {
-                    if (!SystemClock.IsWeekDay(date) || await _holidayManager.IsHoliday(date, date.Day))
+                    if (!SystemClock.IsWeekDay(date) || await _holidayManager.IsHoliday(date, date.Day).ConfigureAwait(false))
                         continue;
 
                     result = result.Add(date);

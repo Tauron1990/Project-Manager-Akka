@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Windows;
 using Akka.Actor;
 using Akka.Util;
+using Microsoft.Extensions.Logging;
 using Tauron;
 using Tauron.Features;
 
@@ -16,7 +17,9 @@ namespace Akka.MGIHelper.Core.ProcessManager
         private ProcessTrackerActor() { }
 
         public static IPreparedFeature New()
-            => Feature.Create(() => new ProcessTrackerActor(), _ => new ProcessTrackerState(null, ImmutableArray<string>.Empty, 0, 0, ImmutableList<string>.Empty));
+            => Feature.Create(
+                () => new ProcessTrackerActor(),
+                _ => new ProcessTrackerState(Gartherer: null, ImmutableArray<string>.Empty, 0, 0, ImmutableList<string>.Empty));
 
         protected override void ConfigImpl()
         {
@@ -39,8 +42,8 @@ namespace Akka.MGIHelper.Core.ProcessManager
                     p =>
                     {
                         var ok = false;
-                        var (process, state) = p;
-                        var id = -1;
+                        (Process process, ProcessTrackerState state) = p;
+                        int id = -1;
                         var name = string.Empty;
 
                         try
@@ -52,8 +55,8 @@ namespace Akka.MGIHelper.Core.ProcessManager
                                 ok = true;
 
                             var processName = process.ProcessName;
-                            ok = ok && state.Tracked.Any(s => s.Contains(processName));
-                            var isPriority = p.State.PriorityProcesses.Any(prio => processName.Contains(prio));
+                            ok = ok && state.Tracked.Any(s => s.Contains(processName, StringComparison.Ordinal));
+                            var isPriority = p.State.PriorityProcesses.Any(prio => processName.Contains(prio, StringComparison.Ordinal));
                             
                             ConfigProcess(process, ok || isPriority);
 
@@ -61,13 +64,13 @@ namespace Akka.MGIHelper.Core.ProcessManager
                         }
                         catch (Exception e)
                         {
-                            Log.Error(e, "Error While inspecting Process");
+                            Logger.LogError(e, "Error While inspecting Process");
                         }
 
                         return (ok, process, id, name);
                     })
                .Where(p => p.ok)
-               .Do(e => Log.Info("Process Found {Name}", e.name))
+               .Do(e => Logger.LogInformation("Process Found {Name}", e.name))
                .Do(e => Context.ActorOf(FormatName(e.id), TrackedProcessActor.New(e.process, e.id, e.name)))
                .Select(p => new ProcessStateChange(ProcessChange.Started, p.name, p.id, p.process))
                .ToParent();
@@ -86,7 +89,9 @@ namespace Akka.MGIHelper.Core.ProcessManager
                 #endif
             }
             
-            var (_, _, clientAffinity, operationSystemAffinity, _) = CurrentState;
+#pragma warning disable GU0017
+            (_, _, int clientAffinity, int operationSystemAffinity, _) = CurrentState;
+#pragma warning restore GU0017
             
             if (isCLient)
             {
@@ -127,7 +132,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
                                           .ToImmutableArray(),
                                        ClientAffinity = p.Event.ClientAffinity,
                                        OperationSystemAffinity = p.Event.OperatingAffinity,
-                                       Gartherer = new ProcessGartherer(p.Self, Log),
+                                       Gartherer = new ProcessGartherer(p.Self, Logger),
                                        PriorityProcesses = p.Event.PriorityProcesses
                                    })
                .Do(_ => Process.GetProcesses().Foreach(p => Self.Tell(p)),

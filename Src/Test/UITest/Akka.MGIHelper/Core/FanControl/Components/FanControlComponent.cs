@@ -27,20 +27,13 @@ namespace Akka.MGIHelper.Core.FanControl.Components
 
         public async Task Handle(FanStartEvent msg, MessageBus messageBus)
         {
-            //TODO Start Fan
-
-            await _statusChange(true);
+            await _statusChange(arg: true).ConfigureAwait(false);
 
             var time = (int)(_options.ClockTimeMs * _options.FanControlMultipler);
 
             _timer.Change(time, -1);
         }
 
-        private async void StopFan(object? state)
-        {
-            //TODO Stop Fan
-
-            await _statusChange(false);
-        }
+        private async void StopFan(object? state) => await _statusChange(arg: false).ConfigureAwait(false);
     }
 }

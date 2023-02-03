@@ -1,9 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
@@ -22,13 +18,13 @@ namespace Tauron.Application.Wpf.Dialogs;
 public abstract class DialogBase : Control
 {
     public static readonly DependencyProperty DialogTitleFontSizeProperty = DependencyProperty.Register(
-        "DialogTitleFontSize",
+        nameof(DialogTitleFontSize),
         typeof(double),
         typeof(DialogBase),
         new PropertyMetadata((double)30));
 
     public static readonly DependencyProperty ContentProperty = DependencyProperty.Register(
-        "Content",
+        nameof(Content),
         typeof(object),
         typeof(DialogBase),
         new PropertyMetadata(
@@ -36,7 +32,7 @@ public abstract class DialogBase : Control
             (o, args) => ((DialogBase)o).ContentChanged(args)));
 
     public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
-        "Title",
+        nameof(Title),
         typeof(string),
         typeof(DialogBase),
         new PropertyMetadata(
@@ -44,7 +40,7 @@ public abstract class DialogBase : Control
             (o, args) => ((DialogBase)o).TitleChanged(args)));
 
     public static readonly DependencyProperty TopProperty = DependencyProperty.Register(
-        "Top",
+        nameof(Top),
         typeof(object),
         typeof(DialogBase),
         new PropertyMetadata(
@@ -53,7 +49,7 @@ public abstract class DialogBase : Control
 
 
     public static readonly DependencyProperty BottomProperty = DependencyProperty.Register(
-        "Bottom",
+        nameof(Bottom),
         typeof(object),
         typeof(DialogBase),
         new PropertyMetadata(
@@ -61,7 +57,7 @@ public abstract class DialogBase : Control
             (o, args) => ((DialogBase)o).ButtomChaned(args)));
 
     public static readonly DependencyProperty ContentTemplateProperty = DependencyProperty.Register(
-        "ContentTemplate",
+        nameof(ContentTemplate),
         typeof(DataTemplate),
         typeof(DialogBase),
         new PropertyMetadata(default(DataTemplate)));
@@ -80,7 +76,7 @@ public abstract class DialogBase : Control
             new FrameworkPropertyMetadata(typeof(DialogBase)));
     }
 
-    public DialogBase() => Loaded += OnLoaded;
+    protected DialogBase() => Loaded += OnLoaded;
 
     public double DialogTitleFontSize
     {
@@ -133,28 +129,28 @@ public abstract class DialogBase : Control
 
     private void ContentChanged(DependencyPropertyChangedEventArgs args)
     {
-        if(_content == null) return;
+        if(_content is null) return;
 
         _content.Content = args.NewValue;
     }
 
     private void TitleChanged(DependencyPropertyChangedEventArgs args)
     {
-        if(_title == null) return;
+        if(_title is null) return;
 
         _title.Text = args.NewValue as string;
     }
 
     private void TopChanged(DependencyPropertyChangedEventArgs args)
     {
-        if(_top == null) return;
+        if(_top is null) return;
 
         _top.Content = args.NewValue;
     }
 
     private void ButtomChaned(DependencyPropertyChangedEventArgs args)
     {
-        if(_bottom == null) return;
+        if(_bottom is null) return;
 
         _bottom.Content = args.NewValue;
     }
@@ -178,35 +174,5 @@ public abstract class DialogBase : Control
             _bottom.Content = Bottom;
 
         base.OnApplyTemplate();
-    }
-}
-
-public static class DialogExtensions
-{
-    public static Task<TResult> MakeTask<TResult>(this FrameworkElement ele, Func<TaskCompletionSource<TResult>, object> factory)
-    {
-        var source = new TaskCompletionSource<TResult>();
-
-        ele.DataContext = factory(source);
-        if(ele.DataContext is IDisposable disposable)
-            ele.Unloaded += (_, _) => disposable.Dispose();
-
-        return source.Task;
-    }
-
-    public static Task<TResult> MakeObsTask<TResult>(this FrameworkElement ele, Func<IObserver<TResult>, object> factory)
-    {
-        return Observable.Create<TResult>(
-                o =>
-                {
-                    object context = factory(o);
-                    ele.DataContext = context;
-
-                    if(context is IDisposable disposable)
-                        return disposable;
-
-                    return Disposable.Empty;
-                })
-           .Take(1).ToTask();
     }
 }

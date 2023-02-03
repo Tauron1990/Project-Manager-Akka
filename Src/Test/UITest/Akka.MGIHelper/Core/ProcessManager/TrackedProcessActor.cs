@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Threading;
 using Akka.Actor;
+using Microsoft.Extensions.Logging;
 using Tauron;
 using Tauron.Features;
 
@@ -30,7 +31,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
                    .ToSelf());
 
             Receive<InternalProcessExit>(
-                obs => obs.Do(p => Log.Info("Track Process {Name} Exited: {Id}", p.State.ProcessName, p.State.Id))
+                obs => obs.Do(p => Logger.LogInformation("Track Process {Name} Exited: {Id}", p.State.ProcessName, p.State.Id))
                    .Do(_ => Context.Stop(Self))
                    .Select(p => new ProcessExitMessage(p.State.Target, p.State.ProcessName, p.State.Id))
                    .ToParent());

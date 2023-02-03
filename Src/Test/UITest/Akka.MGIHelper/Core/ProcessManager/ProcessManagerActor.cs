@@ -4,8 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using Akka.Actor;
+using Microsoft.Extensions.Logging;
 using Tauron;
 using Tauron.Features;
+
+#pragma warning disable GU0019
 
 namespace Akka.MGIHelper.Core.ProcessManager
 {
@@ -33,7 +36,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
                                 (dic, file) =>
                                 {
                                     if (dic.ContainsKey(file))
-                                        Log.Error("Only One Script per File Suporrtet: {Script}", script.Intrest.Path.ToString());
+                                        Logger.LogError("Only One Script per File Suporrtet: {Script}", script.Intrest.Path.ToString());
 
                                     return dic.SetItem(file, script.Intrest);
                                 });
@@ -45,7 +48,9 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
 
             Receive<ProcessStateChange>(
-                obs => obs.Select(p => (Message: p.Event, Target: p.State.TargetProcesses.FirstOrDefault(d => d.Key.Contains(p.Event.Name))))
+                obs => obs.Select(p => (
+                        Message: p.Event, 
+                        Target: p.State.TargetProcesses.FirstOrDefault(d => d.Key.Contains(p.Event.Name, StringComparison.Ordinal))))
                    .Where(d => !string.IsNullOrWhiteSpace(d.Target.Key))
                    .ToActor(m => m.Target.Value, m => m.Message));
         }

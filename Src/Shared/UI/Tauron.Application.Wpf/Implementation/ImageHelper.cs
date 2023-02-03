@@ -22,7 +22,9 @@ public class ImageHelper : IImageHelper
 
         if(temp != null) return temp;
 
-        bool flag = target.IsAbsoluteUri && target.Scheme == Uri.UriSchemeFile && File.Exists(target.OriginalString);
+        bool flag = target.IsAbsoluteUri 
+                    && string.Equals(target.Scheme, Uri.UriSchemeFile, StringComparison.Ordinal) 
+                    && File.Exists(target.OriginalString);
         if(!flag) flag = target.IsAbsoluteUri;
 
         if(!flag) flag = File.Exists(target.OriginalString);

@@ -7,6 +7,7 @@ using Akka.Actor;
 using Akka.Event;
 using Akka.MGIHelper.Core.Configuration;
 using IniParser;
+using Microsoft.Extensions.Logging;
 using Tauron;
 using Tauron.Application.Wpf;
 using Tauron.Features;
@@ -30,7 +31,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
         {
             try
             {
-                Log.Info("Start Mgi Process");
+                Logger.LogInformation("Start Mgi Process");
 
                 var config = obj.Config;
                 Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartstartlabel").Value));
@@ -47,7 +48,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
                     }
                     catch (Exception e)
                     {
-                        Log.Error(e, "Error on Kill Kernel");
+                        Logger.LogError(e, "Error on Kill Kernel");
                     }
 
                     return;
@@ -72,7 +73,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
             }
             catch (Exception e)
             {
-                Log.Warning(e, "Error on Start Mgi process");
+                Logger.LogWarning(e, "Error on Start Mgi process");
                 CurrentState.Factory.FormatException(null, e);
             }
             finally

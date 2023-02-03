@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -25,8 +26,10 @@ namespace TimeTracker.ViewModels
     [UsedImplicitly]
     public sealed class MainWindowViewModel : UiActor
     {
+#pragma warning disable MA0051
         public MainWindowViewModel(
-            ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment,
+#pragma warning restore MA0051
+            IServiceProvider lifetimeScope, IUIDispatcher dispatcher, AppSettings settings, ITauronEnviroment enviroment,
             ProfileManager profileManager, CalculationManager calculation, SystemClock clock, IEventAggregator aggregator)
             : base(lifetimeScope, dispatcher)
         {
@@ -58,7 +61,7 @@ namespace TimeTracker.ViewModels
             var loadTrigger = new Subject<string>();
 
             (from newProfile in CurrentProfile
-             where !list.Items.Contains(newProfile)
+             where !list.Items.Contains(newProfile, StringComparer.Ordinal)
              select newProfile)
                .Throttle(TimeSpan.FromSeconds(5))
                .AutoSubscribe(
@@ -74,7 +77,7 @@ namespace TimeTracker.ViewModels
                .DisposeWith(this);
 
             (from profile in CurrentProfile
-             where list.Items.Contains(profile)
+             where list.Items.Contains(profile, StringComparer.Ordinal)
              select profile)
                .Subscribe(loadTrigger)
                .DisposeWith(this);
@@ -168,7 +171,7 @@ namespace TimeTracker.ViewModels
             {
                 var entryItem =
                     (from item in profileManager.Entries
-                     where item.Start != null && item.Finish == null
+                     where item.Start != null && item.Finish is null
                      orderby item.Date
                      select item).FirstOrDefault().OptionNotNull();
 
@@ -255,7 +258,7 @@ namespace TimeTracker.ViewModels
                         {
                             0 when InValidConfig() => "Konfiguration!",
                             0 => string.Empty,
-                            _ => h.ToString("F0")
+                            _ => h.ToString("F0", CultureInfo.CurrentUICulture)
                         };
 
                         bool InValidConfig()
@@ -313,76 +316,5 @@ namespace TimeTracker.ViewModels
         public UIProperty<string> ProfileState { get; }
 
         public UIPropertyBase? Vacation { get; }
-    }
-
-    public sealed class UiProfileEntry : ObservableObject, IComparable<UiProfileEntry>, IDisposable
-    {
-        private const string TimespanTemplate = @"hh\:mm";
-        private readonly IDisposable _subscription;
-
-        private string? _hour;
-
-        public UiProfileEntry(ProfileEntry entry, IObservable<ProfileData> data, Action<Exception> error)
-        {
-            Entry = entry;
-            UpdateLabels();
-            _subscription = CalculationManager.GetEntryHourCalculator(entry, data)
-               .AutoSubscribe(ts => Hour = ts.ToString(TimespanTemplate), error);
-        }
-
-        public ProfileEntry Entry { get; }
-
-        public string? Date { get; private set; }
-
-        public string? Start { get; private set; }
-
-        public string? Finish { get; private set; }
-
-        public string? Hour
-        {
-            get => _hour;
-            private set => SetProperty(ref _hour, value);
-        }
-
-        public bool IsValid { get; private set; }
-
-        public int CompareTo(UiProfileEntry? other)
-            => other == null ? 1 : Entry.Date.CompareTo(other.Entry.Date) * -1;
-
-        public void Dispose() => _subscription.Dispose();
-
-        //public UiProfileEntry()
-        //{
-        //    Entry = new ProfileEntry(DateTime.Now.Date, TimeSpan.FromHours(8), TimeSpan.FromHours(16));
-        //    UpdateLabels();
-        //}
-
-        private void UpdateLabels()
-        {
-            Date = Entry.Date.ToLocalTime().ToString("D");
-            Start = Entry.Start?.ToString(TimespanTemplate);
-            Finish = Entry.Finish?.ToString(TimespanTemplate);
-
-            if (Entry.Start == null)
-                Start = Entry.DayType switch
-                {
-                    DayType.Vacation => "Urlaub",
-                    DayType.Holiday => "Feiertag",
-                    _ => string.Empty
-                };
-
-            //Hour = (Entry.Finish - Entry.Start)?.ToString(TimespanTemplate);
-
-            var start = Entry.Start;
-            var finish = Entry.Finish;
-            if (Entry.DayType != DayType.Normal)
-                IsValid = true;
-            else if (start != null && finish == null)
-                IsValid = false;
-            else if (start > finish)
-                IsValid = false;
-            else
-                IsValid = true;
-        }
     }
 }

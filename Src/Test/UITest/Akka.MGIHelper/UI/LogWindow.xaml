@@ -4,7 +4,6 @@
             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
             xmlns:tau="http://schemas.TauronWpf.com"
-            xmlns:serilogViewer="clr-namespace:Tauron.Application.Wpf.SerilogViewer;assembly=Tauron.Application.Wpf.SerilogViewer"
             mc:Ignorable="d"
             Title="LogWindow" Height="650" Width="1300"
             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -16,7 +15,7 @@
             FontFamily="{DynamicResource MaterialDesignFont}">
     <TabControl Margin="5">
         <TabItem Header="{tau:Loc logentries}">
-            <serilogViewer:SerilogViewer />
+            <TextBlock Text="Funktion Entfernt" />
         </TabItem>
         <TabItem Header="{tau:Loc deadletter}">
             <ListBox ItemsSource="{tau:ActorBinding UnhandledMessages}" />

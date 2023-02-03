@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -230,7 +230,7 @@ public abstract class BindingDecoratorBase : MarkupExtension
 
     // ReSharper disable once ReturnTypeCanBeNotNullable
     [DefaultValue(null)]
-    public Collection<ValidationRule>? ValidationRules => Binding.ValidationRules;
+    public ICollection<ValidationRule>? ValidationRules => Binding.ValidationRules;
 
     [DefaultValue(null)]
     public string? StringFormat

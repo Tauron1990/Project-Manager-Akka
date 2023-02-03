@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Immutable;
 
 namespace TimeTracker.Data
 {
-    public sealed record Laender(string Name, string Abkuerzung);
-
-    public sealed record FeiertagInfo(string Name, ImmutableList<Laender> Laender);
-
     public sealed record Feiertage(DateTime Datum, FeiertagInfo FeiertagInfo);
 
     //[XmlRoot(ElementName = "Bundesland", Namespace = "http://schemas.datacontract.org/2004/07/FeiertagAPI")]

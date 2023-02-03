@@ -22,7 +22,9 @@ internal sealed class MgiMachine : IMachine
     private readonly DeviceId _deviceId;
     private readonly ObjectName _clientName;
 
+#pragma warning disable GU0073
     public MgiMachine(ILoggerFactory loggerFactory, OperationConfiguration operationConfiguration)
+#pragma warning restore GU0073
     {
         _logCollector = new LogCollector<LogInfo>(
             "MGI_Client",

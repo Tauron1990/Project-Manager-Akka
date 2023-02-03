@@ -15,7 +15,7 @@ namespace TimeTracker
         {
             try
             {
-                return new Try<TType>(await func());
+                return new Try<TType>(await func().ConfigureAwait(false));
             }
             catch (Exception e)
             {

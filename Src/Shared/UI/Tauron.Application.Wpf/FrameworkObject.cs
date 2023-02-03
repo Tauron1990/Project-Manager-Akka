@@ -115,7 +115,9 @@ public sealed class FrameworkObject : IInternalWeakReference
         return TryGetFrameworkContentElement(out FrameworkContentElement? ce) ? ElementMapper.Create(ce) : null;
     }
 
+#pragma warning disable MA0046
     public event DependencyPropertyChangedEventHandler DataContextChanged
+#pragma warning restore MA0046
     {
         add
         {

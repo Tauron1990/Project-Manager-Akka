@@ -20,7 +20,7 @@ public abstract class UpdatableMarkupExtension : MarkupExtension
     {
         if(serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget service)
         {
-            if(service.TargetObject.GetType().FullName == "System.Windows.SharedDp")
+            if(string.Equals(service.TargetObject.GetType().FullName, "System.Windows.SharedDp", StringComparison.Ordinal))
                 return this;
 
             TargetObject = service.TargetObject;
@@ -57,7 +57,7 @@ public abstract class UpdatableMarkupExtension : MarkupExtension
             else // _targetProperty is PropertyInfo
             {
                 var prop = TargetProperty as PropertyInfo;
-                prop?.SetValue(TargetObject, value, null);
+                prop?.SetValue(TargetObject, value, index: null);
             }
         }
     }

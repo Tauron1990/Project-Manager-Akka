@@ -164,7 +164,7 @@ public sealed class DialogFactory : IDialogFactory
         string? filter = dialog.Filter;
         string[] filters = filter.Split('|');
         for (var i = 1; i < filters.Length; i += 2)
-            if(filters[i] == ext)
+            if(string.Equals(filters[i], ext, StringComparison.Ordinal))
                 dialog.FilterIndex = 1 + (i - 1) / 2;
     }
 }

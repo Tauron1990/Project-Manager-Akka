@@ -16,7 +16,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
             if (msg.Error || msg.State != State.StartUp) return;
 
             if (msg.Pt1000 >= _options.MaxStartupTemp)
-                await messageBus.Publish(new FanStartEvent());
+                await messageBus.Publish(new FanStartEvent()).ConfigureAwait(false);
         }
     }
 }

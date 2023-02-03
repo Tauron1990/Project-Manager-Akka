@@ -27,7 +27,7 @@ namespace TimeTracker
             evts.HideDialogEvent += () => Dialogs.CurrentSession?.Close();
             evts.ShowDialogEvent += o => this.ShowDialog(o);
 
-            Closed += (sender, args) => Shutdown?.Invoke(sender, args);
+            Closed += (_, args) => Shutdown?.Invoke(this, args);
         }
 
         public event EventHandler? Shutdown;

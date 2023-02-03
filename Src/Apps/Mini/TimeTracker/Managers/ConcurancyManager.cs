@@ -75,7 +75,7 @@ namespace TimeTracker.Managers
             => input.SelectMany(
                 async d =>
                 {
-                    await _syncLock.WaitAsync();
+                    await _syncLock.WaitAsync().ConfigureAwait(false);
 
                     try
                     {

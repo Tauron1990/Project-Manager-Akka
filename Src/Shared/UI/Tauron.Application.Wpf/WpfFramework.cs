@@ -22,7 +22,7 @@ public sealed class WpfFramework : CommonUIFramework
     public override IWindow CreateMessageDialog(string title, string message)
     {
         var window = new System.Windows.Window();
-        window.Content = new MessageDialog(title, message, b => window.DialogResult = b, true)
+        window.Content = new MessageDialog(title, message, b => window.DialogResult = b, canCnacel: true)
                          { Margin = new Thickness(10) };
 
         window.SizeToContent = SizeToContent.WidthAndHeight;
@@ -54,7 +54,10 @@ public sealed class WpfFramework : CommonUIFramework
 
         public IObservable<TResult> InvokeAsync<TResult>(Func<Task<TResult>> action)
         {
-            async Task<TResult> Invoker() => await await _dispatcher.InvokeAsync(action).Task;
+            async Task<TResult> Invoker() => await 
+            (
+                await _dispatcher.InvokeAsync(action).Task.ConfigureAwait(false)
+                ).ConfigureAwait(false);
 
             return Invoker().ToObservable();
         }
@@ -95,7 +98,7 @@ public sealed class WpfFramework : CommonUIFramework
                     ShutdownMode.OnLastWindowClose => System.Windows.ShutdownMode.OnLastWindowClose,
                     ShutdownMode.OnMainWindowClose => System.Windows.ShutdownMode.OnMainWindowClose,
                     ShutdownMode.OnExplicitShutdown => System.Windows.ShutdownMode.OnExplicitShutdown,
-                    _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+                    _ => throw new ArgumentOutOfRangeException(nameof(value), value, message: null)
                 };
             }
         }

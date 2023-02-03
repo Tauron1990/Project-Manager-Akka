@@ -4,42 +4,6 @@ using JetBrains.Annotations;
 
 namespace Tauron.Application.Wpf;
 #pragma warning disable CA1069 // Enumerationswerte dürfen nicht dupliziert werden
-[PublicAPI]
-public enum MsgBoxImage
-{
-    None = 0,
-    Error = 16,
-
-    #pragma warning disable GU0060
-    Hand = 16,
-    Stop = 16,
-    Question = 32,
-    Exclamation = 48,
-    Warning = 48,
-    Asterisk = 64,
-    Information = 64
-    #pragma warning restore GU0060
-}
-
-[PublicAPI]
-public enum MsgBoxButton
-{
-    Ok = 0,
-    OkCancel = 1,
-    YesNoCancel = 3,
-    YesNo = 4
-}
-
-[PublicAPI]
-public enum MsgBoxResult
-{
-    None = 0,
-    Ok = 1,
-    Cancel = 2,
-    Yes = 6,
-    No = 7
-}
-
 #pragma warning restore CA1069 // Enumerationswerte dürfen nicht dupliziert werden
 
 [PublicAPI]

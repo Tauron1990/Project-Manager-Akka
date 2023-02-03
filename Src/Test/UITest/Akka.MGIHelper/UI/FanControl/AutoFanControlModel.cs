@@ -1,4 +1,5 @@
-﻿using Akka.Actor;
+﻿using System;
+using Akka.Actor;
 using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Core.FanControl;
 using Akka.MGIHelper.Core.FanControl.Events;
@@ -12,7 +13,7 @@ namespace Akka.MGIHelper.UI.FanControl
 {
     public class AutoFanControlModel : UiActor
     {
-        public AutoFanControlModel(ILifetimeScope scope, IUIDispatcher dispatcher, FanControlOptions options)
+        public AutoFanControlModel(IServiceProvider scope, IUIDispatcher dispatcher, FanControlOptions options)
             : base(scope, dispatcher)
         {
             Options = RegisterProperty<FanControlOptions>(nameof(Options)).WithDefaultValue(options);
@@ -25,7 +26,7 @@ namespace Akka.MGIHelper.UI.FanControl
             Pt1000 = RegisterProperty<int>(nameof(Pt1000));
             FanRunning = RegisterProperty<bool>(nameof(FanRunning)).WithDefaultValue(false);
 
-            Context.ActorOf("Fan-Control", Core.FanControl.FanControl.New(options));
+            Context.ActorOf("Fan-Control", Core.FanControl.FanControlActor.New(options));
 
             Receive<TrackingEvent>(
                 obs => obs.SubscribeWithStatus(

@@ -27,7 +27,7 @@ namespace Akka.MGIHelper
 
         public event EventHandler? Shutdown;
 
-        private void MainWindow_OnClosed(object? sender, EventArgs e) => Shutdown?.Invoke(sender, e);
+        private void MainWindow_OnClosed(object? _, EventArgs e) => Shutdown?.Invoke(this, e);
 
         private void MainWindow_OnLocationChanged(object? sender, EventArgs e)
         {

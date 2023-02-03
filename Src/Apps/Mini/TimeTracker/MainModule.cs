@@ -1,30 +1,35 @@
-﻿using TimeTracker.Data;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Tauron;
+using Tauron.Application.CommonUI;
+using Tauron.Application.Settings;
+using TimeTracker.Data;
 using TimeTracker.Managers;
 using TimeTracker.ViewModels;
 using TimeTracker.Views;
+using SystemClock = TimeTracker.Managers.SystemClock;
+
+#pragma warning disable GU0011
 
 namespace TimeTracker
 {
-    public sealed class MainModule : Module
+    public sealed class MainModule : IModule
     {
-        protected override void Load(ContainerBuilder builder)
+        public void Load(IServiceCollection builder)
         {
-            builder.RegisterType<AddEntryDialog>().AsSelf();
-            builder.RegisterType<CorrectionDialog>().AsSelf();
-            builder.RegisterType<VacationDialog>().AsSelf();
+            builder.AddTransient<AddEntryDialog>();
+            builder.AddTransient<CorrectionDialog>();
+            builder.AddTransient<VacationDialog>();
 
             builder.RegisterView<MainWindow, MainWindowViewModel>();
 
-            builder.RegisterInstance(SystemClock.Inst).As<SystemClock>().SingleInstance();
-            builder.RegisterType<DataManager>().AsSelf().SingleInstance();
-            builder.RegisterType<HolidayManager>().AsSelf().SingleInstance();
-            builder.RegisterType<ProfileManager>().AsSelf().SingleInstance();
-            builder.RegisterType<CalculationManager>().AsSelf().SingleInstance();
-            builder.RegisterType<ConcurancyManager>().AsSelf().SingleInstance();
+            builder.AddSingleton(SystemClock.Inst);
+            builder.AddSingleton<DataManager>();
+            builder.AddSingleton<HolidayManager>();
+            builder.AddSingleton<ProfileManager>();
+            builder.AddSingleton<CalculationManager>();
+            builder.AddSingleton<ConcurancyManager>();
 
             builder.RegisterSettingsManager(c => c.WithProvider<AppSettingsConfiguration>());
-
-            base.Load(builder);
         }
     }
 }

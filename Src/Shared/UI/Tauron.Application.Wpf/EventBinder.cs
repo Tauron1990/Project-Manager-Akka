@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
@@ -26,7 +27,7 @@ public static class EventBinder
             "Events",
             typeof(string),
             typeof(EventBinder),
-            new UIPropertyMetadata(null, OnEventsChanged));
+            new UIPropertyMetadata(defaultValue: null, OnEventsChanged));
 
     public static string GetEvents(DependencyObject obj)
         => (string)obj.GetValue(EventsProperty);
@@ -60,7 +61,7 @@ public static class EventBinder
         if(oldValue != null)
             binder.CleanUp(EventBinderPrefix + oldValue);
 
-        if(newValue == null) return;
+        if(newValue is null) return;
 
         binder.Register(EventBinderPrefix + newValue, new EventLinker { Commands = newValue }, affectedPart);
     }
@@ -74,7 +75,7 @@ public static class EventBinder
 
         protected override void CleanUp()
         {
-            Log.Debug("Clean Up Event {Events}", Commands);
+            Log.Debug(CultureInfo.InvariantCulture, "Clean Up Event {Events}", Commands);
             foreach (InternalEventLinker linker in _linkers) linker.Dispose();
             _linkers.Clear();
         }
@@ -83,15 +84,15 @@ public static class EventBinder
         {
             if(Commands is null)
             {
-                Log.Error("EventBinder: No Command Setted: {Context}", context);
+                Log.Error(CultureInfo.InvariantCulture, "EventBinder: No Command Setted: {Context}", context);
 
                 return;
             }
 
-            Log.Debug("Bind Events {Name}", Commands);
+            Log.Debug(CultureInfo.InvariantCulture, "Bind Events {Name}", Commands);
 
             string[] vals = Commands.Split(':');
-            var events = new Dictionary<string, string>();
+            var events = new Dictionary<string, string>(StringComparer.Ordinal);
 
             try
             {
@@ -99,7 +100,7 @@ public static class EventBinder
             }
             catch (IndexOutOfRangeException)
             {
-                Log.Error("EventBinder: EventPairs not Valid: {Commands}", Commands);
+                Log.Error(CultureInfo.InvariantCulture, "EventBinder: EventPairs not Valid: {Commands}", Commands);
             }
 
             IUIObject host = AffectedObject;
@@ -127,7 +128,7 @@ public static class EventBinder
         {
             private static readonly MethodInfo Method = typeof(InternalEventLinker)
                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-               .First(m => m.Name == "Handler");
+               .First(m => string.Equals(m.Name, "Handler", StringComparison.Ordinal));
 
             private static readonly ILogger InternalLog = LogManager.GetCurrentClassLogger();
 
@@ -156,9 +157,9 @@ public static class EventBinder
 
             public void Dispose()
             {
-                InternalLog.Debug("Remove Event Handler {Name}", _targetName);
+                InternalLog.Debug(CultureInfo.InvariantCulture, "Remove Event Handler {Name}", _targetName);
 
-                if(_host == null || _delegate == null) return;
+                if(_host is null || _delegate is null) return;
 
                 _event?.RemoveEventHandler(_host, _delegate);
                 _delegate = null;
@@ -205,13 +206,13 @@ public static class EventBinder
 
             private void Initialize()
             {
-                InternalLog.Debug("Initialize Event Handler {Name}", _targetName);
+                InternalLog.Debug(CultureInfo.InvariantCulture, "Initialize Event Handler {Name}", _targetName);
 
-                if(_isDirty || _event == null) return;
+                if(_isDirty || _event is null) return;
 
                 Type? eventTyp = _event?.EventHandlerType;
 
-                if(_host == null || eventTyp == null) return;
+                if(_host is null || eventTyp is null) return;
 
                 _delegate = Delegate.CreateDelegate(eventTyp, this, Method);
                 _event?.AddEventHandler(_host, _delegate);

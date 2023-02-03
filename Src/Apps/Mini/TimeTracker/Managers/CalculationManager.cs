@@ -121,12 +121,10 @@ namespace TimeTracker.Managers
                 if (ReferenceEquals(y, null)) return false;
                 if (x.GetType() != y.GetType()) return false;
 
-                return x.File == y.File && x.One == y.One && x.Two == y.Two && x.Three == y.Three && x.Four.Equals(y.Four);
+                return string.Equals(x.File, y.File, StringComparison.Ordinal) && x.One == y.One && x.Two == y.Two && x.Three == y.Three && x.Four.Equals(y.Four);
             }
 
             public int GetHashCode(ChangeToken obj) => HashCode.Combine(obj.File, obj.One, obj.Two, obj.Three, obj.Four);
         }
     }
-
-    public sealed record CalculationResult(MonthState MonthState, int Remaining);
 }

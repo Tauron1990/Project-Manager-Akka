@@ -10,18 +10,18 @@ namespace Tauron.Application.Wpf.Implementation;
 [PublicAPI]
 public class PackUriHelper : IPackUriHelper
 {
-    public string GetString(string pack) => GetString(pack, Assembly.GetCallingAssembly().GetName().Name, false);
+    public string GetString(string pack) => GetString(pack, Assembly.GetCallingAssembly().GetName().Name, full: false);
 
     public string GetString(string pack, string? assembly, bool full)
     {
-        if(assembly == null) return pack;
+        if(assembly is null) return pack;
 
         string fullstring = full ? "pack://application:,,," : string.Empty;
 
         return $"{fullstring}/{assembly};component/{pack}";
     }
 
-    public Uri GetUri(string pack) => GetUri(pack, Assembly.GetCallingAssembly().GetName().Name, false);
+    public Uri GetUri(string pack) => GetUri(pack, Assembly.GetCallingAssembly().GetName().Name, full: false);
 
     public Uri GetUri(string pack, string? assembly, bool full)
     {
@@ -36,7 +36,7 @@ public class PackUriHelper : IPackUriHelper
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     public T Load<T>(string pack, string? assembly) where T : class
-        => (T)System.Windows.Application.LoadComponent(GetUri(pack, assembly, false));
+        => (T)System.Windows.Application.LoadComponent(GetUri(pack, assembly, full: false));
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     public Stream LoadStream(string pack) => LoadStream(pack, Assembly.GetCallingAssembly().GetName().Name);
@@ -44,7 +44,7 @@ public class PackUriHelper : IPackUriHelper
     [MethodImpl(MethodImplOptions.NoInlining)]
     public Stream LoadStream(string pack, string? assembly)
     {
-        StreamResourceInfo? info = System.Windows.Application.GetResourceStream(GetUri(pack, assembly, true));
+        StreamResourceInfo? info = System.Windows.Application.GetResourceStream(GetUri(pack, assembly, full: true));
 
         if(info != null) return info.Stream;
 

@@ -3,6 +3,8 @@
 //ProcessName,String,TestApp.exe
 //ProcessID,UInt32,14044
 
+#pragma warning disable GU0011
+
 using System.Collections;
 using System.Diagnostics;
 using System.Management;
@@ -41,14 +43,14 @@ finally
 
 void ProcessStartEventArrived(object sender, EventArrivedEventArgs e)
 {
-    var propertyData = e.NewEvent.Properties.OfType<PropertyData>().FirstOrDefault(d => d.Name == "ProcessID");
+    var propertyData = e.NewEvent.Properties.OfType<PropertyData>().FirstOrDefault(d => string.Equals(d.Name, "ProcessID", StringComparison.Ordinal));
     if(propertyData is null) return;
 
     try
     {
         using var process = Process.GetProcessById((int)(uint)propertyData.Value);
         var name = process.ProcessName;
-        if (name.Contains(@"Noyau_MGI.exe") || name.Contains(@"JETvarnish.exe"))
+        if (name.Contains(@"Noyau_MGI.exe", StringComparison.Ordinal) || name.Contains(@"JETvarnish.exe", StringComparison.Ordinal))
             process.ProcessorAffinity = (IntPtr)data[0];
         else
             process.ProcessorAffinity = (IntPtr)data[1];
@@ -58,6 +60,6 @@ void ProcessStartEventArrived(object sender, EventArrivedEventArgs e)
     catch (Exception exception)
     {
         Console.WriteLine("Fehler beim setzten der Process zugeörigkeit");
-        Console.WriteLine(exception.Message);
+        Console.WriteLine(exception);
     }
 }

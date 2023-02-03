@@ -28,7 +28,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
                         switch (_stopwatch.IsRunning)
                         {
                             case true when _stopwatch.Elapsed.Seconds < _options.GoStandbyTime:
-                                await messageBus.Publish(new FanStartEvent());
+                                await messageBus.Publish(new FanStartEvent()).ConfigureAwait(false);
 
                                 break;
                             case true:
@@ -43,7 +43,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
 
                         break;
                     case State.Power when msg.State == State.StandBy:
-                        await messageBus.Publish(new FanStartEvent());
+                        await messageBus.Publish(new FanStartEvent()).ConfigureAwait(false);
                         _stopwatch.Start();
 
                         break;

@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Globalization;
+using System.Reflection;
 using System.Text;
 using Akka.Event;
 using DynamicData;
@@ -11,7 +13,7 @@ namespace Akka.MGIHelper.UI
 {
     public sealed class LogWindowViewModel : UiActor
     {
-        public LogWindowViewModel(ILifetimeScope lifetimeScope, IUIDispatcher dispatcher)
+        public LogWindowViewModel(IServiceProvider lifetimeScope, IUIDispatcher dispatcher)
             : base(lifetimeScope, dispatcher)
         {
             UnhandledMessages = this.RegisterUiCollection<string>(nameof(UnhandledMessages)).BindToList(out var list);
@@ -26,7 +28,7 @@ namespace Akka.MGIHelper.UI
                                 var builder = new StringBuilder($"Name: {obj.GetType().Name}");
 
                                 foreach (var propertyInfo in obj.Message.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                                    builder.Append($" - {propertyInfo.GetValue(obj.Message)}");
+                                    builder.Append(CultureInfo.InvariantCulture, $" - {propertyInfo.GetValue(obj.Message)}");
 
                                 list.Add(builder.ToString());
                             }));

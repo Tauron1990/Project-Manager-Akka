@@ -1,39 +1,9 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 using JetBrains.Annotations;
 
 namespace Tauron.Application.Wpf.Converter;
-
-[PublicAPI]
-[MarkupExtensionReturnType(typeof(IValueConverter))]
-public class StringToIntConverter : ValueConverterFactoryBase
-{
-    protected override IValueConverter Create() => new Converter();
-
-    private class Converter : StringConverterBase<int>
-    {
-        protected override bool CanConvertBack => true;
-
-        protected override string Convert(int value) => value.ToString();
-
-        protected override int ConvertBack(string value)
-        {
-            if(string.IsNullOrEmpty(value))
-                return 0;
-
-            try
-            {
-                return int.Parse(value);
-            }
-            catch (Exception e) when (e is ArgumentException || e is FormatException || e is OverflowException)
-            {
-                return 0;
-            }
-        }
-    }
-}
 
 [PublicAPI]
 [MarkupExtensionReturnType(typeof(IValueConverter))]

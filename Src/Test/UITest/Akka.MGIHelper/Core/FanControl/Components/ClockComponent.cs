@@ -55,7 +55,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
             {
                 try
                 {
-                    await _messageBus!.Publish(new TickEvent());
+                    await _messageBus!.Publish(new TickEvent()).ConfigureAwait(false);
                 }
                 catch
                 {

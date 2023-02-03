@@ -3,7 +3,6 @@ using System.Collections;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using DynamicData;
@@ -27,14 +26,14 @@ public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservableP
                .Select(c => c.Key)
                .Subscribe(o));
 
-        Disposer.Add
+        Disposer.AddResource
         (
             _errors.Connect().Select(d => d.Property)
                .Flatten().Subscribe(c => ErrorsChangedInternal?.Invoke(this, new DataErrorsChangedEventArgs(c.Current)))
         );
     }
 
-    protected CompositeDisposable Disposer { get; } = new();
+    protected IResourceHolder Disposer { get; } = new CompositHolder();
 
     public int ErrorCount => _errors.Count;
 
@@ -102,7 +101,7 @@ public abstract class ObservableErrorObject : INotifyDataErrorInfo, IObservableP
     {
         string name = Reflex.PropertyName(property);
 
-        Disposer.Add
+        Disposer.AddResource
         (
             _propertys.Connect()
                .Where(o => string.Equals(o.Name, name, StringComparison.Ordinal))

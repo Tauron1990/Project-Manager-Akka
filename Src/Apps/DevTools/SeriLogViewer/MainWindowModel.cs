@@ -102,7 +102,7 @@ namespace SeriLogViewer
                 var prov = obj;
 
                 foreach (var match in FindComponent(msg))
-                    msg = msg.Replace(match, prov[match[1..^1]]?.ToString() ?? string.Empty);
+                    msg = msg.Replace(match, prov[match[1..^1]]?.ToString() ?? string.Empty, StringComparison.Ordinal);
 
                 obj["@mt"] = JToken.FromObject(msg);
             }

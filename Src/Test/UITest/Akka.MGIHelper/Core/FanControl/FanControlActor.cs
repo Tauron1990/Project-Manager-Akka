@@ -10,12 +10,12 @@ using Tauron.Features;
 
 namespace Akka.MGIHelper.Core.FanControl
 {
-    public sealed class FanControl : ActorFeatureBase<FanControlOptions>
+    public sealed class FanControlActor : ActorFeatureBase<FanControlOptions>
     {
-        private FanControl() { }
+        private FanControlActor() { }
 
         public static IPreparedFeature New(FanControlOptions options)
-            => Feature.Create(() => new FanControl(), options);
+            => Feature.Create(() => new FanControlActor(), options);
 
         protected override void ConfigImpl()
         {
@@ -55,7 +55,7 @@ namespace Akka.MGIHelper.Core.FanControl
 
             Stop.Subscribe(_ => messageBus.Dispose());
 
-            Receive<ClockEvent>(obs => obs.SelectMany(async p => await messageBus.Publish(p)));
+            Receive<ClockEvent>(obs => obs.SelectMany(async p => await messageBus.Publish(p).ConfigureAwait(false)));
         }
     }
 }

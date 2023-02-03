@@ -15,7 +15,7 @@ namespace Akka.MGIHelper.Core.Configuration
         {
             get => GetValue(int.Parse, 1000);
             [UsedImplicitly]
-            set => SetValue(value.ToString());
+            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
         }
 
         //set => SetValue(value.ToString(CultureInfo.InvariantCulture));
@@ -30,21 +30,21 @@ namespace Akka.MGIHelper.Core.Configuration
         {
             get => GetValue(int.Parse, 25);
             [UsedImplicitly]
-            set => SetValue(value.ToString());
+            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
         }
 
         public int MaxStartupTemp
         {
             get => GetValue(int.Parse, 70);
             [UsedImplicitly]
-            set => SetValue(value.ToString());
+            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
         }
 
         public int MaxStandbyTemp
         {
             get => GetValue(int.Parse, 115);
             [UsedImplicitly]
-            set => SetValue(value.ToString());
+            set => SetValue(value.ToString(CultureInfo.InvariantCulture));
         }
 
         public double FanControlMultipler

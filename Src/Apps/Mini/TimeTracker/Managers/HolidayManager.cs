@@ -32,7 +32,7 @@ namespace TimeTracker.Managers
                 (_lock, _httpClient),
                 s =>
                 {
-                    var (sema, htclient) = s;
+                    (SemaphoreSlim sema, HttpClient htclient) = s;
 
                     sema.Dispose();
                     htclient.Dispose();
@@ -43,7 +43,7 @@ namespace TimeTracker.Managers
 
         public async Task<IEnumerable<int>> RequestFor(DateTime mouth)
         {
-            var data = await RequestYear(mouth.Year);
+            var data = await RequestYear(mouth.Year).ConfigureAwait(false);
 
             return from feiertage in data
                    where feiertage.Datum.Month == mouth.Month
@@ -51,11 +51,11 @@ namespace TimeTracker.Managers
         }
 
         public async Task<bool> IsHoliday(DateTime mouth, int day)
-            => (await RequestFor(mouth)).Contains(day);
+            => (await RequestFor(mouth).ConfigureAwait(false)).Contains(day);
 
-        private async Task<ImmutableList<Feiertage>> RequestYear(int year)
+        private async Task<ImmutableList<Feiertage>?> RequestYear(int year)
         {
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
 
             try
             {
@@ -68,31 +68,32 @@ namespace TimeTracker.Managers
                     var tryRead = await Try.FromAsync(
                         async () =>
                         {
-                            var content = await File.ReadAllTextAsync(yearFileName);
+                            var content = await File.ReadAllTextAsync(yearFileName).ConfigureAwait(false);
 
                             return JsonConvert.DeserializeObject<ImmutableList<Feiertage>>(content);
-                        });
+                        }).ConfigureAwait(false);
 
                     if (tryRead.IsSuccess)
                     {
                         var list = tryRead.Get();
 
-                        if (list.Count != 0)
+                        if (list is not null && list.Count != 0)
                             return ApplyCache(list);
                     }
                 }
 
-                using var result = await _httpClient.GetAsync("https://www.spiketime.de/feiertagapi/feiertage/BY/" + year);
-                string resultString = await result.Content.ReadAsStringAsync();
+                using var result = await _httpClient.GetAsync("https://www.spiketime.de/feiertagapi/feiertage/BY/" + year).ConfigureAwait(false);
+                string resultString = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var data = JsonConvert.DeserializeObject<ImmutableList<Feiertage>>(resultString);
 
                 try
                 {
-                    await File.WriteAllTextAsync(yearFileName, JsonConvert.SerializeObject(data));
+                    await File.WriteAllTextAsync(yearFileName, JsonConvert.SerializeObject(data)).ConfigureAwait(false);
                 }
                 catch (IOException) { }
 
-                return ApplyCache(data);
+                return data is null ? null : ApplyCache(data);
+
             }
             finally
             {

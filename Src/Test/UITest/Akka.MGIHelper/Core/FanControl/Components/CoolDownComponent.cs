@@ -11,7 +11,7 @@ namespace Akka.MGIHelper.Core.FanControl.Components
             if (msg.Error) return;
 
             if (msg.State == State.Cooldown)
-                await messageBus.Publish(new FanStartEvent());
+                await messageBus.Publish(new FanStartEvent()).ConfigureAwait(false);
         }
     }
 }

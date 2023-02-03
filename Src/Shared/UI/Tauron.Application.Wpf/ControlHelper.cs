@@ -31,7 +31,7 @@ public static class ControlHelper
             "MarkWindow",
             typeof(string),
             typeof(ControlHelper),
-            new UIPropertyMetadata(null, MarkWindowChanged));
+            new UIPropertyMetadata(defaultValue: null, MarkWindowChanged));
 
     public static string GetMarkControl(DependencyObject obj)
         => (string)obj.GetValue(MarkControlProperty);
@@ -121,7 +121,7 @@ public static class ControlHelper
             string realName = Name;
             string? windowName = null;
 
-            if(realName.Contains(":"))
+            if(realName.Contains(":", StringComparison.Ordinal))
             {
                 string[] nameSplit = realName.Split(new[] { ':' }, 2);
                 realName = nameSplit[0];
@@ -142,7 +142,7 @@ public static class ControlHelper
             {
                 priTarget =
                     System.Windows.Application.Current.Windows.Cast<System.Windows.Window>()
-                       .FirstOrDefault(win => win.Name == windowName);
+                       .FirstOrDefault(win => string.Equals(win.Name, windowName, StringComparison.Ordinal));
 
                 if(priTarget is null)
                     LogManager.GetCurrentClassLogger().Error($"ControlHelper: No Window Named {windowName} Found");

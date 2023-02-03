@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -11,17 +12,17 @@ namespace Akka.MGIHelper.Core.FanControl.Components
 {
     public sealed class DataFetchComponent : IHandler<TickEvent>, IDisposable
     {
-        private static readonly Dictionary<string, State> StatesMapping = new()
+        private static readonly Dictionary<string, State> StatesMapping = new(StringComparer.Ordinal)
                                                                           {
-                                                                              { "Idle".ToLower(), State.Idle },
-                                                                              { "Ready".ToLower(), State.Ready },
-                                                                              { "Ignition".ToLower(), State.Ignition },
-                                                                              { "Start_up".ToLower(), State.StartUp },
-                                                                              { "Stand_by".ToLower(), State.StandBy },
-                                                                              { "Power".ToLower(), State.Power },
-                                                                              { "Cool_down".ToLower(), State.Cooldown },
-                                                                              { "Test_run".ToLower(), State.TestRun },
-                                                                              { "Error".ToLower(), State.Error }
+                                                                              { "idle", State.Idle },
+                                                                              { "ready", State.Ready },
+                                                                              { "ignition", State.Ignition },
+                                                                              { "start_up", State.StartUp },
+                                                                              { "stand_by", State.StandBy },
+                                                                              { "power", State.Power },
+                                                                              { "cool_down", State.Cooldown },
+                                                                              { "test_run", State.TestRun },
+                                                                              { "error", State.Error },
                                                                           };
 
         private readonly FanControlOptions _options;
@@ -39,25 +40,35 @@ namespace Akka.MGIHelper.Core.FanControl.Components
         {
             try
             {
-                var trackingString = await _webClient.GetStringAsync($"http://{_options.Ip}/html/top.html?SysStatusData?");
+                string trackingString = await _webClient.GetStringAsync($"http://{_options.Ip}/html/top.html?SysStatusData?").ConfigureAwait(false);
 
-                var elements = trackingString.Split("&");
+                string[] elements = trackingString.Split("&");
 
-                var pairs = elements.Select(s => s.Split("=")).Select(ele => new ValuePair { Name = ele[0], Value = ele[1] }).ToArray();
+                ValuePair[] pairs = elements.Select(s => s.Split("=")).Select(ele => new ValuePair { Name = ele[0], Value = ele[1] }).ToArray();
 
-                var power = int.Parse(pairs.First(p => p.Name.ToLower() == "power").Value);
-                var state = StatesMapping[pairs.First(p => p.Name.ToLower() == "sysstate").Value.ToLower()];
-                var pidout = double.Parse(pairs.First(p => p.Name.ToLower() == "pidout").Value) / 10;
-                var pidSetValue = int.Parse(pairs.First(p => p.Name.ToLower() == "pidsetvalue").Value);
-                var pt1000 = int.Parse(pairs.First(p => p.Name.ToLower() == "pt1000").Value);
+                int power = int.Parse(
+                    pairs.First(p => string.Equals(p.Name.ToLower(CultureInfo.InvariantCulture), "power", StringComparison.Ordinal)).Value,
+                    CultureInfo.InvariantCulture);
+                State state = StatesMapping[pairs
+                    .First(p => string.Equals(p.Name.ToLower(CultureInfo.InvariantCulture), "sysstate", StringComparison.Ordinal)).Value
+                    .ToLower(CultureInfo.InvariantCulture)];
+                double pidout = double.Parse(
+                    pairs.First(p => string.Equals(p.Name.ToLower(CultureInfo.InvariantCulture), "pidout", StringComparison.Ordinal)).Value,
+                    CultureInfo.InvariantCulture) / 10;
+                int pidSetValue = int.Parse(
+                    pairs.First(p => string.Equals(p.Name.ToLower(CultureInfo.InvariantCulture), "pidsetvalue", StringComparison.Ordinal)).Value,
+                    CultureInfo.InvariantCulture);
+                int pt1000 = int.Parse(
+                    pairs.First(p => string.Equals(p.Name.ToLower(CultureInfo.InvariantCulture), "pt1000", StringComparison.Ordinal)).Value,
+                    CultureInfo.InvariantCulture);
 
-                await messageBus.Publish(new TrackingEvent(power, state, pidout, pidSetValue, pt1000));
+                await messageBus.Publish(new TrackingEvent(power, state, pidout, pidSetValue, pt1000)).ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                #pragma warning disable EPC12
-                await messageBus.Publish(new TrackingEvent(Error: true, e.Message));
-                #pragma warning restore EPC12
+#pragma warning disable EPC12
+                await messageBus.Publish(new TrackingEvent(Error: true, e.Message)).ConfigureAwait(false);
+#pragma warning restore EPC12
             }
         }
 
