@@ -24,6 +24,10 @@
         <PackageReference Include="MaterialDesignColors" Version="2.1.1" />
         <PackageReference Include="MaterialDesignExtensions" Version="3.3.0" />
         <PackageReference Include="MaterialDesignThemes" Version="4.7.1" />
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.14">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
