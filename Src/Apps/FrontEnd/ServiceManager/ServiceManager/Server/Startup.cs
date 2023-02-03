@@ -30,7 +30,6 @@ using Stl.CommandR;
 using Stl.Fusion;
 using Stl.Fusion.EntityFramework;
 using Stl.Fusion.Server;
-using Tauron;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
 

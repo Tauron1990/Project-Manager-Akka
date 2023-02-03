@@ -2,11 +2,7 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
-using System.Reactive.Linq;
-using JetBrains.Annotations;
 using Tauron.Application.Localizer.DataModel.Workspace.Mutating.Changes;
-using Tauron.Application.Workshop.Mutating;
-using Tauron.Application.Workshop.Mutation;
 
 namespace Tauron.Application.Localizer.DataModel.Workspace.Mutating
 {

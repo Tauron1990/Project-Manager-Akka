@@ -1,26 +1,13 @@
-﻿using System;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
-using Akka.Actor;
-using Akka.Cluster;
 using Akka.Configuration;
-using Autofac;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Stl.Fusion;
-using Stl.Fusion.AkkaBridge;
-using Stl.Fusion.AkkaBridge.Connector;
 using Stl.Fusion.Extensions;
-using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
-using Tauron.Application.Master.Commands.Administration.Configuration;
-using Tauron.Application.Master.Commands.KillSwitch;
 
 namespace AkkaTest
 {

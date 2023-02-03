@@ -6,7 +6,6 @@ using Stl.Fusion.AkkaBridge.Connector;
 using Stl.Fusion.AkkaBridge.Internal;
 using Stl.Fusion.Bridge.Interception;
 using Stl.Fusion.Interception;
-using Stl.Reflection;
 using Tauron;
 
 namespace Stl.Fusion.AkkaBridge

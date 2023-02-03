@@ -12,7 +12,6 @@ using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Data;
 using SharpRepository.Repository;
 using Tauron;
-using Tauron.Akka;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 

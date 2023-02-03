@@ -6,9 +6,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using JetBrains.Annotations;
-using Servicemnager.Networking.IPC;
-using Tauron;
 
 namespace WpfApp
 {

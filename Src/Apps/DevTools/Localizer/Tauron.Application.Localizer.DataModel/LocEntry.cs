@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.IO;
-using JetBrains.Annotations;
 using Tauron.Application.Localizer.DataModel.Serialization;
 
 namespace Tauron.Application.Localizer.DataModel

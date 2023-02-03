@@ -2,7 +2,6 @@
 using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Core.FanControl;
 using Akka.MGIHelper.Core.FanControl.Events;
-using Autofac;
 using Tauron;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Model;

@@ -16,11 +16,9 @@ using ServiceHost.Services;
 using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
-using Tauron.Application.Master.Commands.Administration.Configuration;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 using Tauron.ObservableExt;
-using Tauron.Operations;
 
 namespace ServiceHost.ApplicationRegistry
 {

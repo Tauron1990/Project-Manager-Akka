@@ -1,7 +1,4 @@
-﻿using Autofac;
-using Tauron.Application.CommonUI;
-using Tauron.Application.Settings;
-using TimeTracker.Data;
+﻿using TimeTracker.Data;
 using TimeTracker.Managers;
 using TimeTracker.ViewModels;
 using TimeTracker.Views;

@@ -1,6 +1,5 @@
 ﻿using System.Buffers;
 using System.Text;
-using Google.Protobuf;
 using SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 using Tauron.Servicemnager.Networking.Data;
 

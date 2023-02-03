@@ -22,7 +22,7 @@ internal sealed class MgiMachine : IMachine
     private readonly DeviceId _deviceId;
     private readonly ObjectName _clientName;
 
-    internal MgiMachine(ILoggerFactory loggerFactory, OperationConfiguration operationConfiguration)
+    public MgiMachine(ILoggerFactory loggerFactory, OperationConfiguration operationConfiguration)
     {
         _logCollector = new LogCollector<LogInfo>(
             "MGI_Client",

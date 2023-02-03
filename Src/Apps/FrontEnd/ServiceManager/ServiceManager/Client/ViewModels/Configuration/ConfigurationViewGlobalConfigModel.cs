@@ -6,7 +6,6 @@ using ServiceManager.Client.Components.Operations;
 using ServiceManager.Client.Shared.Configuration;
 using ServiceManager.Shared.ServiceDeamon;
 using Tauron.Application;
-using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Client.ViewModels.Configuration
 {

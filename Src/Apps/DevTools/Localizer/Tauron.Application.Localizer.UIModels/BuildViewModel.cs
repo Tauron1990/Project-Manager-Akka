@@ -1,27 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Reactive.Threading.Tasks;
 using System.Windows.Input;
-using Autofac;
-using DynamicData;
-using JetBrains.Annotations;
-using Tauron.Akka;
-using Tauron.Application.CommonUI;
-using Tauron.Application.CommonUI.AppCore;
-using Tauron.Application.CommonUI.Commands;
-using Tauron.Application.CommonUI.Model;
 using Tauron.Application.Localizer.DataModel;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
 using Tauron.Application.Localizer.DataModel.Workspace;
 using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Services;
-using Tauron.Application.Workshop;
-using Tauron.Application.Workshop.Mutation;
-using Tauron.Application.Wpf;
-using Tauron.ObservableExt;
 
 namespace Tauron.Application.Localizer.UIModels
 {

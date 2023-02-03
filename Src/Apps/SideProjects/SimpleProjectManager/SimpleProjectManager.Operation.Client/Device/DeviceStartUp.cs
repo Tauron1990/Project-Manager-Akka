@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.DependencyInjection;
+using Akka.Logger.NLog;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Operation.Client.Config;

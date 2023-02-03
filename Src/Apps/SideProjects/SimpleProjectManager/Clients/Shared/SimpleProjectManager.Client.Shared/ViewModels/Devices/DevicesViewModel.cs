@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
-using Vogen;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels.Devices;
 

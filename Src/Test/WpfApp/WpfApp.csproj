@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>Net5.0-windows</TargetFramework>
+        <TargetFramework>net7.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <Nullable>enable</Nullable>
     </PropertyGroup>
@@ -20,15 +20,10 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SharmIPC" Version="1.18.0"/>
-        <PackageReference Include="Simple.Wpf.Terminal" Version="2.3.49"/>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\Apps\Shared\Servicemnager.Networking\Servicemnager.Networking.csproj"/>
-        <ProjectReference Include="..\..\Shared\Tauron.Application.Common\Tauron.Application.Common.csproj"/>
+        <PackageReference Include="SharmIPC" Version="1.18.0" />
+        <PackageReference Include="Simple.Wpf.Terminal" Version="2.3.53" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
 </Project>

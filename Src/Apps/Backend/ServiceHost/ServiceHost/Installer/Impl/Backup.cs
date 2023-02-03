@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Akka.Event;
 using Ionic.Zip;
-using Tauron;
 
 namespace ServiceHost.Installer.Impl
 {

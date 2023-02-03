@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.Localizer.UIModels.Views;
 
 namespace Tauron.Application.Localizer.Views

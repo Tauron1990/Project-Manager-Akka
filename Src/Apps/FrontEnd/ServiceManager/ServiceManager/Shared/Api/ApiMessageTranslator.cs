@@ -1,7 +1,4 @@
-﻿using Tauron.Application.Master.Commands.Deployment.Build;
-using Tauron.Application.Master.Commands.Deployment.Repository;
-
-namespace ServiceManager.Shared.Api
+﻿namespace ServiceManager.Shared.Api
 {
     public sealed class ApiMessageTranslator : IApiMessageTranslator
     {

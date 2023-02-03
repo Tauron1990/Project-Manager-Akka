@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Text;
 using Akka.Event;
-using Autofac;
 using DynamicData;
 using Tauron;
 using Tauron.TAkka;

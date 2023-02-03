@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 using LibGit2Sharp;
-using Tauron;
-using Tauron.Application.Master.Commands.Deployment.Repository;
 
 namespace ServiceManager.ProjectRepository.Core
 {

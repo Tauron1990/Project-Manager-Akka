@@ -1,4 +1,3 @@
-using System.Net;
 using FluentValidation;
 
 namespace SimpleProjectManager.Operation.Client.Config;

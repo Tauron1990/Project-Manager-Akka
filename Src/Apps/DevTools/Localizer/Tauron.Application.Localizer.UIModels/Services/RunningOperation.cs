@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Tauron.Application.Localizer.UIModels.Services
+﻿namespace Tauron.Application.Localizer.UIModels.Services
 {
     public enum OperationStatus
     {

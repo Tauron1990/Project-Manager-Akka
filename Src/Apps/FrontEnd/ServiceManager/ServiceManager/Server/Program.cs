@@ -14,7 +14,6 @@ using ServiceManager.Server.AppCore.Helper;
 using ServiceManager.Server.AppCore.Identity;
 using ServiceManager.Shared.Identity;
 using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.MongoExtensions;
 

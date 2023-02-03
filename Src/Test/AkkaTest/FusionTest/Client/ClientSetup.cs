@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 using Stl.Fusion;
 using Stl.Fusion.AkkaBridge;
 using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Logging;
 using Tauron.Application.Master.Commands.KillSwitch;
 

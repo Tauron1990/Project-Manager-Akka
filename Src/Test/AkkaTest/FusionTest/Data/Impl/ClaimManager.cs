@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Be.Vlaanderen.Basisregisters.Generators.Guid;
-using Stl.Async;
 using Stl.Fusion;
 
 namespace AkkaTest.FusionTest.Data.Impl

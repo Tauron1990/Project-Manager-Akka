@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Reactive.Subjects;
-using Akka.Actor;
-using JetBrains.Annotations;
 using Tauron.Application.Localizer.DataModel.Workspace.Analyzing;
 using Tauron.Application.Localizer.DataModel.Workspace.Mutating;
-using Tauron.Application.Workshop;
-using Tauron.Application.Workshop.Mutating;
 
 namespace Tauron.Application.Localizer.DataModel.Workspace
 {

@@ -12,7 +12,6 @@ using Akka.Event;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Installer;
 using Tauron;
-using Tauron.Application.AkkaNode.Bootstrap.Console;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 using Tauron.ObservableExt;

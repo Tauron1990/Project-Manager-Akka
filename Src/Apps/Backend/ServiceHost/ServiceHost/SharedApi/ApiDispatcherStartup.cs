@@ -1,6 +1,5 @@
 ﻿using Akka.Actor;
 using Akka.DependencyInjection;
-using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace ServiceHost.SharedApi
 {

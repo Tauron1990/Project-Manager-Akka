@@ -1,7 +1,5 @@
 ﻿using System.IO;
 using Tauron.Application;
-using Tauron.Application.Settings;
-using Tauron.Application.Settings.Provider;
 
 namespace ServiceManager.Server.AppCore.Settings
 {

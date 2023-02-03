@@ -8,7 +8,6 @@ using System.Threading;
 using Akka.Actor;
 using Akka.MGIHelper.Core.Configuration;
 using Akka.MGIHelper.Core.ProcessManager;
-using Autofac;
 using JetBrains.Annotations;
 using Tauron;
 using Tauron.Application.CommonUI.AppCore;

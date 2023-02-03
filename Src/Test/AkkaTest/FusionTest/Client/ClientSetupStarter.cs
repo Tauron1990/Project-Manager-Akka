@@ -1,10 +1,8 @@
-﻿using System.Threading.Tasks;
-using Akka.Actor;
+﻿using Akka.Actor;
 using AkkaTest.FusionTest.Data;
 using AkkaTest.FusionTest.Helper;
 using Microsoft.Extensions.Hosting;
 using Spectre.Console;
-using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace AkkaTest.FusionTest.Client
 {

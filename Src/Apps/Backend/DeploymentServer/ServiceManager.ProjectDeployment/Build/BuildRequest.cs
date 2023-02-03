@@ -2,7 +2,6 @@
 using ServiceManager.ProjectDeployment.Data;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.Master.Commands.Deployment.Repository;
-using Tauron.Application.Workshop;
 using Tauron.Temp;
 
 namespace ServiceManager.ProjectDeployment.Build

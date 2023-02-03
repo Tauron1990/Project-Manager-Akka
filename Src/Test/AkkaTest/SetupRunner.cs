@@ -4,7 +4,6 @@ using AkkaTest.FusionTest.Seed;
 using AkkaTest.FusionTest.Server;
 using Microsoft.Extensions.Hosting;
 using Spectre.Console;
-using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace AkkaTest
 {

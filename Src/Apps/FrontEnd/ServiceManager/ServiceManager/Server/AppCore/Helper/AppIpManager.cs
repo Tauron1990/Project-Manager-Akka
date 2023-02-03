@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Akka.Configuration;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
-using Tauron.Application.Master.Commands.Administration.Configuration;
 
 namespace ServiceManager.Server.AppCore.Helper
 {

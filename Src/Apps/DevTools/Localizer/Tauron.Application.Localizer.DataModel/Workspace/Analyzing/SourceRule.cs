@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-using Akka.Actor;
-using Tauron.Akka;
-using Tauron.Application.Workshop.Analyzing;
 
 namespace Tauron.Application.Localizer.DataModel.Workspace.Analyzing
 {

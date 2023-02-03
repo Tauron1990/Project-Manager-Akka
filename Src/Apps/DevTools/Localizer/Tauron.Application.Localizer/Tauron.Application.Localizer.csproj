@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net5.0-windows</TargetFramework>
+        <TargetFramework>net7.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <Nullable>enable</Nullable>
         <StartupObject>Tauron.Application.Localizer.CoreProgramm</StartupObject>
@@ -10,21 +10,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="SpellCheck\SpellChecker.cs"/>
+        <Compile Remove="SpellCheck\SpellChecker.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="icon.ico"/>
-        <None Remove="Resource\iconfinder_Network Connection Manager_2203.png"/>
+        <None Remove="icon.ico" />
+        <None Remove="Resource\iconfinder_Network Connection Manager_2203.png" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="SpellCheck\SpellChecker.cs"/>
+        <None Include="SpellCheck\SpellChecker.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Dirkster.AvalonDock" Version="4.60.0"/>
-        <PackageReference Include="Dirkster.AvalonDock.Themes.Metro" Version="4.60.0"/>
+        <PackageReference Include="Dirkster.AvalonDock" Version="4.71.2" />
+        <PackageReference Include="Dirkster.AvalonDock.Themes.Metro" Version="4.71.2" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -33,14 +33,14 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="1.8.5">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="MaterialDesignExtensions" Version="3.3.0"/>
-        <PackageReference Include="Simple.Wpf.Terminal" Version="2.3.20"/>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="MaterialDesignExtensions" Version="3.3.0" />
+        <PackageReference Include="Simple.Wpf.Terminal" Version="2.3.53" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
     <ItemGroup>
@@ -50,14 +50,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.Wpf.SerilogViewer\Tauron.Application.Wpf.SerilogViewer.csproj"/>
-        <ProjectReference Include="..\..\..\..\Shared\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj"/>
-        <ProjectReference Include="..\Tauron.Application.Localizer.UIModels\Tauron.Application.Localizer.UIModels.csproj"/>
+        <ProjectReference Include="..\..\SeriLogViewer\SeriLogViewer.csproj" />
+        <ProjectReference Include="..\Tauron.Application.Localizer.UIModels\Tauron.Application.Localizer.UIModels.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Resource Include="icon.ico"/>
-        <Resource Include="Resource\iconfinder_Network Connection Manager_2203.png"/>
+        <Resource Include="icon.ico" />
+        <Resource Include="Resource\iconfinder_Network Connection Manager_2203.png" />
     </ItemGroup>
 
     <ItemGroup>
@@ -71,7 +70,7 @@
 
     <ProjectExtensions>
         <VisualStudio>
-            <UserProperties/>
+            <UserProperties />
         </VisualStudio>
     </ProjectExtensions>
 

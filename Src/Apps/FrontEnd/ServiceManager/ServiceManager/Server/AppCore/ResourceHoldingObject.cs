@@ -3,7 +3,6 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
-using Tauron.Akka;
 using Tauron.Application;
 
 namespace ServiceManager.Server.AppCore

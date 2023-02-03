@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reactive.Linq;
-using Akka.Actor;
-using Tauron.Akka;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
-using Tauron.Localization;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors
 {

@@ -2,15 +2,15 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Remove="C:\Users\PC\.nuget\packages\sharprepository.mongodbrepository\2.1.1\contentFiles\any\netstandard1.5\repository.mongoDb.json"/>
+        <Content Remove="C:\Users\PC\.nuget\packages\sharprepository.mongodbrepository\2.1.1\contentFiles\any\netstandard1.5\repository.mongoDb.json" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="akka.conf"/>
+        <None Remove="akka.conf" />
     </ItemGroup>
 
     <ItemGroup>
@@ -28,22 +28,22 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="1.8.5">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1"/>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="SharpRepository.MongoDbRepository" Version="2.1.1" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\..\Tauron.Application.MongoExtensions\Tauron.Application.MongoExtensions.csproj"/>
-        <ProjectReference Include="..\..\..\Shared\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj"/>
-        <ProjectReference Include="..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj"/>
-        <ProjectReference Include="..\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj"/>
-        <ProjectReference Include="..\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj"/>
-        <ProjectReference Include="..\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj"/>
+        <ProjectReference Include="..\..\..\..\Tauron.Application.MongoExtensions\Tauron.Application.MongoExtensions.csproj" />
+        <ProjectReference Include="..\..\..\Shared\Files\Tauron.Application.Files.GridFS\Tauron.Application.Files.GridFS.csproj" />
+        <ProjectReference Include="..\..\Shared\Tauron.Application.AkkaNode.Boottrap\Tauron.Application.AkkaNode.Boottrap.csproj" />
+        <ProjectReference Include="..\DeploymentServer\ServiceManager.ProjectDeployment\ServiceManager.ProjectDeployment.csproj" />
+        <ProjectReference Include="..\RepositoryServer\ServiceManager.ProjectRepository\ServiceManager.ProjectRepository.csproj" />
+        <ProjectReference Include="..\ServiceHost\ServiceManager.ServiceDeamon\ServiceManager.ServiceDeamon.csproj" />
     </ItemGroup>
 
     <ItemGroup>

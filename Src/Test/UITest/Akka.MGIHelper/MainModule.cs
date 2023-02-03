@@ -4,11 +4,8 @@ using Akka.MGIHelper.Settings.Provider;
 using Akka.MGIHelper.UI;
 using Akka.MGIHelper.UI.FanControl;
 using Akka.MGIHelper.UI.MgiStarter;
-using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Tauron;
-using Tauron.Application.CommonUI;
-using Tauron.Application.Settings;
 using Tauron.Application.Settings.Provider;
 
 namespace Akka.MGIHelper

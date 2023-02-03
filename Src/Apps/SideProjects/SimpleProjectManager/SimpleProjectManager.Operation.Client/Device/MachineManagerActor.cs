@@ -1,5 +1,4 @@
 ﻿using Akka.Actor;
-using Akka.Cluster.Tools.Singleton;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;

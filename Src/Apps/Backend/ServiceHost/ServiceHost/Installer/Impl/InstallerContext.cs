@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Installer.Impl.Source;
-using Tauron;
 using Tauron.Application.ActorWorkflow;
 using Tauron.Application.Master.Commands.Administration.Host;
 

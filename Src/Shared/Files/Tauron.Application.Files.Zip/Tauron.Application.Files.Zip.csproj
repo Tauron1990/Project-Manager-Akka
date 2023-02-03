@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DotNetZip" Version="1.16.0"/>
+        <PackageReference Include="DotNetZip" Version="1.16.0" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,31 +20,31 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10"/>
-        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31"/>
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Tauron.Application.Files\Tauron.Application.Files.csproj"/>
+        <ProjectReference Include="..\Tauron.Application.Files\Tauron.Application.Files.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="InternalZipDirectory.cs"/>
-        <Compile Remove="InZipDirectory.cs"/>
-        <Compile Remove="InZipFile.cs"/>
-        <Compile Remove="InZipFileSystem.cs"/>
-        <None Include="Old\InternalZipDirectory.cs"/>
-        <None Include="Old\InZipDirectory.cs"/>
-        <None Include="Old\InZipFile.cs"/>
-        <None Include="Old\InZipFileSystem.cs"/>
-        <Compile Remove="Old\InternalZipDirectory.cs"/>
-        <None Include="Old\InternalZipDirectory.cs"/>
-        <Compile Remove="Old\InZipDirectory.cs"/>
-        <None Include="Old\InZipDirectory.cs"/>
-        <Compile Remove="Old\InZipFile.cs"/>
-        <None Include="Old\InZipFile.cs"/>
-        <Compile Remove="Old\InZipFileSystem.cs"/>
-        <None Include="Old\InZipFileSystem.cs"/>
+        <Compile Remove="InternalZipDirectory.cs" />
+        <Compile Remove="InZipDirectory.cs" />
+        <Compile Remove="InZipFile.cs" />
+        <Compile Remove="InZipFileSystem.cs" />
+        <None Include="Old\InternalZipDirectory.cs" />
+        <None Include="Old\InZipDirectory.cs" />
+        <None Include="Old\InZipFile.cs" />
+        <None Include="Old\InZipFileSystem.cs" />
+        <Compile Remove="Old\InternalZipDirectory.cs" />
+        <None Include="Old\InternalZipDirectory.cs" />
+        <Compile Remove="Old\InZipDirectory.cs" />
+        <None Include="Old\InZipDirectory.cs" />
+        <Compile Remove="Old\InZipFile.cs" />
+        <None Include="Old\InZipFile.cs" />
+        <Compile Remove="Old\InZipFileSystem.cs" />
+        <None Include="Old\InZipFileSystem.cs" />
     </ItemGroup>
 
 </Project>

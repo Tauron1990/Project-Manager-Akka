@@ -17,7 +17,6 @@ using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
-using Tauron.Operations;
 
 namespace ServiceManager.Server.AppCore.Apps
 {

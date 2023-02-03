@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace ServiceHost.AutoUpdate
 {

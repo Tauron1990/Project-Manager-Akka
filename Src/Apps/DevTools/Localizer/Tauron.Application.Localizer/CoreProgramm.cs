@@ -1,11 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using NLog;
-using Tauron.AkkaHost;
 using Tauron.Application.Localizer.UIModels;
-using Tauron.Application.Logging;
-using Tauron.Application.Wpf.SerilogViewer;
-using Tauron.Localization;
 
 namespace Tauron.Application.Localizer
 {

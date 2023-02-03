@@ -4,10 +4,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using DynamicData.Binding;
-using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.Localizer.UIModels.lang;
 
 namespace Tauron.Application.Localizer.UIModels.Services

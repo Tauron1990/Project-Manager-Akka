@@ -1,5 +1,4 @@
 ﻿using Akka.Actor;
-using Akka.Cluster.Tools.Singleton;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Server.Core.DeviceManager.Events;
 

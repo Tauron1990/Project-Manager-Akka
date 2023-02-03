@@ -19,7 +19,6 @@ using Stl.Fusion;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
-using Tauron.Application.Master.Commands.Administration.Configuration;
 using Tauron.Operations;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon

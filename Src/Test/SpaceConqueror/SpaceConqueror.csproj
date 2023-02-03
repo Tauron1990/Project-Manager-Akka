@@ -25,14 +25,14 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="FastExpressionCompiler" Version="3.3.3" />
+        <PackageReference Include="FastExpressionCompiler" Version="3.3.4" />
         <PackageReference Include="Gu.Analyzers" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Hyperion" Version="0.12.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.5">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.14">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

@@ -1,11 +1,9 @@
 ﻿using System;
-using Autofac;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Stl.Fusion.AkkaBridge.Connector;
 using Stl.Fusion.AkkaBridge.Internal;
 using Stl.Fusion.Bridge;
-using Tauron.Features;
 
 namespace Stl.Fusion.AkkaBridge
 {

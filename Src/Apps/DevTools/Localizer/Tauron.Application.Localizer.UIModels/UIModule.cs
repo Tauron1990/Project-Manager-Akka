@@ -1,11 +1,6 @@
-﻿using Akka.Actor;
-using Autofac;
-using JetBrains.Annotations;
-using Tauron.Akka;
-using Tauron.Application.Localizer.UIModels.lang;
+﻿using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Services;
 using Tauron.Application.Localizer.UIModels.Settings;
-using Tauron.Application.Settings;
 
 namespace Tauron.Application.Localizer.UIModels
 {

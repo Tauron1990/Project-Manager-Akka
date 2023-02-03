@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Windows.Data;
 using System.Windows.Input;
-using Autofac;
 using DynamicData;
 using DynamicData.Alias;
 using JetBrains.Annotations;

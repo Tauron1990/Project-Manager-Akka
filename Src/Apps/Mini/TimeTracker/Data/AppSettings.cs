@@ -2,7 +2,6 @@
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Tauron.Akka;
 using Tauron.Application;
 using Tauron.Application.Settings;
 using Tauron.Application.Settings.Provider;

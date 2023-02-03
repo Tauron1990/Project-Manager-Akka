@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Windows.Markup;
-using JetBrains.Annotations;
 using Tauron.Application.Localizer.DataModel;
 
 namespace Tauron.Application.Localizer.UIModels

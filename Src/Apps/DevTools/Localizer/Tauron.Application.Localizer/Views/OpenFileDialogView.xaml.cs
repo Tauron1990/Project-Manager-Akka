@@ -1,15 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using Tauron.Application.CommonUI;
 using Tauron.Application.Localizer.UIModels.lang;
 using Tauron.Application.Localizer.UIModels.Views;
-using Tauron.Application.Wpf;
 
 namespace Tauron.Application.Localizer.Views
 {

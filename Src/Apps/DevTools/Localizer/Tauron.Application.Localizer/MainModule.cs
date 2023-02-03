@@ -1,7 +1,4 @@
-﻿using Akka.Actor;
-using Autofac;
-using Tauron.Application.CommonUI;
-using Tauron.Application.Localizer.Core.UI;
+﻿using Tauron.Application.Localizer.Core.UI;
 using Tauron.Application.Localizer.DataModel.Workspace;
 using Tauron.Application.Localizer.UIModels;
 using Tauron.Application.Localizer.UIModels.lang;

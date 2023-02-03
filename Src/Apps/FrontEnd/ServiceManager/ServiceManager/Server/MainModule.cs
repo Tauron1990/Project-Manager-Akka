@@ -1,5 +1,4 @@
 ﻿using Akka.Actor;
-using Autofac;
 using ServiceHost.Client.Shared.ConfigurationServer;
 using ServiceHost.Client.Shared.ConfigurationServer.Events;
 using ServiceManager.Server.AppCore;
@@ -8,12 +7,9 @@ using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.ServiceDeamon;
 using ServiceManager.Server.AppCore.Settings;
-using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Repository;
-using Tauron.Application.Settings;
-using Tauron.Features;
 
 namespace ServiceManager.Server
 {

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
-using Akka.Actor;
-using Akka.Event;
-using Tauron.Akka;
 using Tauron.Application.Localizer.DataModel.Processing.Messages;
 
 namespace Tauron.Application.Localizer.DataModel.Processing.Actors

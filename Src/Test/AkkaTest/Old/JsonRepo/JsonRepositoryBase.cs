@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml.Serialization;
 using Newtonsoft.Json;
 using SharpRepository.Repository;
 using SharpRepository.Repository.Caching;

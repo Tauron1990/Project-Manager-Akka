@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Tauron;
 using Tauron.Temp;
 
 namespace ServiceManager.ProjectRepository.Core

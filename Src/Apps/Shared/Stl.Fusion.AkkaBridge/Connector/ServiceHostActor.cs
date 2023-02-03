@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Microsoft.Extensions.DependencyInjection;
 using Stl.Fusion.Bridge;
-using Stl.Fusion.Interception;
 using Tauron;
 
 namespace Stl.Fusion.AkkaBridge.Connector

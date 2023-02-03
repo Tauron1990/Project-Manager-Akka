@@ -1,12 +1,9 @@
-﻿using Autofac;
-using ServiceHost.ApplicationRegistry;
+﻿using ServiceHost.ApplicationRegistry;
 using ServiceHost.AutoUpdate;
 using ServiceHost.Installer;
 using ServiceHost.Services;
 using ServiceHost.Services.Impl;
 using ServiceHost.SharedApi;
-using Tauron.Application.AkkaNode.Bootstrap;
-using Tauron.Features;
 
 namespace ServiceHost
 {

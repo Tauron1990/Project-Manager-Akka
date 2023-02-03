@@ -10,7 +10,6 @@ using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
-using Tauron.Application.Workshop;
 using Tauron.Features;
 
 namespace ServiceManager.ProjectDeployment.Actors

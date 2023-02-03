@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceManager.Client.Shared.BaseComponents.Wizard;
-using ServiceManager.Client.ViewModels.Apps;
 using ServiceManager.Shared.Apps;
 using Tauron.Application;
 

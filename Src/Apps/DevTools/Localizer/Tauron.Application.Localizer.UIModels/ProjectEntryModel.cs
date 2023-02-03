@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows;
 using System.Windows.Input;
-using DynamicData;
-using JetBrains.Annotations;
-using Tauron.Application.CommonUI;
-using Tauron.Application.CommonUI.Commands;
 using Tauron.Application.Localizer.DataModel;
 
 namespace Tauron.Application.Localizer.UIModels

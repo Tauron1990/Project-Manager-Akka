@@ -2,7 +2,6 @@ using System;
 using System.Collections.ObjectModel;
 using DynamicData;
 using SimpleProjectManager.Shared.Services.Devices;
-using Vogen;
 
 namespace SimpleProjectManager.Client.Shared.ViewModels.Devices;
 

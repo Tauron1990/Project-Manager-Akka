@@ -9,7 +9,6 @@ using ServiceManager.ProjectRepository.Core;
 using ServiceManager.ProjectRepository.Data;
 using SharpRepository.Repository;
 using Tauron;
-using Tauron.Akka;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;

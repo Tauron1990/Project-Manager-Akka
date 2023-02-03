@@ -9,7 +9,6 @@ using Akka.Configuration;
 using Akka.DistributedData;
 using Akka.Hosting;
 using Akka.Logger.NLog;
-using Akka.Serialization;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

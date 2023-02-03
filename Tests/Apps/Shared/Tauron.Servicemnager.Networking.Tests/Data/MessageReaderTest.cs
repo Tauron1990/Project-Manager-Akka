@@ -1,5 +1,4 @@
-﻿using System.Net.NetworkInformation;
-using System.Text;
+﻿using System.Text;
 using System.Threading.Channels;
 using FluentAssertions;
 using Tauron.Servicemnager.Networking.Data;

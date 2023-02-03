@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Akka.Cluster;
 using Master.Seed.Node.Commands;
-using Microsoft.Extensions.Hosting;
 using Petabridge.Cmd.Cluster;
 using Petabridge.Cmd.Host;
 using ServiceHost.Client.Shared;

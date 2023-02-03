@@ -5,7 +5,6 @@ using Akka.Actor;
 using Akka.Cluster;
 using Akka.Cluster.Tools.PublishSubscribe;
 using Spectre.Console;
-using Tauron.Application.AkkaNode.Bootstrap;
 
 namespace AkkaTest.FusionTest.Seed
 {

@@ -54,7 +54,7 @@ public static class LoggingExtensions
                                                  new JsonAttribute("level", "${level:upperCase=true}"),
                                                  new JsonAttribute("application", applicationName),
                                                  new JsonAttribute("eventType", "${event-type}"),
-                                                 new JsonAttribute("message", "${message}"),
+                                                 new JsonAttribute("message", "${message}${onexception:EXCEPTION OCCURRED\\:${exception:format=type,message,method:maxInnerExceptionLevel=5:innerFormat=shortType,message,method}}"),
                                                  new JsonAttribute(
                                                      "Properties",
                                                      new JsonLayout
