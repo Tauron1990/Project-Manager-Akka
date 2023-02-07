@@ -17,12 +17,12 @@ public class TestData
     {
         Encoding utf8 = Encoding.UTF8;
 
-        Span<byte> msg1 = utf8.GetBytes(LogInfo.Format(new LogInfo(DateTime.Now, "", "", "TestApp", Command.SetApp)));
-        Span<byte> msg2 = utf8.GetBytes(LogInfo.Format(new LogInfo(DateTime.Now, "", "Type1", "Message1", Command.Log)));
-        Span<byte> msg3 = utf8.GetBytes(LogInfo.Format(new LogInfo(DateTime.Now, "", "Type1", "Message2", Command.Log)));
-        Span<byte> msg4 = utf8.GetBytes(LogInfo.Format(new LogInfo(DateTime.Now, "", "Type2", "Message3", Command.Log)));
-        Span<byte> msg5 = utf8.GetBytes(LogInfo.Format(new LogInfo(DateTime.Now, "", "Type2", "Message4", Command.Log)));
-        Span<byte> msg6 = utf8.GetBytes(LogInfo.Format(new LogInfo(DateTime.Now, "", "", "", Command.Disconnect)));
+        Span<byte> msg1 = utf8.GetBytes(LoggerTcpFormat.GetMessage(new LogInfo(DateTime.Now, "", "", "TestApp", Command.SetApp)));
+        Span<byte> msg2 = utf8.GetBytes(LoggerTcpFormat.GetMessage(new LogInfo(DateTime.Now, "", "Type1", "Message1", Command.Log)));
+        Span<byte> msg3 = utf8.GetBytes(LoggerTcpFormat.GetMessage(new LogInfo(DateTime.Now, "", "Type1", "Message2", Command.Log)));
+        Span<byte> msg4 = utf8.GetBytes(LoggerTcpFormat.GetMessage(new LogInfo(DateTime.Now, "", "Type2", "Message3", Command.Log)));
+        Span<byte> msg5 = utf8.GetBytes(LoggerTcpFormat.GetMessage(new LogInfo(DateTime.Now, "", "Type2", "Message4", Command.Log)));
+        Span<byte> msg6 = utf8.GetBytes(LoggerTcpFormat.GetMessage(new LogInfo(DateTime.Now, "", "", "", Command.Disconnect)));
 
         int lenght = msg1.Length + msg2.Length + msg3.Length + msg4.Length + msg5.Length + msg6.Length;
         var data = MemoryPool<byte>.Shared.Rent(lenght);
@@ -50,7 +50,7 @@ public class TestData
         {
             if(single)
             {
-                byte[] array =Encoding.UTF8.GetBytes(LogInfo.Format(new LogInfo(DateTime.Now, "", "Type1", "Message1", Command.Log)));
+                byte[] array =Encoding.UTF8.GetBytes(LoggerTcpFormat.GetMessage(new LogInfo(DateTime.Now, "", "Type1", "Message1", Command.Log)));
 
                 _buffer = new ReadOnlySequence<byte>(array);
             }

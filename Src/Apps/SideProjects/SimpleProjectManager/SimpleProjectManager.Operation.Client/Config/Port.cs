@@ -1,8 +1,10 @@
-﻿using Vogen;
+﻿using System.Runtime.InteropServices;
+using Vogen;
 
 namespace SimpleProjectManager.Operation.Client.Config;
 
 [ValueObject(typeof(int))]
+[StructLayout(LayoutKind.Auto)]
 [Instance("Empty", -1)]
 public readonly partial struct Port
 {

@@ -1,8 +1,10 @@
-﻿using Vogen;
+﻿using System.Runtime.InteropServices;
+using Vogen;
 
 namespace Tauron.Application.Master.Commands;
 
 [ValueObject(typeof(int))]
+[StructLayout(LayoutKind.Auto)]
 [Instance("NoVersion", -1)]
 #pragma warning disable MA0097
 public readonly partial struct SimpleVersion

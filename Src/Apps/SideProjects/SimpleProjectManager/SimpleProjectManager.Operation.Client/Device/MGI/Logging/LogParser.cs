@@ -21,11 +21,8 @@ public class LogParser : IDisposable
 
     private readonly MessageReader<string> _dataReader;
 
-    public LogParser(IMessageStream messageStream)
-    {
-	    _dataReader = new MessageReader<string>(messageStream, new StringFormatter());
-    }
-    
+    public LogParser(IMessageStream messageStream) => _dataReader = new MessageReader<string>(messageStream, new StringFormatter());
+
     public async Task Run(ChannelWriter<LogInfo> logs, CancellationToken cancellationToken)
     {
 	    var messages = Channel.CreateBounded<string>(new BoundedChannelOptions(1000)

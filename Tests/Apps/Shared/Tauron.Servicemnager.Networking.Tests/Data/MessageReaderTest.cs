@@ -7,7 +7,7 @@ namespace Tauron.Servicemnager.Networking.Tests.Data;
 
 public sealed class MessageReaderTest
 {
-    private static NetworkMessage[] TestMessages =
+    private static readonly NetworkMessage[] TestMessages =
     {
         NetworkMessage.Create("Test", "Test"u8.ToArray()),
         NetworkMessage.Create("Test1", "Test1"u8.ToArray()),

@@ -6,9 +6,10 @@ using System.Threading.Channels;
 
 namespace Tauron.Servicemnager.Networking.Data;
 
-public class MessageReader<TMessage> : IDisposable
+public sealed class MessageReader<TMessage> : IDisposable
     where TMessage : class
 {
+    private readonly ErrorTracker _errorTracker;
     private readonly IMessageStream _messageStream;
     private readonly INetworkMessageFormatter<TMessage> _formatter;
     private readonly Pipe _pipe;
@@ -16,6 +17,8 @@ public class MessageReader<TMessage> : IDisposable
 
     public MessageReader(IMessageStream messageStream, INetworkMessageFormatter<TMessage> formatter, PipeOptions? pipeOptions = null)
     {
+        _errorTracker = new ErrorTracker(GetType().Name);
+        
         _messageStream = messageStream;
         _formatter = formatter;
 
@@ -83,22 +86,15 @@ public class MessageReader<TMessage> : IDisposable
         {
             while (true)
             {
-                ReadResult read = await pipeReader.ReadAsync(token).ConfigureAwait(false);
-
-                if(ReadIsCompletedOrEmpty(read)) break;
-
-                var buffer = read.Buffer;
-
-                ReadBuffer(ref buffer, messages, out SequencePosition end);
-
-                foreach (TMessage message in messages)
-                    await channel.WriteAsync(message, token).ConfigureAwait(false);
-                messages.Clear();
-
-                pipeReader.AdvanceTo(end);
-
-                
-                if(ReadIsCompleted(read)) break;
+                try
+                {
+                    if(await ActualRead(pipeReader, channel, messages, token).ConfigureAwait(false))
+                        break;
+                }
+                catch (Exception ex)
+                {
+                    _errorTracker.AddException(ex);
+                }
             }
         }
         catch (Exception ex)
@@ -110,54 +106,86 @@ public class MessageReader<TMessage> : IDisposable
         await pipeReader.CompleteAsync().ConfigureAwait(false);
     }
 
+    private async ValueTask<bool> ActualRead(PipeReader pipeReader, ChannelWriter<TMessage> channel, List<TMessage> messages, CancellationToken token)
+    {
+        ReadResult read = await pipeReader.ReadAsync(token).ConfigureAwait(false);
+
+        if(ReadIsCompletedOrEmpty(read)) return true;
+
+        var buffer = read.Buffer;
+
+        ReadBuffer(ref buffer, messages, out SequencePosition consumed, out SequencePosition exaimed);
+
+        foreach (TMessage message in messages)
+            await channel.WriteAsync(message, token).ConfigureAwait(false);
+        messages.Clear();
+
+        pipeReader.AdvanceTo(consumed, exaimed);
+
+
+        return ReadIsCompleted(read);
+    }
+
     private static bool ReadIsCompleted(ReadResult read)
         => read.IsCanceled || read.IsCompleted;
 
     private static bool ReadIsCompletedOrEmpty(ReadResult read)
         => (read.IsCanceled || read.IsCompleted) && read.Buffer.IsEmpty;
 
-    private void ReadBuffer(ref ReadOnlySequence<byte> buffer, ICollection<TMessage> messages, out SequencePosition end)
+    private void ReadBuffer(ref ReadOnlySequence<byte> buffer, ICollection<TMessage> messages, out SequencePosition consumed, out SequencePosition exaimed)
     {
         bool isMax = _forceAdvanceThreshold <= buffer.Length;
 
-        end = buffer.Start;
+        consumed = buffer.Start;
+        exaimed = buffer.Start;
         
         while (true)
         {
             if(buffer.IsEmpty) return;
 
-            TMessage? msg = TryRead(buffer, end, isMax, out end);
+            TMessage? msg = TryRead(ref buffer, out exaimed);
 
             if(msg is not null)
                 messages.Add(msg);
             else
+            {
+                if(isMax)
+                {
+                    consumed = buffer.End;
+                    exaimed = buffer.End;
+                }
+                    
                 break;
+            }
 
-            if(end.Equals(buffer.Start))
+            if(exaimed.Equals(buffer.End))
                 break;
+            
+            buffer = buffer.Slice(buffer.Start, exaimed);
+            consumed = buffer.Start;
         }
     }
 
-    private TMessage? TryRead(in ReadOnlySequence<byte> buffer, SequencePosition from, bool isMax, out SequencePosition end)
+    private TMessage? TryRead(ref ReadOnlySequence<byte> buffer, out SequencePosition exaimed)
     {
         var reader = new SequenceReader<byte>(buffer);
-        end = from;
 
-        reader.Advance(from.GetInteger());
-        
-        if(!reader.TryReadTo(out ReadOnlySequence<byte> messageData, _formatter.Header.Span))
-            return null;
-        
-        if(isMax)
-            end = reader.Position;
-        
-        if(!reader.TryReadTo(out messageData, _formatter.Tail.Span))
-            return null;
+        try
+        {
+            if(!reader.TryReadTo(out ReadOnlySequence<byte> messageData, _formatter.Header.Span))
+                return null;
 
-        end = reader.Position;
-        return _formatter.ReadMessage(messageData);
+            return !reader.TryReadTo(out messageData, _formatter.Tail.Span) ? null : _formatter.ReadMessage(messageData);
+        }
+        finally
+        {
+            exaimed = reader.Position;
+        }
     }
 
     public void Dispose()
-        => _messageStream.Dispose();
+    {
+        _messageStream.Dispose();
+        _errorTracker.Dispose();
+    }
 }

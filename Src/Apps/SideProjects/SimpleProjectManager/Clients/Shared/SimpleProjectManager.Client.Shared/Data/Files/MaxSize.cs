@@ -1,8 +1,10 @@
-﻿using Vogen;
+﻿using System.Runtime.InteropServices;
+using Vogen;
 
 namespace SimpleProjectManager.Client.Shared.Data.Files;
 
 [ValueObject(typeof(long))]
+[StructLayout(LayoutKind.Auto)]
 [Instance("Max", long.MaxValue)]
 [Instance("MaxFileSize", 1_073_741_824L)]
 public readonly partial struct MaxSize
