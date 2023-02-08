@@ -46,11 +46,11 @@ public sealed class MessageReader<TMessage> : IDisposable
     {
         try
         {
-            while (_messageStream.Connected() && !token.IsCancellationRequested)
+            while (!token.IsCancellationRequested && (_messageStream.DataAvailable || _messageStream.Connected()))
             {
                 if(!_messageStream.DataAvailable)
                 {
-                    await Task.Delay(1000, token).ConfigureAwait(false);
+                    await Task.Delay(100, token).ConfigureAwait(false);
                     continue;
                 }
                 
@@ -132,21 +132,27 @@ public sealed class MessageReader<TMessage> : IDisposable
     private static bool ReadIsCompletedOrEmpty(ReadResult read)
         => (read.IsCanceled || read.IsCompleted) && read.Buffer.IsEmpty;
 
+    // ReSharper disable once CognitiveComplexity
     private void ReadBuffer(ref ReadOnlySequence<byte> buffer, ICollection<TMessage> messages, out SequencePosition consumed, out SequencePosition exaimed)
     {
         bool isMax = _forceAdvanceThreshold <= buffer.Length;
+        var reader = new SequenceReader<byte>(buffer);
 
-        consumed = buffer.Start;
-        exaimed = buffer.Start;
+        consumed = reader.Position;
+        exaimed = reader.Position;
         
         while (true)
         {
-            if(buffer.IsEmpty) return;
-
-            TMessage? msg = TryRead(ref buffer, out exaimed);
+            if(reader.End)
+                break;
+            
+            TMessage? msg = TryRead(ref reader, out exaimed);
 
             if(msg is not null)
+            {
+                consumed = exaimed;
                 messages.Add(msg);
+            }
             else
             {
                 if(isMax)
@@ -157,19 +163,11 @@ public sealed class MessageReader<TMessage> : IDisposable
                     
                 break;
             }
-
-            if(exaimed.Equals(buffer.End))
-                break;
-            
-            buffer = buffer.Slice(buffer.Start, exaimed);
-            consumed = buffer.Start;
         }
     }
 
-    private TMessage? TryRead(ref ReadOnlySequence<byte> buffer, out SequencePosition exaimed)
+    private TMessage? TryRead(ref SequenceReader<byte> reader, out SequencePosition exaimed)
     {
-        var reader = new SequenceReader<byte>(buffer);
-
         try
         {
             if(!reader.TryReadTo(out ReadOnlySequence<byte> messageData, _formatter.Header.Span))

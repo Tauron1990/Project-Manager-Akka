@@ -13,10 +13,10 @@ using Tauron.TAkka;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI;
 
-internal sealed class MgiMachine : IMachine
+public sealed class MgiMachine : IMachine
 {
     private const string MgiId = "CFDD2F56-AD5C-4A7C-A3B5-535A46B21EC5";
-    private const int Port = 23421;
+    public const int Port = 23421;
     
     private readonly LogCollector<LogInfo> _logCollector;
     private readonly DeviceId _deviceId;

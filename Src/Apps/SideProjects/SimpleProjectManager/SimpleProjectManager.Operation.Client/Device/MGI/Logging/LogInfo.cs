@@ -42,7 +42,7 @@ public sealed record LogInfo(DateTime TimeStamp, string Application, string Type
             case Command.Disconnect:
             case Command.ShowConsole:
             case Command.SaveBdd:
-                return $"{LogParser.BeginmsgStr}{LogParser.MessageType.Commnd}{sep}{logInfo.Command}{sep}{logInfo.Content}{LogParser.EndmsgStr}";
+                return $"{LogParser.BeginmsgStr}{LogParser.MessageType.Command}{sep}{logInfo.Command}{sep}{logInfo.Content}{LogParser.EndmsgStr}";
             default:
                 #pragma warning disable EX002
                 throw new UnreachableException();

@@ -72,7 +72,7 @@ public class LogParser : IDisposable
 	    LogInfo? log;
 	    switch (Enum.Parse<MessageType>(messageSegments[0]))
 	    {
-		    case MessageType.Commnd:
+		    case MessageType.Command:
 			    var commandType = Enum.Parse<Command>(messageSegments[1]);
 			    log = ProcessCommand(messageSegments, commandType);
 
@@ -134,7 +134,7 @@ public class LogParser : IDisposable
 
     internal enum MessageType
     {
-        Commnd,
+        Command,
         Log,
     }
     

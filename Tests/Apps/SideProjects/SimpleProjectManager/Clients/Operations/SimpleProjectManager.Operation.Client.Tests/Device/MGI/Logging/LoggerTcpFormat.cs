@@ -2,33 +2,33 @@
 
 public class LoggerTcpFormat
 {
-    	public enum LogType
+	public enum LogType
 	{
 		Init,
 		Com,
 		ERROR,
-		Crash,
 		Elec,
 		Pilot,
 		Print,
 		Clean,
 		VDP,
 		Close,
-		iFoil
+		iFoil,
+		Crash,
 	}
 
-	private interface ITcpable
+	public interface ITcpable
 	{
 		string ToTcp();
 	}
 
-	private enum MessageType
+	public enum MessageType
 	{
 		Command,
 		Log
 	}
 
-	private enum CommandType
+	public enum CommandType
 	{
 		SetApp,
 		Save,
@@ -37,7 +37,7 @@ public class LoggerTcpFormat
 		SaveBdd
 	}
 
-	private class Message : ITcpable
+	public class Message : ITcpable
 	{
 		private MessageType type;
 
@@ -57,7 +57,7 @@ public class LoggerTcpFormat
 
 		public string ToTcp()
 		{
-			if (content != null)
+			if(content != null)
 			{
 				return BeginMsg + type.ToString() + Separator + content.ToTcp() + EndMsg;
 			}
@@ -66,7 +66,7 @@ public class LoggerTcpFormat
 
 		public bool IsDisconnect()
 		{
-			if (type == MessageType.Command && ((Command)content).type == CommandType.Disconnect)
+			if(type == MessageType.Command && ((Command)content).type == CommandType.Disconnect)
 			{
 				return true;
 			}
@@ -74,7 +74,7 @@ public class LoggerTcpFormat
 		}
 	}
 
-	private class Command : ITcpable
+	public class Command : ITcpable
 	{
 		public CommandType type;
 
@@ -100,7 +100,7 @@ public class LoggerTcpFormat
 
 		public string ToTcp()
 		{
-			if (content != null)
+			if(content != null)
 			{
 				return type.ToString() + Separator + content.ToTcp();
 			}
@@ -108,7 +108,7 @@ public class LoggerTcpFormat
 		}
 	}
 
-	private class LogInfo : ITcpable
+	public class LogInfo : ITcpable
 	{
 		private string timeStamp;
 
@@ -143,7 +143,7 @@ public class LoggerTcpFormat
 		}
 	}
 
-	private class StringTcp : ITcpable
+	public class StringTcp : ITcpable
 	{
 		private string content;
 
@@ -158,7 +158,7 @@ public class LoggerTcpFormat
 		}
 	}
 
-	private class BddInfo : ITcpable
+	public class BddInfo : ITcpable
 	{
 		private int idInfo;
 
@@ -181,6 +181,7 @@ public class LoggerTcpFormat
 	public static readonly string BeginMsg = "<!M>";
 
 	public static readonly string EndMsg = "<M!>";
+
 	public static string getTime()
 	{
 		DateTime now = DateTime.Now;
@@ -188,6 +189,8 @@ public class LoggerTcpFormat
 	}
 
 	public static string GetMessage(Client.Device.MGI.Logging.LogInfo data)
+		=> GetTcpable(data).ToTcp();
+	public static ITcpable GetTcpable(Client.Device.MGI.Logging.LogInfo data)
 	{
 		switch (data.Command)
 		{
@@ -212,6 +215,6 @@ public class LoggerTcpFormat
 		}
 	}
 
-	private static string Format(MessageType type, ITcpable content)
-		=> new Message(type, content).ToTcp();
+	private static ITcpable Format(MessageType type, ITcpable content)
+		=> new Message(type, content);
 }

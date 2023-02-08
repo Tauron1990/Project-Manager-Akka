@@ -50,7 +50,8 @@ public class TestData
         {
             if(single)
             {
-                byte[] array =Encoding.UTF8.GetBytes(LoggerTcpFormat.GetMessage(new LogInfo(DateTime.Now, "", "Type1", "Message1", Command.Log)));
+                byte[] array =Encoding.UTF8.GetBytes(LoggerTcpFormat
+                    .GetMessage(new LogInfo(DateTime.Now, "", "Type1", "Message1", Command.Log)));
 
                 _buffer = new ReadOnlySequence<byte>(array);
             }
