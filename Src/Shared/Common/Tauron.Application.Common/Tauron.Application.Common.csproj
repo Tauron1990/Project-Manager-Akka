@@ -65,10 +65,10 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
-        <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.1" />
+        <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.1" />
         <PackageReference Include="OneOf" Version="3.0.223" />
         <PackageReference Include="OneOf.SourceGenerator" Version="3.0.223" />
-        <PackageReference Include="Scrutor" Version="4.2.0" />
+        <PackageReference Include="Scrutor" Version="4.2.1" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
         <PackageReference Include="Stl.Fusion" Version="4.3.8" />
