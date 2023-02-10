@@ -46,16 +46,22 @@ public sealed class ZipFileEntry : FileBase<ZipContext>
             return 0;
         }
     }
+
     protected override Stream CreateStream(ZipContext context, FileAccess access, bool createNew)
     {
-        var entry = ValidateFileExist(context);
+        ZipEntry? entry = ValidateFileExist(context);
 
-        if (entry.Source == ZipEntrySource.ZipFile)
+
+        if(!access.HasFlag(FileAccess.Write))
+            return entry.OpenReader();
+
+        return new StreamWrapper(InMemoryRoot.Manager.GetStream(), FileAccess.ReadWrite, ModifyAction);
+
+
+        void ModifyAction(MemoryStream mem)
         {
-            if(!access.HasFlag(FileAccess.Write))
-                return entry.OpenReader();
-
-            var newStream = new StreamWrapper(InMemoryRoot.Manager.GetStream(), FileAccess.ReadWrite, () => { });
+            context.File.RemoveEntry(entry);
+            context.File.AddEntry()
         }
     }
 

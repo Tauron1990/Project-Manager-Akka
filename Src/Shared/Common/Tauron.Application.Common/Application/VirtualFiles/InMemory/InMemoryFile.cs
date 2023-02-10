@@ -43,7 +43,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
         if(createNew)
             Context.Root.ReInit(Context.ActualData, Context.Clock);
 
-        return new StreamWrapper(Context.ActualData.ActualData, access, () => Context.ActualData.ModifyDate = Context.Clock.UtcNow.LocalDateTime);
+        return StreamWrapper.Create(Context.ActualData.ActualData, access, _ => Context.ActualData.ModifyDate = Context.Clock.UtcNow.LocalDateTime);
     }
 
     protected override void Delete(FileContext context)

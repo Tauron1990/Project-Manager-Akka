@@ -70,6 +70,8 @@ public static class GenericPathHelper
     public static string NormalizeString(string path)
         => path.Replace('\\', GenericSeperator);
 
+    
+    
     /*public static (PathInfo Path, PathInfo Head) SplitPathHead(PathInfo path)
     {
         var isAbsolut = path.Kind == PathType.Absolute;
@@ -86,4 +88,18 @@ public static class GenericPathHelper
 
         return (restInfo, headInfo);
     }*/
+    public static string GetName(PathInfo pathInfo)
+    {
+        PathInfo path = NormalizePath(pathInfo);
+
+        int index = path.Path.LastIndexOf(GenericSeperator);
+
+        if(index == -1)
+            return path.Path;
+
+        if(index + 1 >= 0 && index + 1 <= path.Path.Length)
+            return path.Path[(index + 1)..];
+
+        return path.Path;
+    }
 }

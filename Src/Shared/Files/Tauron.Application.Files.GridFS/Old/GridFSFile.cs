@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using MongoDB.Driver.GridFS;
 using Tauron.Application.VirtualFiles;
 
-namespace Tauron.Application.Files.GridFS
+namespace Tauron.Application.Files.GridFS.Old
 {
     [PublicAPI]
     public sealed class GridFSFile : GridFSSystemNode, IFile
@@ -12,6 +12,9 @@ namespace Tauron.Application.Files.GridFS
         public GridFSFile(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow)
             : base(bucket, fileInfo, parentDirectory, name, path, existsNow) { }
 
+        public override FileSystemFeature Features { get; } =
+            FileSystemFeature.Create | FileSystemFeature.Delete | FileSystemFeature.Read | FileSystemFeature.Write | FileSystemFeature.Moveable;
+        
         public override NodeType Type => NodeType.File;
         public override bool IsDirectory => false;
 
@@ -36,9 +39,11 @@ namespace Tauron.Application.Files.GridFS
             }
         }
 
+        public Stream Open() => Open(FileAccess.Read);
+
         public Stream Create()
         {
-            if (FileInfo == null)
+            if (FileInfo is null)
                 return new UpdateStream(this, Bucket.OpenUploadStream(OriginalPath));
 
             Bucket.Delete(SafeFileInfo.Id);
@@ -53,6 +58,8 @@ namespace Tauron.Application.Files.GridFS
 
             return new UpdateStream(this, Bucket.OpenUploadStream(SafeFileInfo.Filename));
         }
+
+        public IFile MoveTo(PathInfo location) => MoveTo((string)location);
 
         public IFile MoveTo(string location)
         {

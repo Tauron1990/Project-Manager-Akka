@@ -17,6 +17,7 @@ using Tauron;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
+using Tauron.Application.Files.GridFS.Old;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;

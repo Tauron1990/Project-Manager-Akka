@@ -6,7 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\..\Shared\UI\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj" />
         <ProjectReference Include="..\Tauron.Application.Localizer.DataModel\Tauron.Application.Localizer.DataModel.csproj" />
     </ItemGroup>
 

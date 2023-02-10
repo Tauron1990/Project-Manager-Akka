@@ -5,18 +5,26 @@ using System.Threading.Tasks;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
-public class StreamWrapper : Stream
+public static class StreamWrapper
+{
+    public static StreamWrapper<TStream> Create<TStream>(TStream stream, FileAccess access, Action<TStream> modify)
+        where TStream : Stream => new(stream, access, modify);
+}
+
+public sealed class StreamWrapper<TStream> : Stream
+    where TStream : Stream
 {
     private readonly FileAccess _access;
-    private readonly MemoryStream _memoryStream;
-    private readonly Action _modifyAction;
+    private readonly TStream _memoryStream;
+    private readonly Action<TStream> _modifyAction;
 
     private bool _modify;
 
-    public StreamWrapper(MemoryStream memoryStream, FileAccess access, Action modifyAction)
+    public StreamWrapper(TStream memoryStream, FileAccess access, Action<TStream> modifyAction)
     {
         _memoryStream = memoryStream;
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        if(memoryStream.CanSeek)
+            memoryStream.Seek(0, SeekOrigin.Begin);
         _access = access;
         _modifyAction = modifyAction;
     }
@@ -51,7 +59,10 @@ public class StreamWrapper : Stream
 
     protected override void Dispose(bool disposing)
     {
-        if(_modify) _modifyAction();
+        if(_modify)
+            _modifyAction(_memoryStream);
+        else
+            _memoryStream.Dispose();
     }
 
     public override void Flush()

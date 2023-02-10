@@ -5,7 +5,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Tauron.Application.VirtualFiles;
 
-namespace Tauron.Application.Files.GridFS
+namespace Tauron.Application.Files.GridFS.Old
 {
     public abstract class GridFSSystemNode : IFileSystemNode
     {
@@ -32,7 +32,7 @@ namespace Tauron.Application.Files.GridFS
             {
                 lock (_setLock)
                 {
-                    var existent = _fileInfo == null;
+                    bool existent = _fileInfo is null;
                     _fileInfo = value;
 
                     if (existent)
@@ -55,7 +55,10 @@ namespace Tauron.Application.Files.GridFS
             }
         }
 
+        public abstract FileSystemFeature Features { get; }
         public abstract NodeType Type { get; }
+        PathInfo IFileSystemNode.OriginalPath => OriginalPath;
+
         public string OriginalPath { get; }
 
         public DateTime LastModified => FileInfo?.UploadDateTime ?? DateTime.MinValue;

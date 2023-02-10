@@ -1,4 +1,4 @@
-﻿namespace Tauron.Application.Files.GridFS
+﻿namespace Tauron.Application.Files.GridFS.Old
 {
     internal static class PathHelper
     {

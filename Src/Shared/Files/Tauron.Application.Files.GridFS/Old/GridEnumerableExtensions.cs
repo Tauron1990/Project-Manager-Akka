@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Tauron.Application.Files.GridFS
+namespace Tauron.Application.Files.GridFS.Old
 {
     public static class GridEnumerableExtensions
     {
@@ -9,7 +9,7 @@ namespace Tauron.Application.Files.GridFS
         {
             var found = false;
 
-            foreach (var data in enumerable)
+            foreach (TData data in enumerable)
                 if (evaluator(data))
                 {
                     if (found)

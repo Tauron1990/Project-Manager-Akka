@@ -1,9 +1,11 @@
-﻿using MongoDB.Driver;
+﻿using JetBrains.Annotations;
+using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Tauron.Application.VirtualFiles;
 
-namespace Tauron.Application.Files.GridFS
+namespace Tauron.Application.Files.GridFS.Old
 {
+    [PublicAPI]
     public static class FileSystemFactoryExtensions
     {
         public static IVirtualFileSystem CreateMongoDb(this VirtualFileFactory factory, GridFSBucket bucket)

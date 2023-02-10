@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Tauron.Application.VirtualFiles;
 
-namespace Tauron.Application.Files.GridFS
+namespace Tauron.Application.Files.GridFS.Old
 {
     [PublicAPI]
     public class GridFsDic : GridFSSystemNode, IDirectory
@@ -19,33 +20,44 @@ namespace Tauron.Application.Files.GridFS
         public GridFsDic(GridFSBucket bucket, GridFSFileInfo? fileInfo, IDirectory? parentDirectory, string name, string path, Action? existsNow)
             : base(bucket, fileInfo, parentDirectory, name, path, existsNow) { }
 
+        public override FileSystemFeature Features { get; } =
+            FileSystemFeature.Create | FileSystemFeature.Delete | FileSystemFeature.Read | FileSystemFeature.Write;
+        
         public override NodeType Type => NodeType.Directory;
         public override bool IsDirectory => true;
 
         public IEnumerable<IDirectory> Directories
             => from entry in FindRelevantEntries()
                let subPath = entry.Filename.Remove(0, OriginalPath.Length + 1)
-               where subPath.EndsWith(DicId) && subPath.IsSingle(c => c == PathHelper.Seperator)
+               where subPath.EndsWith(DicId, StringComparison.Ordinal) && subPath.IsSingle(c => c == PathHelper.Seperator)
                select new GridFsDic(
                    Bucket,
                    entry,
                    this,
                    subPath.Split(PathHelper.Seperator, 2)[0],
-                   entry.Filename.Replace(PathHelper.Seperator + DicId, string.Empty),
+                   entry.Filename.Replace(PathHelper.Seperator + DicId, string.Empty, StringComparison.Ordinal),
                    NotifyExist);
 
         public IEnumerable<IFile> Files
             => from entry in FindRelevantEntries()
                let fileName = entry.Filename.Remove(0, OriginalPath.Length + 1)
-               where !fileName.Contains(PathHelper.Seperator) && !fileName.EndsWith(DicId)
+               where !fileName.Contains(PathHelper.Seperator, StringComparison.Ordinal) && !fileName.EndsWith(DicId, StringComparison.Ordinal)
                select new GridFSFile(Bucket, entry, this, fileName, entry.Filename, NotifyExist);
+
+        public IFile GetFile(PathInfo name)
+            => GetFile((string)name);
+        
+        public IDirectory GetDirectory(PathInfo name) 
+            => GetDirectory((string)name);
+
+        public IDirectory MoveTo(PathInfo location) => throw new InvalidOperationException("Moving is not Supported");
 
 
         public IFile GetFile(string name)
         {
-            if (name.Contains(PathHelper.Seperator))
+            if (name.Contains(PathHelper.Seperator, StringComparison.Ordinal))
             {
-                var elements = name.Split(PathHelper.Seperator, 2);
+                string[] elements = name.Split(PathHelper.Seperator, 2);
                 string fileName = elements[1];
                 string dicName = elements[0];
                 string fullDicPath = PathHelper.Combine(OriginalPath, dicName);
@@ -62,9 +74,9 @@ namespace Tauron.Application.Files.GridFS
 
         public IDirectory GetDirectory(string name)
         {
-            if (name.Contains(PathHelper.Seperator))
+            if (name.Contains(PathHelper.Seperator, StringComparison.Ordinal))
             {
-                var elements = name.Split(PathHelper.Seperator, 2);
+                string[] elements = name.Split(PathHelper.Seperator, 2);
                 string dicPath = elements[1];
                 string dicName = elements[0];
                 string fullDicPath = PathHelper.Combine(OriginalPath, dicName);
@@ -90,7 +102,7 @@ namespace Tauron.Application.Files.GridFS
 
         private IEnumerable<GridFSFileInfo> FindRelevantEntries()
         {
-            if (FileInfo == null)
+            if (FileInfo is null)
                 throw new FileNotFoundException(OriginalPath + " Not Found");
 
             string start = OriginalPath;
@@ -104,7 +116,7 @@ namespace Tauron.Application.Files.GridFS
             {
                 if (Exist) return;
 
-                var id = Bucket.UploadFromBytes(PathHelper.Combine(OriginalPath, DicId), Array.Empty<byte>());
+                ObjectId id = Bucket.UploadFromBytes(PathHelper.Combine(OriginalPath, DicId), Array.Empty<byte>());
 
                 FindEntry(id);
             }
