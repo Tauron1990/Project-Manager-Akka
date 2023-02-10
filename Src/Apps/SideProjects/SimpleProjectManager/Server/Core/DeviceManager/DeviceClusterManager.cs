@@ -1,14 +1,13 @@
 ﻿using Akka.Actor;
 using Akka.Cluster;
 using Akka.DistributedData;
-using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 
 namespace SimpleProjectManager.Server.Core.DeviceManager;
 
 public sealed partial class DeviceClusterManager : ReceiveActor
 {
-    private readonly ILogger<DeviceClusterManager> _logger = LoggingProvider.LoggerFactory.CreateLogger<DeviceClusterManager>();
+    private readonly ILogger<DeviceClusterManager> _logger = TauronEnviroment.LoggerFactory.CreateLogger<DeviceClusterManager>();
     private readonly ORDictionaryKey<string, DeviceInfoEntry> _dictionaryKey;
     private readonly DistributedData _replicator;
     private readonly Cluster _cluster;

@@ -2,14 +2,14 @@
 using System.Threading.Channels;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
-using SimpleProjectManager.Client.Operations.Shared;
+using Tauron.Application;
 using Tauron.Servicemnager.Networking.Data;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 
 public sealed partial class SingleClientManager : ReceiveActor, IDisposable
 {
-    private readonly ILogger<SingleClientManager> _logger = LoggingProvider.LoggerFactory.CreateLogger<SingleClientManager>();
+    private readonly ILogger<SingleClientManager> _logger = TauronEnviroment.LoggerFactory.CreateLogger<SingleClientManager>();
     private readonly IMessageStream _client;
     private readonly ChannelWriter<LogInfo> _writer;
     private readonly LogParser _logParser;

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Threading.Channels;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
@@ -29,23 +30,28 @@ public sealed class MgiMachine : IMachine
         _logCollector = new LogCollector<LogInfo>(
             "MGI_Client",
             loggerFactory.CreateLogger<LogCollector<LogInfo>>(),
-            element =>
-                new LogData(
-                    LogLevel.Trace,
-                    LogCategory.From(element.Type),
-                    SimpleMessage.From(element.Content),
-                    element.TimeStamp,
-                    ImmutableDictionary<string, PropertyValue>.Empty
-                       .Add("Application", PropertyValue.From(element.Application))));
+            ConvertLogInfo);
         
         _deviceId = operationConfiguration.CreateDeviceId(MgiId);
         _clientName = operationConfiguration.Name;
     }
 
+    private LogData ConvertLogInfo(LogInfo element)
+    {
+        return new LogData(
+            string.Equals(element.Type.ToLower(CultureInfo.InvariantCulture), "error", StringComparison.Ordinal)
+                ? LogLevel.Error
+                : LogLevel.Trace,
+            LogCategory.From(element.Type),
+            SimpleMessage.From(element.Content),
+            element.TimeStamp,
+            ImmutableDictionary<string, PropertyValue>.Empty.Add("Application", PropertyValue.From(element.Application)));
+    }
+
     public Task Init(IActorContext context)
     {
         var channel = Channel.CreateBounded<LogInfo>(
-            new BoundedChannelOptions(1000)
+            new BoundedChannelOptions(3000)
             {
                 FullMode = BoundedChannelFullMode.DropOldest,
                 SingleReader = true,

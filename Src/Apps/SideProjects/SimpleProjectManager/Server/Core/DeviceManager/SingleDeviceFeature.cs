@@ -38,7 +38,7 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         Receive<ButtonClick>(obs => obs.Select(ClickButton));
         Receive<Terminated>(obs => obs.ToUnit(p => p.Context.Stop(p.Self)));
         Receive<NewUIData>(obs => obs.Select(NewUI));
-        Receive<Status.Success>();
+        Receive<Status.Success>(obs => obs.Subscribe());
         
         if(!CurrentState.Info.HasLogs) return;
 

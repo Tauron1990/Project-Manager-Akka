@@ -128,6 +128,8 @@ internal sealed partial class LogCollector<TSource>
                    foreach (var data in d.Data)
                        builder.Property(data.Key, data.Value);
 
+                   builder.Property("Category", d.Category.Value);
+                   
                    builder.TimeStamp(d.Occurance);
                    builder.Message(d.Message.Value);
                    

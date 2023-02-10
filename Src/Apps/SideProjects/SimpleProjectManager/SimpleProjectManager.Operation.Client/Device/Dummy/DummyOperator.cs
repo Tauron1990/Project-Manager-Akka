@@ -1,11 +1,11 @@
 ﻿using System.Collections.Immutable;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
-using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Tauron;
+using Tauron.Application;
 
 namespace SimpleProjectManager.Operation.Client.Device.Dummy;
 
@@ -21,7 +21,7 @@ internal sealed partial class DummyOperator : IDisposable
     private readonly Channel<LogData> _logData;
     private readonly LogCollector<LogData> _currentLog = new(
         "Dummy_Operator",
-        LoggingProvider.LoggerFactory.CreateLogger<LogCollector<LogData>>(),
+        TauronEnviroment.LoggerFactory.CreateLogger<LogCollector<LogData>>(),
         e => e);
     private ButtonSensorPair[] _pairs;
 

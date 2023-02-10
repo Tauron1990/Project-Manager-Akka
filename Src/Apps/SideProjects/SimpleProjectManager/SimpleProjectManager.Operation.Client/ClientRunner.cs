@@ -68,7 +68,6 @@ public sealed class ClientRunner
                    .AddSingleton(_configManager.Configuration)
                    .AddHostedService<HostStarter>()
                    .AddSingleton<HostStarter>())
-           .RegisterStartUp<LoggingProvider>(p => p.Run())
            .RegisterStartUp<ImageEditorStartup>(e => e.Run())
            .RegisterStartUp<DeviceStartUp>(d => d.Run());
     }

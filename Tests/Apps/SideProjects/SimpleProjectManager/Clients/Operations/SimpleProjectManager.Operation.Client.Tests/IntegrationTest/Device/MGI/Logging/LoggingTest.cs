@@ -26,14 +26,14 @@ public sealed class LoggingTest : TestKit
             channel.Writer.TryComplete();
             actor.Tell(PoisonPill.Instance);
         });
-        await Task.WhenAll(generator.DoWrite(), DoRead(channel.Reader, list));
+        await Task.WhenAll(generator.DoWrite(), DoRead(channel.Reader, list, cancel.Token));
 
         list.Should().AllSatisfy(i => i.Type.Should().NotBe("Crash"));
-        list.Should().HaveCount(single ? 3 : 2004);
+        list.Should().HaveCount(single ? 3 : 2002);
 
-        async Task DoRead(ChannelReader<LogInfo> reader, ICollection<LogInfo> messages)
+        async Task DoRead(ChannelReader<LogInfo> reader, ICollection<LogInfo> messages, CancellationToken token)
         {
-            await foreach (LogInfo msg in reader.ReadAllAsync().ConfigureAwait(false))
+            await foreach (LogInfo msg in reader.ReadAllAsync(token).ConfigureAwait(false))
                 messages.Add(msg);
         }
     }

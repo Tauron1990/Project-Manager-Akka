@@ -21,7 +21,8 @@ public sealed class LoggerActor : ReceiveActor
         _deviceName = deviceName;
         _handler = handler;
         _logDistribution = new LogDistribution(Context.System);
-        Receive<SubscribeAck>(_ => Become(Ready));
+        Receive<SubscribeAck>(_ => Become(Ready)); 
+        
     }
 
     public static Props Create(ActorSystem system, DeviceId deviceName)
@@ -50,21 +51,13 @@ public sealed class LoggerActor : ReceiveActor
         DateTime newKey = DateTime.UtcNow;
         _batches.Add(newKey, obj);
 
-        var counter = 0;
-        var toDelete = _batches
-           .Reverse()
-           .SkipWhile(
-                p =>
-                {
-                    counter += p.Value.Logs.Count;
 
-                    return counter < 1000;
-                })
-           .Select(p => p.Key)
-           .ToArray();
-
-        foreach (var key in toDelete)
-            _batches.Remove(key);
+        int toDelete = _batches.Count - 1000;
+        if(toDelete > 0)
+        {
+            for (var i = 0; i < toDelete; i++)
+                _batches.Remove(_batches.Keys.First());
+        }
 
         _handler.Publish(new NewBatchesArrived(obj.DeviceName, newKey));
     }

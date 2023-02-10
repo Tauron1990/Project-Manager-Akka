@@ -3,6 +3,7 @@ using Akka.Cluster.Utility;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Internal;
+using Tauron.Application;
 using Tauron.TAkka;
 
 namespace SimpleProjectManager.Client.Operations.Shared;
@@ -20,7 +21,7 @@ public sealed partial class NameClient : ReceiveActor
     {
         _name = name;
         _nameService = nameService;
-        _logger = LoggingProvider.LoggerFactory.CreateLogger<NameClient>();
+        _logger = TauronEnviroment.LoggerFactory.CreateLogger<NameClient>();
 
         UpdateState();
         

@@ -2,10 +2,10 @@
 using Akka.Cluster;
 using Akka.DistributedData;
 using Microsoft.Extensions.Logging;
-using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Shared.Services.Devices;
 using Tauron;
+using Tauron.Application;
 
 #pragma warning disable EPS02
 #pragma warning disable SYSLIB1006
@@ -14,7 +14,7 @@ namespace SimpleProjectManager.Operation.Client.Device.Core;
 
 public sealed partial class ClusterManagerActor : ReceiveActor
 {
-    private readonly ILogger<ClusterManagerActor> _logger = LoggingProvider.LoggerFactory.CreateLogger<ClusterManagerActor>();
+    private readonly ILogger<ClusterManagerActor> _logger = TauronEnviroment.LoggerFactory.CreateLogger<ClusterManagerActor>();
     private readonly DistributedData _replicator;
     private readonly ORDictionaryKey<string, DeviceInfoEntry> _dictionaryKey;
     private readonly Cluster _cluster;

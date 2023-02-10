@@ -1,8 +1,8 @@
 ﻿using System.Net.Sockets;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
-using SimpleProjectManager.Client.Operations.Shared;
 using Tauron;
+using Tauron.Application;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 
@@ -14,7 +14,7 @@ public sealed partial class AcceptManager : ReceiveActor
     public AcceptManager(Socket server)
     {
         _server = server;
-        _logger = LoggingProvider.LoggerFactory.CreateLogger<AcceptManager>();
+        _logger = TauronEnviroment.LoggerFactory.CreateLogger<AcceptManager>();
         
         Receive<Status.Failure>(AcceptFailed);
         Receive<Socket>(AcceptOk);
