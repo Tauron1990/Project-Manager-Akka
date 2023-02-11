@@ -45,7 +45,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     internal bool TryAddElement(string name, IDataElement element)
         => Context.ActualData.TryAddElement(name, element);
 
-    protected override IDirectory GetDirectory(DirectoryContext context, PathInfo name)
+    protected override IDirectory GetDirectory(DirectoryContext context, in PathInfo name)
         => new InMemoryDirectory(
             context with
             {
@@ -55,7 +55,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
             },
             Features);
 
-    protected override IFile GetFile(DirectoryContext context, PathInfo name)
+    protected override IFile GetFile(DirectoryContext context, in PathInfo name)
         => new InMemoryFile(
             Context.GetFileContext(Context, name, OriginalPath),
             Features);
@@ -75,7 +75,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
             ? new InMemoryDirectory(context with { Parent = newDic.DirectoryContext, Path = GenericPathHelper.Combine(newDic.OriginalPath, name) }, Features)
             : null;
 
-    protected override IDirectory MovetTo(DirectoryContext context, PathInfo location)
+    protected override IDirectory MovetTo(DirectoryContext context, in PathInfo location)
     {
         ValidateSheme(location, "mem");
 

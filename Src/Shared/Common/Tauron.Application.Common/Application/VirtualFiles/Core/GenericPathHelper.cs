@@ -14,7 +14,7 @@ public static class GenericPathHelper
 
     public const string AbsolutPathMarker = "::";
 
-    public static bool HasScheme(PathInfo info, string scheme)
+    public static bool HasScheme(in PathInfo info, string scheme)
     {
         var span = info.Path.AsSpan();
 
@@ -31,7 +31,7 @@ public static class GenericPathHelper
         return index > 0 && !str[..index].Contains(GenericSeperator);
     }
 
-    public static PathInfo ToRelativePath(PathInfo path, out string scheme)
+    public static PathInfo ToRelativePath(in PathInfo path, out string scheme)
     {
         if(path.Kind == PathType.Relative)
         {
@@ -49,13 +49,13 @@ public static class GenericPathHelper
         return index == -1 ? path with { Kind = PathType.Relative } : new PathInfo(str[(index + 2)..].ToString(), PathType.Relative);
     }
 
-    public static PathInfo ToRelativePath(PathInfo info)
+    public static PathInfo ToRelativePath(in PathInfo info)
         => ToRelativePath(info, out _);
 
-    public static PathInfo ChangeExtension(PathInfo path, string newExtension)
+    public static PathInfo ChangeExtension(in PathInfo path, string newExtension)
         => Path.ChangeExtension(path, newExtension);
 
-    public static PathInfo Combine(PathInfo first, PathInfo secund)
+    public static PathInfo Combine(in PathInfo first, in PathInfo secund)
     {
         string result = Path.Combine(first, secund);
 
@@ -64,7 +64,7 @@ public static class GenericPathHelper
             : result;
     }
 
-    public static PathInfo NormalizePath(PathInfo path)
+    public static PathInfo NormalizePath(in PathInfo path)
         => path with { Path = NormalizeString(path.Path) };
 
     public static string NormalizeString(string path)
@@ -88,7 +88,7 @@ public static class GenericPathHelper
 
         return (restInfo, headInfo);
     }*/
-    public static string GetName(PathInfo pathInfo)
+    public static string GetName(in PathInfo pathInfo)
     {
         PathInfo path = NormalizePath(pathInfo);
 

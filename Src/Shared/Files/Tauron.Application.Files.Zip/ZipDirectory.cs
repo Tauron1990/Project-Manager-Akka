@@ -16,9 +16,9 @@ public sealed class ZipDirectory : DirectoryBase<ZipDirectoryContext>
     public override string Name { get; }
     public override IEnumerable<IDirectory> Directories { get; }
     public override IEnumerable<IFile> Files { get; }
-    protected override IDirectory GetDirectory(ZipDirectoryContext context, PathInfo name)
+    protected override IDirectory GetDirectory(ZipDirectoryContext context, in PathInfo name)
         => throw new NotImplementedException();
 
-    protected override IFile GetFile(ZipDirectoryContext context, PathInfo name)
+    protected override IFile GetFile(ZipDirectoryContext context, in PathInfo name)
         => throw new NotImplementedException();
 }

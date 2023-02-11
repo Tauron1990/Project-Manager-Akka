@@ -40,16 +40,16 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         set => Context.Data.Attributes = value;
     }
 
-    protected override IDirectory GetDirectory(DirectoryContext context, PathInfo name)
+    protected override IDirectory GetDirectory(DirectoryContext context, in PathInfo name)
         => throw new NotSupportedException("Never called Method");
 
-    protected override IFile GetFile(DirectoryContext context, PathInfo name)
+    protected override IFile GetFile(DirectoryContext context, in PathInfo name)
         => throw new NotSupportedException("Never called Method");
 
     protected override void Delete(DirectoryContext context)
         => context.Data.Delete(true);
 
-    protected override IDirectory MovetTo(DirectoryContext context, PathInfo location)
+    protected override IDirectory MovetTo(DirectoryContext context, in PathInfo location)
     {
         ValidateSheme(location, LocalFileSystemResolver.SchemeName);
 
@@ -61,14 +61,14 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         return new LocalDirectory(context with { Data = new DirectoryInfo(target) }, Features);
     }
 
-    protected override IFile SplitFilePath(PathInfo name)
+    protected override IFile SplitFilePath(in PathInfo name)
     {
         string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 
         return new LocalFile(new FileContext(Context.Root, Context.NoParent, new FileInfo(target)), Features);
     }
 
-    protected override IDirectory SplitDirectoryPath(PathInfo name)
+    protected override IDirectory SplitDirectoryPath(in PathInfo name)
     {
         string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 

@@ -54,7 +54,7 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
         throw new IOException($"Requested Flag {feature} is not set for {GetType().Name}");
     }
 
-    protected void ValidateSheme(PathInfo info, string scheme)
+    protected void ValidateSheme(in PathInfo info, string scheme)
     {
         if(info.Kind == PathType.Relative) return;
 

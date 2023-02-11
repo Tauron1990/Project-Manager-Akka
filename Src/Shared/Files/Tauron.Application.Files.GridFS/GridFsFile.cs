@@ -65,8 +65,9 @@ public sealed class GridFsFile : FileBase<GridFsContext>
                     : context.Bucket.OpenUploadStream(context.File.Id, context.File.Filename);
 
                 return StreamWrapper.Create(upload, access, UpdateFileInfo);
+            case FileAccess.ReadWrite:
             default:
-                throw new InvalidOperationException("File Could Read or Write not Both");
+                throw new InvalidOperationException("File Could either Read or Write not Both");
         }
     }
 
