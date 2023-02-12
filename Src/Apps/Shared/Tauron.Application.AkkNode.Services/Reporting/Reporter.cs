@@ -134,6 +134,10 @@ public sealed class Reporter
         _reporter.Tell(new TransferedMessage(message));
     }
 
+    public void Send<T>(T message)
+        where T : notnull
+        => Send(message.ToString() ?? string.Empty);
+    
     public void Compled(IOperationResult result)
     {
         if(_reporter.IsNobody()) return;

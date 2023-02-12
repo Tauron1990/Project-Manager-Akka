@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Tauron.Application.Master.Commands;
 using Tauron.Application.Master.Commands.Administration.Host;
 
 namespace ServiceHost.Installer
@@ -10,7 +11,7 @@ namespace ServiceHost.Installer
 
         public string ZipFile { get; set; } = string.Empty;
 
-        public string AppName { get; set; } = string.Empty;
+        public AppName AppName { get; set; } = AppName.Empty;
 
         public string SoftwareName { get; set; } = string.Empty;
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using MudBlazor;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using ServiceManager.Client.Shared.Configuration.ConditionEditor;
 using ServiceManager.Client.Shared.Dialog;
 using ServiceManager.Shared.ServiceDeamon;

@@ -9,10 +9,12 @@ using Akka;
 using Akka.Actor;
 using Akka.Cluster;
 using Akka.Event;
+using Microsoft.Extensions.Logging;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Installer;
 using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
+using Tauron.Application.Master.Commands;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 using Tauron.ObservableExt;
@@ -41,9 +43,9 @@ namespace ServiceHost.Services.Impl
             Receive<InstallerationCompled>(
                 obs =>
                 {
-                    void PipeToSelf(IAppRegistry appRegistry, string name)
+                    void PipeToSelf(IAppRegistry appRegistry, AppName name)
                     {
-                        appRegistry.Actor
+                        appRegistry
                            .Ask<InstalledAppRespond>(new InstalledAppQuery(name), TimeSpan.FromSeconds(10))
                            .PipeTo(Self, success: ar => new StartApp(ar.App)).Ignore();
                     }
@@ -83,7 +85,7 @@ namespace ServiceHost.Services.Impl
             Receive<StopApp>(
                 obs => (
                         from data in obs
-                        select (Child: Context.Child(data.Event.Name), Sender, data.Event.Name)
+                        select (Child: Context.Child(data.Event.Name.Value), Sender, data.Event.Name)
                     ).ConditionalSelect()
                    .ToResult<Unit>(
                         b =>
@@ -102,7 +104,7 @@ namespace ServiceHost.Services.Impl
                           select new InternalFilterApp(request.Event.AppType, app)
                         ).UToActor(Self),
                     (_, e) => Observable.Return(Unit.Default)
-                       .Do(_ => Log.Error(e, "Error On Begin Start All Apps"))));
+                       .Do(_ => Logger.LogError(e, "Error On Begin Start All Apps"))));
 
             Receive<InternalFilterApp>(
                 obs => obs.CatchSafe(
@@ -112,12 +114,12 @@ namespace ServiceHost.Services.Impl
                           select new StartApp(app.App)
                         ).UToActor(Self),
                     (_, e) => Observable.Return(Unit.Default)
-                       .Do(_ => Log.Error(e, "Erro while Query App Info"))));
+                       .Do(_ => Logger.LogError(e, "Erro while Query App Info"))));
 
             Receive<StartApp>(
                 obs => (from request in obs
                         where !request.Event.App.IsEmpty()
-                        where Context.Child(request.Event.App.Name).IsNobody()
+                        where Context.Child(request.Event.App.Name.Value).IsNobody()
                         select (Msg: new InternalStartApp(), Actor: Context.ActorOf(AppProcessActor.New(request.Event.App, request.State.Ipc)))
                     ).ToActor(a => a.Actor, m => m.Msg));
 
@@ -132,7 +134,7 @@ namespace ServiceHost.Services.Impl
                                     .Select(c => c.Ask<StopResponse>(new InternalStopApp(), TimeSpan.FromMinutes(1))))
                              select request.NewEvent(new StopAllAppsResponse(response.All(r => !r.Error))),
                         (r, e) => Observable.Return(r.NewEvent(new StopAllAppsResponse(Success: false)))
-                           .Do(_ => Log.Warning(e, "Error on Shared Api Stop All Apps")))
+                           .Do(_ => Logger.LogWarning(e, "Error on Shared Api Stop All Apps")))
                    .ToActor(a => a.Sender, m => m.Event));
 
             Receive<StartAllApps>(
@@ -154,7 +156,7 @@ namespace ServiceHost.Services.Impl
                                                          return t.Result;
 
                                                      if (t.IsFaulted)
-                                                         Log.Warning(t.Exception.Unwrap(), "Error on Recive Process Apss Name");
+                                                         Logger.LogWarning(t.Exception.Unwrap(), "Error on Recive Process Apss Name");
 
                                                      return null;
                                                  })))
@@ -163,25 +165,25 @@ namespace ServiceHost.Services.Impl
                                      request.Event.OperationId,
                                      status.Where(e => e != null)
                                         .ToImmutableDictionary(g => g.Name, g => g.Running))),
-                        (r, e) => Observable.Return(r.NewEvent(new AppStatusResponse(r.Event.OperationId, ImmutableDictionary<string, bool>.Empty)))
-                           .Do(_ => Log.Error(e, "Error getting Status")))
+                        (r, e) => Observable.Return(r.NewEvent(new AppStatusResponse(r.Event.OperationId, ImmutableDictionary<AppName, AppState>.Empty)))
+                           .Do(_ => Logger.LogWarning(e, "Error getting Status")))
                    .ToActor(a => a.Sender, a => a.Event));
 
             Receive<StopHostApp>(
                 obs => obs.CatchSafe(
                         p => from request in Observable.Return(p)
-                             let child = request.Context.Child(request.Event.AppName)
+                             let child = request.Context.Child(request.Event.AppName.Value)
                              from response in child.IsNobody()
                                  ? Task.FromResult(default(StopResponse))
                                  : child.Ask<StopResponse?>(new InternalStopApp(), TimeSpan.FromMinutes(1))
                              select request.NewEvent(new StopHostAppResponse(response is { Error: false })),
                         (r, e) => Observable.Return(r.NewEvent(new StopHostAppResponse(Success: false)))
-                           .Do(_ => Log.Warning(e, "Error Shared Api Stop")))
+                           .Do(_ => Logger.LogWarning(e, "Error Shared Api Stop")))
                    .ToActor(a => a.Sender, m => m.Event));
 
             Receive<StartHostApp>(
                 obs => (from request in obs
-                        select request.NewEvent((request.Event, Child: request.Context.Child(request.Event.AppName)))
+                        select request.NewEvent((request.Event, Child: request.Context.Child(request.Event.AppName.Value)))
                     ).ConditionalSelect()
                    .ToResult<StatePair<StartHostAppResponse, AppManagerState>>(
                         b =>
@@ -200,15 +202,15 @@ namespace ServiceHost.Services.Impl
                                         ).ApplyWhen(m => !m.Fault, m => p.Self.Tell(new StartApp(m.App)))
                                        .Select(m => p.NewEvent(new StartHostAppResponse(!m.Fault))),
                                     (p, e) => Observable.Return(p.NewEvent(new StartHostAppResponse(Success: false)))
-                                       .Do(_ => Log.Warning(e, "Error on Shared Api Start"))));
+                                       .Do(_ => Logger.LogWarning(e, "Error on Shared Api Start"))));
                         })
                    .ToActor(a => a.Sender, m => m.Event));
 
             Receive<RestartApp>(
                 obs => (from request in obs
-                        let child = Context.Child(request.Event.Name)
+                        let child = Context.Child(request.Event.Name.Value)
                         where !child.IsNobody()
-                        select (child, Event: new InternalStopApp(Restart: true)))
+                        select (child, Event: new InternalStopApp(AppState.Running)))
                    .ToUnit(evt => evt.child.Tell(evt.Event)));
 
             #endregion
@@ -217,19 +219,19 @@ namespace ServiceHost.Services.Impl
             CurrentState.AppRegistry.Tell(new EventSubscribe(Watch: true, typeof(RegistrationResponse)));
 
             CoordinatedShutdown.Get(Context.System)
-               .AddTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "AppManagerShutdown", new ContextShutdown(Log, Context).HostShutdown);
+               .AddTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "AppManagerShutdown", new ContextShutdown(Logger, Context).HostShutdown);
         }
 
         public sealed record AppManagerState(IAppRegistry AppRegistry, IInstaller Installer, InstallChecker InstallChecker, IIpcConnection Ipc);
 
-        private sealed record InternalFilterApp(AppType AppType, string Name);
+        private sealed record InternalFilterApp(AppType AppType, AppName Name);
 
         private sealed class ContextShutdown
         {
             private readonly IActorContext _context;
-            private readonly ILoggingAdapter _log;
+            private readonly ILogger _log;
 
-            internal ContextShutdown(ILoggingAdapter log, IActorContext context)
+            internal ContextShutdown(ILogger log, IActorContext context)
             {
                 _log = log;
                 _context = context;
@@ -237,7 +239,7 @@ namespace ServiceHost.Services.Impl
 
             internal Task<Done> HostShutdown()
             {
-                _log.Info("Shutdown All Host Apps");
+                _log.LogInformation("Shutdown All Host Apps");
 
                 return Task.WhenAll(
                     _context

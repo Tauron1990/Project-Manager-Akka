@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 
 namespace ServiceManager.Shared.ServiceDeamon
 {

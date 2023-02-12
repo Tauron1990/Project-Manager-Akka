@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Akka.Configuration;
 using Microsoft.AspNetCore.Components;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using ServiceManager.Client.Shared.BaseComponents;
 using ServiceManager.Client.Shared.Configuration;
 using ServiceManager.Shared.ServiceDeamon;

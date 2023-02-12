@@ -8,6 +8,10 @@ namespace Tauron.Application.Master.Commands.Deployment;
 public readonly partial struct RepositoryName
     #pragma warning restore MA0097
 {
+    public bool IsValid => Value.Contains('/', System.StringComparison.Ordinal);
+
+    public string[] GetSegments() => Value.Split('/');
+    
     private static Validation Validate(string value)
         => string.IsNullOrWhiteSpace(value) ? Validation.Invalid("Repository name should not bet Empty") : Validation.Ok;
 }

@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Text;
+using Akka.Actor;
 using Petabridge.Cmd;
 using Petabridge.Cmd.Host;
+using Tauron;
+using Tauron.Application.Master.Commands.KillSwitch;
+using Tauron.Application.Master.Commands.ServiceRegistry;
 
 namespace Master.Seed.Node.Commands
 {
@@ -10,13 +14,13 @@ namespace Master.Seed.Node.Commands
         public MasterCommandHandlerActor()
             : base(MasterCommands.MasterPalette)
         {
-            Process(MasterCommands.Kill.Name, _ => KillSwitch.KillCluster());
+            Process(MasterCommands.Kill.Name, _ => KillSwitchApi.KillCluster());
             Process(MasterCommands.ListServices.Name, ListServices);
         }
 
         private void ListServices(Command obj)
         {
-            var reg = ServiceRegistry.Get(Context.System);
+            var reg = ServiceRegistryApi.Get(Context.System);
 
             reg.QueryServices()
                .ContinueWith(

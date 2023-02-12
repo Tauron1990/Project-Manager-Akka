@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-namespace ServiceHost.Client.Shared.ConfigurationServer.Data;
+namespace ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 
 public sealed record SeedUrl(string Url, string? Info);
 

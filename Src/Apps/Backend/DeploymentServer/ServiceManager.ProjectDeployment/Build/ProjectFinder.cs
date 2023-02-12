@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using Tauron.Application.Master.Commands.Deployment.Build;
 
 namespace ServiceManager.ProjectDeployment.Build
 {
@@ -9,7 +10,7 @@ namespace ServiceManager.ProjectDeployment.Build
 
         public ProjectFinder(DirectoryInfo root) => _root = root;
 
-        public FileInfo? Search(string name)
+        public FileInfo? Search(ProjectName name)
         {
             var directorys = new Queue<DirectoryInfo>();
 
@@ -18,7 +19,7 @@ namespace ServiceManager.ProjectDeployment.Build
             while (current != null)
             {
                 foreach (var file in current.EnumerateFiles("*.*"))
-                    if (file.Name.Contains(name))
+                    if (file.Name.Contains(name.Value))
                         return file;
 
                 foreach (var directory in current.EnumerateDirectories())

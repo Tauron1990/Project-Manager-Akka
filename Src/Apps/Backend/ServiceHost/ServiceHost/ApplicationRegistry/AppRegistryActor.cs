@@ -10,16 +10,20 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster;
 using Akka.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using ServiceHost.Client.Shared.ConfigurationServer;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using ServiceHost.Services;
 using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
+using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.Administration.Configuration;
 using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 using Tauron.ObservableExt;
+using UnitsNet;
 
 namespace ServiceHost.ApplicationRegistry
 {
@@ -36,7 +40,7 @@ namespace ServiceHost.ApplicationRegistry
                 yield return Feature.Create(
                     () => new AppRegistryActor(),
                     new RegistryState(
-                        ImmutableDictionary<string, string>.Empty,
+                        ImmutableDictionary<AppName, string>.Empty,
                         Path.GetFullPath(configuration.AppsLocation),
                         ImmutableDictionary<Guid, IActorRef>.Empty,
                         manager,
@@ -83,11 +87,11 @@ namespace ServiceHost.ApplicationRegistry
                                                 app.Version,
                                                 app.AppType,
                                                 app.Exe,
-                                                i.Event.Apps.GetValueOrDefault(appKey, false)));
+                                                i.Event.Apps.GetValueOrDefault(appKey, AppState.None)));
                                     }
                                     catch (Exception e)
                                     {
-                                        Log.Error(e, "Error on Load Installed Apps");
+                                        Logger.LogError(e, "Error on Load Installed Apps");
 
                                         return apps;
                                     }
@@ -105,7 +109,7 @@ namespace ServiceHost.ApplicationRegistry
                        select i.State with { Manager = manager, OnGoingQuerys = ongoing });
 
             Receive<UpdateRegistrationRequest>(
-                obs => obs.Do(m => Log.Info("Update Registraion for {Apps}", m.Event.Name))
+                obs => obs.Do(m => Logger.LogInformation("Update Registraion for {Apps}", m.Event.Name))
                    .SelectMany(
                         m => from request in Observable.Return(m)
                              from app in m.State.Apps.Lookup(request.Event.Name)
@@ -115,8 +119,8 @@ namespace ServiceHost.ApplicationRegistry
                         b =>
                         {
                             b.When(
-                                m => m.Event.App.IsEmpty,
-                                o => o.Do(m => Log.Warning("No Registration Found {Apps}", m.Event.Request.Name))
+                                m => string.IsNullOrEmpty(m.Event.App.Value),
+                                o => o.Do(m => Logger.LogWarning("No Registration Found {Apps}", m.Event.Request.Name))
                                    .Select(m => m.NewEvent(new RegistrationResponse(Scceeded: true, Error: null))));
 
                             b.When(
@@ -151,7 +155,7 @@ namespace ServiceHost.ApplicationRegistry
                    .Select(m => m.State));
 
             Receive<NewRegistrationRequest>(
-                obs => obs.Do(m => Log.Info("Register new Application {Apps}", m.Event.Name))
+                obs => obs.Do(m => Logger.LogInformation("Register new Application {Apps}", m.Event.Name))
                    .SelectMany(
                         i => Observable.Return(i)
                            .ConditionalSelect()
@@ -160,7 +164,7 @@ namespace ServiceHost.ApplicationRegistry
                                 {
                                     b.When(
                                         m => m.State.Apps.ContainsKey(m.Event.Name),
-                                        o => o.Do(m => Log.Warning("Attempt to Register Duplicate Application {Apps}", m.Event.Name))
+                                        o => o.Do(m => Logger.LogWarning("Attempt to Register Duplicate Application {Apps}", m.Event.Name))
                                            .Select(m => m.NewEvent(new RegistrationResponse(Scceeded: false, new InvalidOperationException("Duplicate")))));
 
                                     b.When(
@@ -175,24 +179,24 @@ namespace ServiceHost.ApplicationRegistry
                                                 select (fullPath, data, newApps, request)
                                             ).Do(m => File.WriteAllText(m.fullPath, m.data))
                                            .Do(_ => Self.Tell(new SaveData()))
-                                           .Do(m => Log.Info("Registration Compled for {Apps}", m.request.Name))
+                                           .Do(m => Logger.LogInformation("Registration Compled for {Apps}", m.request.Name))
                                            .Select(m => i.NewEvent(new RegistrationResponse(Scceeded: true, Error: null), i.State with { Apps = m.newApps }))
                                            .Catch<StatePair<RegistrationResponse, RegistryState>, Exception>(
                                                 e => Observable.Return(i.NewEvent(new RegistrationResponse(Scceeded: false, e)))
-                                                   .Do(_ => Log.Error(e, "Error while registration new Application {Apps}", i.Event.Name))));
+                                                   .Do(_ => Logger.LogError(e, "Error while registration new Application {Apps}", i.Event.Name))));
                                 }))
                    .Do(m => Sender.Tell(m.Event))
                    .Do(m => Self.Tell(SendEvent.Create(m.Event)))
                    .Select(m => m.State));
 
             Receive<InstalledAppQuery>(
-                obs => obs.Do(m => Log.Info("Query Apps {Apps}", m.Event.Name))
+                obs => obs.Do(m => Logger.LogInformation("Query Apps {Apps}", m.Event.Name))
                    .SelectSafe(m => new InstalledAppRespond(LoadApp(m.Event.Name, m.State) ?? InstalledApp.Empty, Fault: false))
                    .ConvertResult(
                         r => r,
                         e =>
                         {
-                            Log.Error(e, "Error While Querining Apps Data");
+                            Logger.LogError(e, "Error While Querining Apps Data");
 
                             return new InstalledAppRespond(InstalledApp.Empty, Fault: true);
                         })
@@ -215,7 +219,7 @@ namespace ServiceHost.ApplicationRegistry
                         }
                         catch (Exception e)
                         {
-                            Log.Error(e, "Error while writing Apps Info");
+                            Logger.LogError(e, "Error while writing Apps Info");
                         }
                     }));
 
@@ -228,7 +232,7 @@ namespace ServiceHost.ApplicationRegistry
                             string file = Path.Combine(state.AppsDirectory, BaseFileName);
 
                             if (!File.Exists(file))
-                                return state with { Apps = ImmutableDictionary<string, string>.Empty };
+                                return state with { Apps = ImmutableDictionary<AppName, string>.Empty };
 
                             try
                             {
@@ -236,7 +240,7 @@ namespace ServiceHost.ApplicationRegistry
                             }
                             catch (Exception e)
                             {
-                                Log.Warning(e, "Error while Loading AppInfos");
+                                Logger.LogWarning(e, "Error while Loading AppInfos");
 
                                 try
                                 {
@@ -244,21 +248,21 @@ namespace ServiceHost.ApplicationRegistry
                                 }
                                 catch (Exception exception)
                                 {
-                                    Log.Error(exception, "Error while Loading AppInfos backup");
+                                    Logger.LogError(exception, "Error while Loading AppInfos backup");
 
-                                    return state with { Apps = ImmutableDictionary<string, string>.Empty };
+                                    return state with { Apps = ImmutableDictionary<AppName, string>.Empty };
                                 }
                             }
 
-                            ImmutableDictionary<string, string> TryRead(string actualFile)
+                            ImmutableDictionary<AppName, string> TryRead(string actualFile)
                             {
                                 return File.ReadAllLines(actualFile).Aggregate(
-                                    ImmutableDictionary<string, string>.Empty,
+                                    ImmutableDictionary<AppName, string>.Empty,
                                     (apps, line) =>
                                     {
                                         var split = line.Split(':', 2, StringSplitOptions.RemoveEmptyEntries);
 
-                                        return apps.Add(split[0].Trim(), split[1].Trim());
+                                        return apps.Add(AppName.From(split[0].Trim()), split[1].Trim());
                                     });
                             }
                         }));
@@ -282,7 +286,7 @@ namespace ServiceHost.ApplicationRegistry
                 var result = File.Exists(file);
 
                 if (!result)
-                    Log.Warning("File Not Found {File}", file);
+                    Logger.LogWarning("File Not Found {File}", file);
 
                 return result;
             }
@@ -315,20 +319,20 @@ namespace ServiceHost.ApplicationRegistry
                    select u;
 
             SharedApiCall<UpdateSeeds, UpdateSeedsResponse>(
-                e => Log.Error(e, "Error on Update Seeds"),
+                e => Logger.LogError(e, "Error on Update Seeds"),
                 obs => from request in obs.ObserveOn(Scheduler.Default)
-                       from u1 in PatchSelf(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
-                       from u2 in PatchApps(request.NewEvent(request.Event.Urls), AkkaConfigurationBuilder.Seed, AkkaConfigurationBuilder.PatchSeedUrls)
+                       from u1 in PatchSelf(request.NewEvent(request.Event.Urls), AkkaConfigurationHelper.Seed, AkkaConfigurationHelper.PatchSeedUrls)
+                       from u2 in PatchApps(request.NewEvent(request.Event.Urls), AkkaConfigurationHelper.Seed, AkkaConfigurationHelper.PatchSeedUrls)
                        select request.NewEvent(new UpdateSeedsResponse(Success: true)));
 
             var api = ConfigurationApi.CreateProxy(Context.System);
 
-            IObservable<Unit> DownloadConfigForApps(IEnumerable<string> apps)
+            IObservable<Unit> DownloadConfigForApps(IEnumerable<AppName> apps)
                 => (from _ in Observable.Return(Unit.Default)
                     from appsKey in apps
                     let appData = LoadApp(appsKey, CurrentState)
-                    let file = Path.Combine(appData.Path, AkkaConfigurationBuilder.Main)
-                    from queryResult in api.Query<QueryFinalConfigData, FinalAppConfig>(new QueryFinalConfigData(appData.Name, appData.SoftwareName), new ApiParameter(TimeSpan.FromMinutes(1)))
+                    let file = Path.Combine(appData.Path, AkkaConfigurationHelper.Main)
+                    from queryResult in api.Query<QueryFinalConfigData, FinalAppConfig>(new QueryFinalConfigData(appData.Name, appData.SoftwareName), new ApiParameter(Duration.FromMinutes(1)))
                     let result = queryResult.GetOrThrow()
                     from u in string.IsNullOrWhiteSpace(result.Data)
                         ? Task.FromResult(Unit.Default)
@@ -338,9 +342,9 @@ namespace ServiceHost.ApplicationRegistry
 
             IObservable<Unit> DownloadConfigForSelf()
                 => from _ in Observable.Return(Unit.Default)
-                   from queryResult in api.Query<QueryFinalConfigData, FinalAppConfig>(new QueryFinalConfigData(CurrentState.Info.ApplicationName, "ServiceHost"), new ApiParameter(TimeSpan.FromMinutes(1)))
+                   from queryResult in api.Query<QueryFinalConfigData, FinalAppConfig>(new QueryFinalConfigData(CurrentState.Info.ApplicationName, "ServiceHost"), new ApiParameter(Duration.FromMinutes(1)))
                    let result = queryResult.GetOrThrow()
-                   let file = Path.GetFullPath(AkkaConfigurationBuilder.Main)
+                   let file = Path.GetFullPath(AkkaConfigurationHelper.Main)
                    from u in string.IsNullOrWhiteSpace(result.Data)
                        ? Task.FromResult(Unit.Default)
                        : SaveConfig(result.Data, file)
@@ -355,7 +359,7 @@ namespace ServiceHost.ApplicationRegistry
             }
 
             SharedApiCall<UpdateEveryConfiguration, UpdateEveryConfigurationRespond>(
-                e => Log.Error(e, "Error on Update Every Configuration"),
+                e => Logger.LogError(e, "Error on Update Every Configuration"),
                 obs => from request in obs
                        from s in DownloadConfigForSelf()
                        from a in DownloadConfigForApps(request.State.Apps.Keys)
@@ -363,13 +367,13 @@ namespace ServiceHost.ApplicationRegistry
                        select request.NewEvent(new UpdateEveryConfigurationRespond(Success: true)));
 
             SharedApiCall<UpdateHostConfigCommand, UpdateHostConfigResponse>(
-                e => Log.Error(e, "Error on Update Host Configuration"),
+                e => Logger.LogError(e, "Error on Update Host Configuration"),
                 obs => from request in obs
                        from _ in DownloadConfigForSelf()
                        select request.NewEvent(new UpdateHostConfigResponse(Success: true)));
 
             SharedApiCall<UpdateAppConfigCommand, UpdateAppConfigResponse>(
-                e => Log.Error(e, "Error on Update App Configuration"),
+                e => Logger.LogError(e, "Error on Update App Configuration"),
                 obs => from request in obs
                        from _ in DownloadConfigForApps(new[] { request.Event.App })
                        from u in Observable.Return(Unit.Default)
@@ -396,22 +400,22 @@ namespace ServiceHost.ApplicationRegistry
                         })
                    .ToUnit(r => r.Sender.Tell(r.Event)));
 
-        private InstalledApp? LoadApp(string name, RegistryState state)
+        private InstalledApp? LoadApp(AppName name, RegistryState state)
         {
             if (state.Apps.TryGetValue(name, out var path) && File.Exists(path))
             {
-                var data = JsonConvert.DeserializeObject<InstalledApp>(path.ReadTextIfExis());
-                Log.Info("Load Apps Data Compled {Apps}", name);
+                var data = JsonConvert.DeserializeObject<InstalledApp>(File.ReadAllText(path));
+                Logger.LogInformation("Load Apps Data Compled {Apps}", name);
 
                 return data;
             }
 
-            Log.Info("No Apps Found {Apps}", name);
+            Logger.LogInformation("No Apps Found {Apps}", name);
 
             return null;
         }
 
-        public sealed record RegistryState(ImmutableDictionary<string, string> Apps, string AppsDirectory, ImmutableDictionary<Guid, IActorRef> OnGoingQuerys, IAppManager Manager, AppNodeInfo Info);
+        public sealed record RegistryState(ImmutableDictionary<AppName, string> Apps, string AppsDirectory, ImmutableDictionary<Guid, IActorRef> OnGoingQuerys, IAppManager Manager, AppNodeInfo Info);
 
         private sealed record LoadData;
 

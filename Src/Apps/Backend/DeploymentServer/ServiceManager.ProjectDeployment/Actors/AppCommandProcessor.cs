@@ -6,30 +6,37 @@ using System.Reactive;
 using System.Reactive.Linq;
 using Akka.Actor;
 using Akka.Streams.Implementation.Fusing;
+using Microsoft.Extensions.Logging;
 using ServiceManager.ProjectDeployment.Build;
 using ServiceManager.ProjectDeployment.Data;
 using SharpRepository.Repository;
 using Tauron;
+using Tauron.Application;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
+using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.Deployment;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
+using Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
+using Tauron.Application.Workshop;
 using Tauron.Features;
 using Tauron.ObservableExt;
 using Tauron.Operations;
 using Tauron.Temp;
+using UnitsNet;
 
 namespace ServiceManager.ProjectDeployment.Actors
 {
     public sealed class AppCommandProcessor : ReportingActor<AppCommandProcessor.AppCommandProcessorState>
     {
         public static IPreparedFeature New(
-            IRepository<AppData, string> apps, IDirectory files, RepositoryApi repository,
+            IRepository<AppData, AppName> apps, IDirectory files, RepositoryApi repository,
             DataTransferManager dataTransfer, IRepository<ToDeleteRevision, string> toDelete, IWorkDistributor<BuildRequest> workDistributor,
             IActorRef changeTracker)
             => Feature.Create(
@@ -47,7 +54,7 @@ namespace ServiceManager.ProjectDeployment.Actors
         {
             CommandPhase1<CreateAppCommand>(
                 "CreateApp-Phase 1",
-                obs => obs.Do(m => m.Reporter.Send(DeploymentMessages.RegisterRepository))
+                obs => obs.Do(m => m.Reporter.Send(DeploymentMessage.RegisterRepository))
                    .Select(m => Msg.New(new RegisterRepository(m.Event.TargetRepo, IgnoreDuplicate: true), m)),
                 (command, reporter, op) => new ContinueCreateApp(op, command, reporter));
 
@@ -61,15 +68,18 @@ namespace ServiceManager.ProjectDeployment.Actors
                                 m => !m.Result.Ok,
                                 o => o.ApplyWhen(
                                         m => !m.Reporter.IsCompled,
-                                        data => data.Reporter.Compled(
-                                            OperationResult.Failure(
-                                                data.Result.Error ??
-                                                DeploymentErrorCodes.CommandErrorRegisterRepository)))
+                                        data =>
+                                        {
+                                            data.Reporter.Compled(
+                                                OperationResult.Failure(
+                                                    data.Result,
+                                                    DeploymentErrorCode.CommandErrorRegisterRepository));
+                                        })
                                    .Select(_ => default(AppInfo)));
 
                             b.When(
                                 m => m.AppData != null,
-                                o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.CommandDuplicateApp)))
+                                o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandDuplicateApp.ToString())))
                                    .Select(_ => default(AppInfo)));
 
                             b.When(
@@ -80,7 +90,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                             var data = new AppData(
                                                 ImmutableList<AppFileInfo>.Empty,
                                                 m.Command.AppName,
-                                                -1,
+                                                SimpleVersion.NoVersion, 
                                                 DateTime.UtcNow,
                                                 DateTime.MinValue,
                                                 m.Command.TargetRepo,
@@ -100,7 +110,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                    .ToResult<Unit>(
                         b =>
                         {
-                            b.When(m => m.App == null, o => o.ToUnit(d => d.Data.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.CommandAppNotFound))));
+                            b.When(m => m.App == null, o => o.ToUnit(d => d.Data.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandAppNotFound))));
 
                             b.When(
                                 m => m.App != null,
@@ -120,14 +130,14 @@ namespace ServiceManager.ProjectDeployment.Actors
                         {
                             b.When(
                                 m => m.AppData == null,
-                                o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.CommandAppNotFound)))
+                                o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandAppNotFound)))
                                    .Select(_ => default(AppBinary)));
 
                             b.When(m => m.AppData != null, o => o.SelectMany(UpdateAppData));
 
                             static IObservable<AppBinary?> UpdateAppData(ContinueData<PushVersionCommand> m)
                             {
-                                var (commit, fileName) = ((string, ITempFile))m.Result.Outcome!;
+                                var (commit, fileName) = ((RepositoryCommit, ITempFile))m.Result.Outcome!;
 
                                 return Observable.Using(
                                     () => fileName,
@@ -151,7 +161,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                        .Select(
                                             i =>
                                             {
-                                                using var stream = i.State.Files.GetFile(i.NewBinary.Id).Create();
+                                                using var stream = i.State.Files.GetFile(i.NewBinary.Id).CreateNew();
                                                 using var fileStream = i.File.Stream;
 
                                                 fileStream.Seek(0, SeekOrigin.Begin);
@@ -195,7 +205,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                    .ToResult<Unit>(
                         b =>
                         {
-                            b.When(m => m.Event.App is null, o => o.ToUnit(i => i.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.CommandAppNotFound))));
+                            b.When(m => m.Event.App is null, o => o.ToUnit(i => i.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandAppNotFound))));
 
                             b.When(
                                 m => m.Event.App is not null,
@@ -216,7 +226,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                             (Command: i.Event, App: new AppData(
                                  ImmutableList<AppFileInfo>.Empty,
                                  i.Event.AppName,
-                                 -1,
+                                 SimpleVersion.NoVersion, 
                                  DateTime.UtcNow,
                                  DateTime.MinValue,
                                  i.Event.Repository,
@@ -261,6 +271,8 @@ namespace ServiceManager.ProjectDeployment.Actors
             Func<TCommand, Reporter, IOperationResult, object> result)
             where TCommand : ReporterCommandBase<DeploymentApi, TCommand>, IDeploymentCommand
         {
+            var logger = TauronEnviroment.LoggerFactory.CreateLogger<AppCommandProcessor>();
+            
             TryReceive<TCommand>(
                 name,
                 obs => obs.SelectMany(
@@ -275,8 +287,8 @@ namespace ServiceManager.ProjectDeployment.Actors
                                         _ =>
                                         {
                                             if (reporterEvent.Reporter.IsCompled)
-                                                reporterEvent.Reporter.Compled(OperationResult.Failure(DeploymentErrorCodes.GerneralCommandError));
-                                            Log<>.Info("Command Phase 1 {Command} Failed", typeof(TCommand).Name);
+                                                reporterEvent.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.GerneralCommandError));
+                                            logger.LogInformation("Command Phase 1 {Command} Failed", typeof(TCommand).Name);
                                         }));
 
                                 b.When(
@@ -285,13 +297,13 @@ namespace ServiceManager.ProjectDeployment.Actors
                                         r =>
                                         {
                                             var (msg, command, state) = r;
-                                            Log.Info("Command Phase 1 {Command} -- {Action}", typeof(TCommand).Name, msg!.GetType().Name);
+                                            logger.LogInformation("Command Phase 1 {Command} -- {Action}", typeof(TCommand).Name, msg!.GetType().Name);
 
                                             msg.SetListner(
                                                 Reporter.CreateListner(
                                                     Context,
                                                     reporterEvent.Reporter,
-                                                    TimeSpan.FromSeconds(20),
+                                                    Duration.FromSeconds(20), 
                                                     task => task.PipeTo(
                                                         Self,
                                                         Sender,
@@ -325,15 +337,15 @@ namespace ServiceManager.ProjectDeployment.Actors
                             Observable.Return(
                                 new ContinueData<TCommand>(evt.Event.Command, evt.Event.Result, evt.Reporter, queryApp(evt), evt.State)))
                        .Where(_ => !evt.Reporter.IsCompled)
-                       .ToUnit(result => evt.Reporter.Compled(result is null ? OperationResult.Failure(DeploymentErrorCodes.GerneralCommandError) : OperationResult.Success(result)))));
+                       .ToUnit(result => evt.Reporter.Compled(result is null ? OperationResult.Failure(DeploymentErrorCode.GerneralCommandError) : OperationResult.Success(result)))));
         }
 
 
-        private static AppData QueryApp(ICrudRepository<AppData, string> collection, string name)
-            => collection.Get(name)!;
+        private static AppData QueryApp(ICrudRepository<AppData, AppName> collection, AppName name)
+            => collection.Get(name);
 
         public sealed record AppCommandProcessorState(
-            IRepository<AppData, string> Apps, IDirectory Files,
+            IRepository<AppData, AppName> Apps, IDirectory Files,
             RepositoryApi Repository, DataTransferManager DataTransfer,
             IRepository<ToDeleteRevision, string> ToDelete, IWorkDistributor<BuildRequest> WorkDistributor,
             IActorRef ChangeTracker);

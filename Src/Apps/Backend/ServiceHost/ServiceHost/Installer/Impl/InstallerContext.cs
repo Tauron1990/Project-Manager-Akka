@@ -1,15 +1,17 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using ServiceHost.ApplicationRegistry;
 using ServiceHost.Installer.Impl.Source;
 using Tauron.Application.ActorWorkflow;
+using Tauron.Application.Master.Commands;
 using Tauron.Application.Master.Commands.Administration.Host;
 
 namespace ServiceHost.Installer.Impl
 {
     public sealed class InstallerContext : IWorkflowContext
     {
-        public InstallerContext(InstallType manual, string name, string softwareName, string sourceLocation, bool @override, AppType appType)
+        public InstallerContext(InstallType manual, AppName name, string softwareName, string sourceLocation, bool @override, AppType appType)
         {
             Manual = manual;
             Name = name;
@@ -25,7 +27,7 @@ namespace ServiceHost.Installer.Impl
 
         public InstallType Manual { get; }
 
-        public string Name { get; }
+        public AppName Name { get; }
 
         public object SourceLocation { get; }
 
@@ -56,6 +58,8 @@ namespace ServiceHost.Installer.Impl
             => InstalledApp = app;
 
         public string GetExe()
-            => !string.IsNullOrWhiteSpace(Exe) ? Exe : Path.GetFileName(InstallationPath.EnumerateFiles().First(s => s.Trim().EndsWith(".exe")));
+            => !string.IsNullOrWhiteSpace(Exe) 
+                ? Exe 
+                : Path.GetFileName(Directory.EnumerateFiles(InstallationPath, "*.exe", SearchOption.AllDirectories).First());
     }
 }

@@ -7,9 +7,11 @@ using SharpRepository.Repository.Configuration;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
+using Tauron.Application.Master.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
+using Tauron.Application.Workshop;
 using Tauron.Features;
 
 namespace ServiceManager.ProjectDeployment.Actors
@@ -30,14 +32,14 @@ namespace ServiceManager.ProjectDeployment.Actors
             var router = new SmallestMailboxPool(Environment.ProcessorCount)
                .WithSupervisorStrategy(SupervisorStrategy.DefaultStrategy);
 
-            var queryProps = Feature.Props(AppQueryHandler.New(configuration.GetInstance<AppData, string>(DeploymentManager.RepositoryKey), fileSystem, manager, changeTracker))
+            var queryProps = Feature.Props(AppQueryHandler.New(configuration.GetInstance<AppData, AppName>(DeploymentManager.RepositoryKey), fileSystem, manager, changeTracker))
                .WithRouter(router);
             var query = context.ActorOf(queryProps, "QueryRouter");
 
             var buildSystem = WorkDistributorFeature<BuildRequest, BuildCompled>
                .Create(context, Props.Create(() => new BuildingActor(manager)), "Compiler", TimeSpan.FromHours(1), "CompilerSupervisor");
 
-            var processorProps = Feature.Props(AppCommandProcessor.New(configuration.GetInstance<AppData, string>(DeploymentManager.RepositoryKey), fileSystem, repositoryApi, manager, trashBin, buildSystem, changeTracker))
+            var processorProps = Feature.Props(AppCommandProcessor.New(configuration.GetInstance<AppData, AppName>(DeploymentManager.RepositoryKey), fileSystem, repositoryApi, manager, trashBin, buildSystem, changeTracker))
                .WithRouter(router);
             var processor = context.ActorOf(processorProps, "ProcessorRouter");
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using LibGit2Sharp;
+using Tauron.Application.Master.Commands.Deployment.Repository;
 
 namespace ServiceManager.ProjectRepository.Core
 {
@@ -30,12 +31,12 @@ namespace ServiceManager.ProjectRepository.Core
 
                 if (_repository == null)
                 {
-                    SendMessage(RepositoryMessages.DownloadRepository);
+                    SendMessage(RepositoryMessage.DownloadRepository);
 
                     return Download(source);
                 }
 
-                SendMessage(RepositoryMessages.UpdateRepository);
+                SendMessage(RepositoryMessage.UpdateRepository);
 
                 return Update();
             }
@@ -56,7 +57,9 @@ namespace ServiceManager.ProjectRepository.Core
 
         private (string Path, string Sha) Download(string source)
         {
-            source.CreateDirectoryIfNotExis();
+            if(!Directory.Exists(source))
+                Directory.CreateDirectory(source);
+            
             _repository = new Repository(Repository.Clone(Configuration.CloneUrl, source));
 
             return (_repository.Info.WorkingDirectory, _repository.Head.Tip.Sha);

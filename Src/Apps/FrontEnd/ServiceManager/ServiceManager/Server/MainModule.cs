@@ -1,6 +1,6 @@
 ﻿using Akka.Actor;
-using ServiceHost.Client.Shared.ConfigurationServer;
-using ServiceHost.Client.Shared.ConfigurationServer.Events;
+using ServiceHost.ClientApp.Shared.ConfigurationServer;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Events;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Apps;
 using ServiceManager.Server.AppCore.ClusterTracking;

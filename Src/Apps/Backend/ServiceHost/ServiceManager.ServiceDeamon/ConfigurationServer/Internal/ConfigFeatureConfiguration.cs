@@ -1,6 +1,6 @@
 ﻿using System;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
-using ServiceHost.Client.Shared.ConfigurationServer.Events;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Events;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Data;
 using SharpRepository.Repository;
 

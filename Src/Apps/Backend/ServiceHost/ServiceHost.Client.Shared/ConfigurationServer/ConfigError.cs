@@ -1,4 +1,4 @@
-﻿namespace ServiceHost.Client.Shared.ConfigurationServer;
+﻿namespace ServiceHost.ClientApp.Shared.ConfigurationServer;
 
 public static class ConfigError
 {

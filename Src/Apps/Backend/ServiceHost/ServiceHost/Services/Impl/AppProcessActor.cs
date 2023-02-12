@@ -4,19 +4,26 @@ using System.IO;
 using System.Reactive.Linq;
 using System.Threading;
 using Akka.Actor;
+using Microsoft.Extensions.Logging;
 using ServiceHost.ApplicationRegistry;
 using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Bootstrap.IpcMessages;
+using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.Administration.Host;
 using Tauron.Features;
 using Tauron.ObservableExt;
+using Tauron.Servicemnager.Networking;
+using Tauron.Servicemnager.Networking.IPC;
 
 namespace ServiceHost.Services.Impl
 {
     public sealed class AppProcessActor : ActorFeatureBase<AppProcessActor.AppProcessorState>
     {
         public static IPreparedFeature New(InstalledApp app, IIpcConnection connection)
-            => Feature.Create(() => new AppProcessActor(), _ => new AppProcessorState(app, Guid.NewGuid().ToString("N"), connection, null, IsProcessRunning: false, string.Empty));
+            => Feature.Create(
+                () => new AppProcessActor(), 
+                _ => new AppProcessorState(app, Guid.NewGuid().ToString("N"), connection, null, ProcessState: AppState.None, SharmProcessId.Empty));
 
         protected override void ConfigImpl()
         {
@@ -39,50 +46,51 @@ namespace ServiceHost.Services.Impl
             Receive<CheckProcess>(
                 obs => obs
                    .Select(m => m.State)
+                   .Do(s => s.Process?.Refresh())
                    .ConditionalSelect()
                    .ToResult<AppProcessorState>(
                         b =>
                         {
                             b.When(
-                                m => m.Process == null && m.IsProcessRunning,
+                                m => m.Process == null && m.ProcessState == AppState.Running,
                                 o => o.Do(_ => Self.Tell(new InternalStartApp()))
-                                   .Select(s => s with { IsProcessRunning = false }));
+                                   .Select(s => s with { ProcessState = AppState.NotRunning }));
 
-                            b.When(m => m.Process is { HasExited: false } && m.IsProcessRunning, o => o);
+                            b.When(m => m is { Process: { HasExited: false }, ProcessState: AppState.Running }, o => o);
 
                             b.When(
-                                m => m.Process is { HasExited: true } && m.IsProcessRunning,
+                                m => m is { Process: { HasExited: true }, ProcessState: AppState.Running },
                                 o => o.Do(m => m.Process?.Dispose())
-                                   .Do(m => Log.Info("Process killed. Restarting {Name}", m.App.Name))
+                                   .Do(m => Logger.LogInformation("Process killed. Restarting {Name}", m.App.Name))
                                    .Do(_ => Self.Tell(new InternalStartApp()))
-                                   .Select(m => m with { Process = null, IsProcessRunning = false }));
+                                   .Select(m => m with { Process = null, ProcessState = AppState.NotRunning }));
                         }));
 
-            Receive<GetName>(o => o.Select(m => new GetNameResponse(m.State.App.Name, m.State.IsProcessRunning)).ToSender());
+            Receive<GetName>(o => o.Select(m => new GetNameResponse(m.State.App.Name, m.State.ProcessState)).ToSender());
 
             Receive<InternalStopApp>(
                 obs => obs
-                   .Where(m => m.State.IsProcessRunning)
+                   .Where(m => m.State.ProcessState == AppState.Running)
                    .CatchSafe(
-                        m => Observable.Return(m.State with { IsProcessRunning = m.Event.Restart })
+                        m => Observable.Return(m.State with { ProcessState = m.Event.Restart })
                            .ConditionalSelect()
                            .ToSame(
                                 b =>
                                 {
                                     b.When(
-                                        s => string.IsNullOrWhiteSpace(s.ServiceId),
-                                        o => o.Do(s => Log.Warning("None Comunication Client Registrated {Name}", s.App.Name))
+                                        s => s.ServiceId.IsEmpty,
+                                        o => o.Do(s => Logger.LogWarning("None Comunication Client Registrated {Name}", s.App.Name))
                                            .Do(s => s.Process?.Kill(entireProcessTree: true))
                                            .Do(s => s.Process?.Dispose())
                                            .Select(s => s with { Process = null }));
 
-                                    b.When(s => !string.IsNullOrWhiteSpace(s.ServiceId) && s is { Process: null }, o => o);
+                                    b.When(s => !s.ServiceId.IsEmpty && s is { Process: null }, o => o);
 
                                     b.When(
-                                        s => !string.IsNullOrWhiteSpace(s.ServiceId) && s.Process != null,
-                                        o => o.Do(s => Log.Info("Sending Kill Command to App {Name}", s.App.Name))
-                                           .Do(s => s.ServiceCom.SendMessage(s.ServiceId, new KillNode()))
-                                           .Do(s => Log.Info("Wait for exit {Name}", s.App.Name))
+                                        s => !s.ServiceId.IsEmpty && s.Process != null,
+                                        o => o.Do(s => Logger.LogInformation("Sending Kill Command to App {Name}", s.App.Name))
+                                           .Do(s => s.ServiceCom.SendMessage(Client.From(s.ServiceId.Value), new KillNode()))
+                                           .Do(s => Logger.LogInformation("Wait for exit {Name}", s.App.Name))
                                            .Select(
                                                 s =>
                                                 {
@@ -98,12 +106,13 @@ namespace ServiceHost.Services.Impl
                                                     {
                                                         Thread.Sleep(1000);
 
+                                                        prc.Refresh();
                                                         if (prc.HasExited) return NewState();
                                                     }
 
                                                     if (prc.HasExited) return NewState();
 
-                                                    Log.Warning("Process not Exited Killing {Name}", s.App.Name);
+                                                    Logger.LogWarning("Process not Exited Killing {Name}", s.App.Name);
                                                     prc.Kill(entireProcessTree: true);
 
                                                     return NewState();
@@ -112,7 +121,7 @@ namespace ServiceHost.Services.Impl
                                            .Do(s => s.Process?.Dispose()));
                                 }),
                         (m, e) => Observable.Return(m.State)
-                           .Do(s => Log.Error(e, "Error while Stopping App {Name}", s.App.Name))
+                           .Do(s => Logger.LogError(e, "Error while Stopping App {Name}", s.App.Name))
                            .Do(s => s.Process?.Dispose())
                            .ApplyWhen(_ => !Sender.Equals(Parent), s => Sender.Tell(new StopResponse(s.App.Name, Error: true)))
                            .Do(s => Parent.Tell(new StopResponse(s.App.Name, Error: true)))
@@ -121,28 +130,28 @@ namespace ServiceHost.Services.Impl
 
             Receive<InternalStartApp>(
                 obs => obs
-                   .Where(m => !m.State.IsProcessRunning)
+                   .Where(m => m.State.ProcessState != AppState.NotRunning)
                    .CatchSafe(
                         p => from state in Observable.Return(p.State)
-                                .Do(s => Log.Info("Start App {Name}", s.App.Name))
+                                .Do(s => Logger.LogInformation("Start App {Name}", s.App.Name))
                              let process = Process.Start(
                                  new ProcessStartInfo(Path.Combine(state.App.Path, state.App.Exe), $"--ComHandle {state.ServiceId}")
                                  {
-                                     WorkingDirectory = state.App.Path
+                                     WorkingDirectory = state.App.Path,
                                  })
-                             select state with { IsProcessRunning = true, Process = process },
+                             select state with { ProcessState = AppState.Running, Process = process },
                         (m, e) => Observable.Return(m.State)
-                           .Do(s => Log.Error(e, "Error while Starting App {Name}", s.App.Name))));
+                           .Do(s => Logger.LogError(e, "Error while Starting App {Name}", s.App.Name))));
 
             Timers.StartPeriodicTimer(CurrentState.ServiceName, new CheckProcess(), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5));
         }
 
-        public sealed record AppProcessorState(InstalledApp App, string ServiceName, IIpcConnection ServiceCom, Process? Process, bool IsProcessRunning, string ServiceId);
+        public sealed record AppProcessorState(InstalledApp App, string ServiceName, IIpcConnection ServiceCom, Process? Process, AppState ProcessState, SharmProcessId ServiceId);
 
         private sealed record CheckProcess;
 
         public sealed record GetName;
 
-        public sealed record GetNameResponse(string Name, bool Running);
+        public sealed record GetNameResponse(AppName Name, AppState Running);
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using Tauron.Application;
 
 namespace ServiceManager.Client.Shared.Configuration.ConditionEditor

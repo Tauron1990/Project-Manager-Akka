@@ -14,11 +14,15 @@ public sealed record OperationResult(bool Ok, Error[]? Errors, object? Outcome) 
 
     public static IOperationResult Success(object? result = null) => new OperationResult(true, null, result);
 
-    public static IOperationResult Failure(in Error error, object? outcome = null)
-    {
-        return new OperationResult(false, new[] { error }, outcome);
-    }
+    public static IOperationResult Failure(in Error error, object? outcome = null) 
+        => new OperationResult(false, new[] { error }, outcome);
+    
+    public static IOperationResult Failure(IErrorConvertable error, object? outcome = null) 
+        => new OperationResult(false, new[] { error.ToError() }, outcome);
 
+    public static IOperationResult Failure(IOperationResult parent, in IErrorConvertable error, object? outcome = null) 
+        => new OperationResult(false, new[] { parent.Error ?? error.ToError() }, outcome);
+    
     public static IOperationResult Failure(IEnumerable<Error> errors, object? outcome = null)
         => new OperationResult(false, errors.ToArray(), outcome);
 

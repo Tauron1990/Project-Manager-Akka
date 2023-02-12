@@ -5,7 +5,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka.Cluster;
 using Microsoft.Extensions.Hosting;
-using ServiceHost.Client.Shared;
+using ServiceHost.ClientApp.Shared;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.Helper;
 using Stl.CommandR;

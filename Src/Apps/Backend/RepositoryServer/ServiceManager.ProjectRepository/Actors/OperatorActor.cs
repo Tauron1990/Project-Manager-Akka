@@ -5,14 +5,17 @@ using System.Reactive.Linq;
 using Akka.Actor;
 using Akka.Streams.Implementation.Fusing;
 using Ionic.Zip;
+using Microsoft.Extensions.Logging;
 using Octokit;
 using ServiceManager.ProjectRepository.Core;
 using ServiceManager.ProjectRepository.Data;
 using SharpRepository.Repository;
 using Tauron;
+using Tauron.Application;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
+using Tauron.Application.Master.Commands.Deployment;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
 using Tauron.Features;
@@ -27,7 +30,7 @@ namespace ServiceManager.ProjectRepository.Actors
 {
     public sealed class OperatorActor : ReportingActor<OperatorActor.OperatorState>
     {
-        public static IPreparedFeature New(IRepository<RepositoryEntry, string> repos, IDirectory bucket, DataTransferManager dataTransfer)
+        public static IPreparedFeature New(IRepository<RepositoryEntry, RepositoryName> repos, IDirectory bucket, DataTransferManager dataTransfer)
             => Feature.Create(
                 () => new OperatorActor(),
                 c => new OperatorState(
@@ -43,8 +46,8 @@ namespace ServiceManager.ProjectRepository.Actors
             TryReceive<RegisterRepository>(
                 "RegisterRepository",
                 obs => obs
-                   .Do(i => Log<>.Info("Incomming Registration Request for Repository {Name}", i.Event.RepoName))
-                   .Do(i => i.Reporter.Send(RepositoryMessages.GetRepo))
+                   .Do(i => Logger.LogInformation("Incomming Registration Request for Repository {Name}", i.Event.RepoName))
+                   .Do(i => i.Reporter.Send(RepositoryMessage.GetRepo))
                    .Select(i => (Data: i.State.Repos.Get(i.Event.RepoName), Evt: i))
                    .SelectMany(ProcessRegisterRepository)
                    .NotNull()
@@ -55,7 +58,7 @@ namespace ServiceManager.ProjectRepository.Actors
             TryReceive<TransferRepository>(
                 "RequestRepository",
                 obs => obs
-                   .Do(i => Log.Info("Incomming Transfer Request for Repository {Name}", i.Event.RepoName))
+                   .Do(i => Logger.LogInformation("Incomming Transfer Request for Repository {Name}", i.Event.RepoName))
                    .SelectMany(ProcessRequestRepository)
                    .NotNull()
                    .ObserveOnSelf()
@@ -78,12 +81,12 @@ namespace ServiceManager.ProjectRepository.Actors
             return Observable.If(
                 () => d.Data is null,
                 Observable.Return(d.Evt)
-                   .Do(i => Log.Info("Repository {Name} is Registrated", i.Event.RepoName))
+                   .Do(i => Logger.LogInformation("Repository {Name} is Registrated", i.Event.RepoName))
                    .SelectMany(
                         m => Observable.If(
                             () => m.Event.IgnoreDuplicate,
                             ObservableReturn(() => m.New(OperationResult.Success())),
-                            ObservableReturn(() => m.New(OperationResult.Failure(RepositoryErrorCodes.DuplicateRepository))))),
+                            ObservableReturn(() => m.New(OperationResult.Failure(RepositoryErrorCode.DuplicateRepository))))),
                 ValidateName(Observable.Return(d)!, CreateRepo)
             );
 
@@ -92,21 +95,21 @@ namespace ServiceManager.ProjectRepository.Actors
                 Func<IObservable<RegisterRepoEvent>, IObservable<RequestResult>> next)
                 => input.SelectMany(
                     m => Observable.If(
-                        () => !m.Evt.Event.RepoName.Contains('/'),
-                        ObservableReturn(() => m.Evt.New(OperationResult.Failure(RepositoryErrorCodes.InvalidRepoName)))
-                           .Do(_ => Log.Info("Repository {Name} Name is Invalid", m.Evt.Event.RepoName)),
+                        () => !m.Evt.Event.RepoName.IsValid,
+                        ObservableReturn(() => m.Evt.New(OperationResult.Failure(RepositoryErrorCode.InvalidRepoName)))
+                           .Do(_ => Logger.LogInformation("Repository {Name} Name is Invalid", m.Evt.Event.RepoName)),
                         next(Observable.Return(m.Evt))));
 
             IObservable<RequestResult> CreateRepo(IObservable<RegisterRepoEvent> request)
                 => request
-                   .Select(m => (Evt: m, NameSplit: m.Event.RepoName.Split('/')))
+                   .Select(m => (Evt: m, NameSplit: m.Event.RepoName.GetSegments()))
                    .SelectMany(async m => (m.Evt, Repo: await m.Evt.State.GitHubClient.Repository.Get(m.NameSplit[0], m.NameSplit[1])))
                    .SelectMany(
                         m => Observable.If(
                             () => m.Repo == null,
                             Observable.Return(m.Evt)
-                               .Do(evt => Log.Info("Repository {Name} Name not found on Github", evt.Event.RepoName))
-                               .Select(evt => evt.New(OperationResult.Failure(RepositoryErrorCodes.GithubNoRepoFound))),
+                               .Do(evt => Logger.LogInformation("Repository {Name} Name not found on Github", evt.Event.RepoName))
+                               .Select(evt => evt.New(OperationResult.Failure(RepositoryErrorCode.GithubNoRepoFound))),
                             SaveRepo(Observable.Return(m))));
 
             static IObservable<RequestResult> SaveRepo(IObservable<(RegisterRepoEvent Request, Repository Repo)> input)
@@ -126,7 +129,7 @@ namespace ServiceManager.ProjectRepository.Actors
         {
             return Observable.Return(request)
                .Select(m => (TempFiles: RepoEnv.TempFiles.CreateFile(), Request: m))
-               .Do(m => m.Request.Reporter.Send(RepositoryMessages.GetRepo))
+               .Do(m => m.Request.Reporter.Send(RepositoryMessage.GetRepo))
                .Select(m => (m.TempFiles, m.Request, Data: m.Request.State.Repos.Get(m.Request.Event.RepoName)))
                .SelectMany(CheckData);
 
@@ -134,7 +137,7 @@ namespace ServiceManager.ProjectRepository.Actors
                 => Observable.If(
                     () => input.Data is null,
                     Observable.Return(input.Request)
-                       .Select(m => m.New(OperationResult.Failure(RepositoryErrorCodes.DatabaseNoRepoFound))),
+                       .Select(m => m.New(OperationResult.Failure(RepositoryErrorCode.DatabaseNoRepoFound))),
                     GetData(Observable.Return(input)!));
 
             IObservable<RequestResult> GetData(IObservable<(ITempFile TempFiles, TransferRepositoryRequest Request, RepositoryEntry Data)> input)
@@ -145,8 +148,8 @@ namespace ServiceManager.ProjectRepository.Actors
                         i => !(i.CommitInfo != i.Data.LastUpdate && UpdateRepository(i.Data, i.Request.Reporter, i.Request.Event, i.CommitInfo, i.RepoZip, i.Request.State)),
                         i =>
                         {
-                            i.Request.Reporter.Send(RepositoryMessages.GetRepositoryFromDatabase);
-                            Log.Info("Downloading Repository {Name} From Server", i.Request.Event.RepoName);
+                            i.Request.Reporter.Send(RepositoryMessage.GetRepositoryFromDatabase);
+                            Logger.LogInformation("Downloading Repository {Name} From Server", i.Request.Event.RepoName);
                             i.RepoZip.SetLength(0);
                             var dataStream = i.Request.State.Bucket.GetFile(i.Data.FileName).Open(FileAccess.Read);
                             dataStream.CopyTo(i.RepoZip);
@@ -155,19 +158,19 @@ namespace ServiceManager.ProjectRepository.Actors
                    .Select(
                         r =>
                         {
-                            var transferRequest = DataTransferRequest.FromStream(r.RepoZip, r.Request.Event.GetTransferManager(), r.CommitInfo);
+                            var transferRequest = DataTransferRequest.FromStream(r.RepoZip, r.Request.Event.GetTransferManager(), TransferData.From(r.CommitInfo));
                             r.Request.State.DataTransferManager.Request(transferRequest.Inform(r.TempFiles));
 
                             return (r.Request, Transfer: transferRequest);
                         })
-                   .Select(r => r.Request.New(OperationResult.Success(new FileTransactionId(r.Transfer.OperationId))));
+                   .Select(r => r.Request.New(OperationResult.Success(r.Transfer.OperationId)));
         }
 
         private bool UpdateRepository(RepositoryEntry data, Reporter reporter, TransferRepository repository, string commitInfo, Stream repozip, OperatorState state)
         {
             var (repos, bucket, _, _) = state;
 
-            Log.Info("Try Update Repository");
+            Logger.LogInformation("Try Update Repository");
             var downloadCompled = false;
             var repoConfiguration = new RepositoryConfiguration(data.SourceUrl, reporter);
             using var repoPath = RepoEnv.TempFiles.CreateDic();
@@ -180,9 +183,9 @@ namespace ServiceManager.ProjectRepository.Actors
             if (!string.IsNullOrWhiteSpace(data.FileName))
                 try
                 {
-                    Log.Info("Downloading Repository {Name} From Server", repoName);
+                    Logger.LogInformation("Downloading Repository {Name} From Server", repoName);
 
-                    reporter.Send(RepositoryMessages.GetRepositoryFromDatabase);
+                    reporter.Send(RepositoryMessage.GetRepositoryFromDatabase);
                     using var file = bucket.GetFile(data.FileName).Open(FileAccess.Read);
                     file.CopyTo(repozip);
 
@@ -190,27 +193,27 @@ namespace ServiceManager.ProjectRepository.Actors
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "Error on Download Repo File {Name}", data.FileName);
+                    Logger.LogError(e, "Error on Download Repo File {Name}", data.FileName);
                 }
 
             if (downloadCompled)
             {
-                Log.Info("Unpack Repository {Name}", repoName);
+                Logger.LogInformation("Unpack Repository {Name}", repoName);
 
                 repozip.Seek(0, SeekOrigin.Begin);
                 using var unpackZip = ZipFile.Read(repozip);
 
-                reporter.Send(RepositoryMessages.ExtractRepository);
+                reporter.Send(RepositoryMessage.ExtractRepository);
                 unpackZip.ExtractAll(repoPath.FullPath, ExtractExistingFileAction.OverwriteSilently);
             }
 
-            Log.Info("Execute Git Pull for {Name}", repoName);
+            Logger.LogInformation("Execute Git Pull for {Name}", repoName);
             using var updater = GitUpdater.GetOrNew(repoConfiguration);
             var result = updater.RunUpdate(repoPath.FullPath);
             var dataUpdate = data with { LastUpdate = result.Sha };
 
-            Log.Info("Compress Repository {Name}", repoName);
-            reporter.Send(RepositoryMessages.CompressRepository);
+            Logger.LogInformation("Compress Repository {Name}", repoName);
+            reporter.Send(RepositoryMessage.CompressRepository);
 
             if (repozip.Length != 0)
                 repozip.SetLength(0);
@@ -223,10 +226,10 @@ namespace ServiceManager.ProjectRepository.Actors
 
             repozip.Seek(0, SeekOrigin.Begin);
 
-            Log.Info("Upload and Update Repository {Name}", repoName);
-            reporter.Send(RepositoryMessages.UploadRepositoryToDatabase);
-            var id = repoName.Replace('/', '_') + ".zip";
-            using var newFile = bucket.GetFile(id).Create();
+            Logger.LogInformation("Upload and Update Repository {Name}", repoName);
+            reporter.Send(RepositoryMessage.UploadRepositoryToDatabase);
+            var id = repoName.Value.Replace('/', '_') + ".zip";
+            using var newFile = bucket.GetFile(id).CreateNew();
             repozip.CopyTo(newFile);
 
             dataUpdate = dataUpdate with { FileName = id };
@@ -240,6 +243,6 @@ namespace ServiceManager.ProjectRepository.Actors
         private static IObservable<TData> ObservableReturn<TData>(Func<TData> fac)
             => Observable.Defer(() => Observable.Return(fac()));
 
-        public sealed record OperatorState(IRepository<RepositoryEntry, string> Repos, IDirectory Bucket, DataTransferManager DataTransferManager, GitHubClient GitHubClient);
+        public sealed record OperatorState(IRepository<RepositoryEntry, RepositoryName> Repos, IDirectory Bucket, DataTransferManager DataTransferManager, GitHubClient GitHubClient);
     }
 }

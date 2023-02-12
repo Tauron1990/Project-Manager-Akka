@@ -2,8 +2,5 @@
 
 namespace ServiceHost.ApplicationRegistry
 {
-    public sealed class AppRegistry : FeatureActorRefBase<IAppRegistry>, IAppRegistry
-    {
-        public AppRegistry() : base("Apps-Registry") { }
-    }
+    public sealed class AppRegistry : FeatureActorRefBase<IAppRegistry>, IAppRegistry { }
 }

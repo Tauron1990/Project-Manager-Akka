@@ -76,7 +76,7 @@ public static class FeaturesServiceExtension
                 {
                     var system = (ExtendedActorSystem)s.GetRequiredService<ActorSystem>();
 
-                    if(supervisorStrategy is null) return system.ActorOf(props);
+                    if(supervisorStrategy is null) return system.ActorOf(props, actorName);
 
                     SuperviserData data = supervisorStrategy();
                     var selector = new ActorSelection(system.Guardian, data.Name);

@@ -41,8 +41,8 @@ public sealed class MessageReaderTest
 
         public bool DataAvailable => _messages.Position != _messages.Length;
         public IByteReader ReadStream { get; }
-        public bool Connected()
-            => DataAvailable;
+        public ValueTask<bool> Connected()
+            => ValueTask.FromResult(DataAvailable);
     }
     
     [Fact]

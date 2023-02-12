@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Akka.Configuration;
 using Akka.Streams;
 using Akka.Streams.Dsl;
-using ServiceHost.Client.Shared.ConfigurationServer;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
-using ServiceHost.Client.Shared.ConfigurationServer.Events;
+using ServiceHost.ClientApp.Shared.ConfigurationServer;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Events;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Data;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Internal;
 using Tauron;
@@ -102,7 +102,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                        from spec in Task.Run(
                            () => (
                                from entity in CurrentState.Apps.GetAll()
-                               where ConditionChecker.MeetCondition(request.Event.SoftwareName, request.Event.ApplicationName, entity.Config)
+                               where ConditionChecker.MeetCondition(request.Event.SoftwareName, request.Event.ApplicationName.Value, entity.Config)
                                select entity.Config).ToImmutableList())
                        select OperationResult.Success(new FinalAppConfig(MakeConfig(global, spec))));
         }

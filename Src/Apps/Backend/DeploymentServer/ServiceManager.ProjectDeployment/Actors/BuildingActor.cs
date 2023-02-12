@@ -11,10 +11,13 @@ using Tauron;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
+using Tauron.Application.Master.Commands.Deployment;
+using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Operations;
 using Tauron.TAkka;
 using Tauron.Temp;
+using UnitsNet;
 
 namespace ServiceManager.ProjectDeployment.Actors
 {
@@ -73,7 +76,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         private IActorRef CurrentListner { get; set; } = ActorRefs.Nobody;
 
-        public string Error { get; private set; } = string.Empty;
+        public DeploymentErrorCode Error { get; private set; } = DeploymentErrorCode.NoError;
 
         //public string OperationId { get; private set; } = string.Empty;
 
@@ -81,9 +84,9 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         public ITempFile Target { get; private set; } = null!;
 
-        public string Commit { get; set; } = string.Empty;
+        public RepositoryCommit Commit { get; set; } = RepositoryCommit.Empty;
 
-        public TaskCompletionSource<(string, ITempFile)>? CompletionSource { get; private set; }
+        public TaskCompletionSource<(RepositoryCommit, ITempFile)>? CompletionSource { get; private set; }
 
         public BuildData Set(BuildRequest request)
         {
@@ -98,7 +101,7 @@ namespace ServiceManager.ProjectDeployment.Actors
             return this;
         }
 
-        public BuildData SetError(string error)
+        public BuildData SetError(DeploymentErrorCode error)
         {
             Error = error;
 
@@ -158,7 +161,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 
                             var sendData = newData.Api.NewFileTransfer(
                                                    new TransferRepository(newData.AppData.Repository),
-                                                   TimeSpan.FromMinutes(3),
+                                                   Duration.FromMinutes(3),
                                                    fileHandler,
                                                    () => newData.Paths.RepoFile.Stream) with
                                                {
@@ -192,12 +195,12 @@ namespace ServiceManager.ProjectDeployment.Actors
                             //if (fail.OperationId != evt.StateData.OperationId)
                             //    return Stay();
                             return GoTo(BuildState.Failing)
-                               .Using(evt.StateData.SetError(fail.Reason.ToString()));
+                               .Using(evt.StateData.SetError(DeploymentErrorCode.From(fail.Reason.ToString())));
                         case TransferMessages.TransferCompled c:
                             _log.Info("Repository Transfer Compled {Name}", evt.StateData.AppData.Id);
                             //if (c.OperationId != evt.StateData.OperationId)
                             //    return Stay();
-                            evt.StateData.Commit = c.Data ?? "Unkowen";
+                            evt.StateData.Commit = RepositoryCommit.From(c.Data.Value ?? "Unkowen");
 
                             return GoTo(BuildState.Extracting)
                                .ReplyingSelf(Trigger.Inst);
@@ -216,7 +219,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                         case Trigger:
                             _log.Info("Extract Repository {Name}", evt.StateData.AppData.Id);
                             var paths = evt.StateData.Paths;
-                            evt.StateData.Reporter.Send(DeploymentMessages.BuildExtractingRepository);
+                            evt.StateData.Reporter.Send(DeploymentMessage.BuildExtractingRepository);
                             Task.Run(
                                 () =>
                                 {
@@ -239,7 +242,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                             _log.Warning(f.Cause, "Repository Extraction Failed {Name}", evt.StateData.AppData.Id);
 
                             return GoTo(BuildState.Failing)
-                               .Using(evt.StateData.SetError(f.Cause.Message))
+                               .Using(evt.StateData.SetError(DeploymentErrorCode.From(f.Cause.Message)))
                                .ReplyingSelf(Trigger.Inst);
                         default:
                             return null;
@@ -253,14 +256,14 @@ namespace ServiceManager.ProjectDeployment.Actors
                     switch (evt.FsmEvent)
                     {
                         case Trigger:
-                            evt.StateData.Reporter.Send(DeploymentMessages.BuildRunBuilding);
+                            evt.StateData.Reporter.Send(DeploymentMessage.BuildRunBuilding);
                             try
                             {
                                 _log.Info(
                                     "Try Find Project {ProjectName} for {Name}",
                                     evt.StateData.AppData.ProjectName,
                                     evt.StateData.AppData.Id);
-                                evt.StateData.Reporter.Send(DeploymentMessages.BuildTryFindProject);
+                                evt.StateData.Reporter.Send(DeploymentMessage.BuildTryFindProject);
                                 var finder = new ProjectFinder(new DirectoryInfo(evt.StateData.Paths.RepoPath.FullPath));
                                 var file = finder.Search(evt.StateData.AppData.ProjectName);
                                 if (file == null)
@@ -271,7 +274,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                         evt.StateData.AppData.Id);
 
                                     return GoTo(BuildState.Failing)
-                                       .Using(evt.StateData.SetError(DeploymentErrorCodes.BuildProjectNotFound));
+                                       .Using(evt.StateData.SetError(DeploymentErrorCode.BuildProjectNotFound));
                                 }
 
                                 _log.Info("Start Building Task for {Name}", evt.StateData.AppData.Id);
@@ -280,10 +283,10 @@ namespace ServiceManager.ProjectDeployment.Actors
 
                                 Task.Run(
                                         async ()
-                                            => await DotNetBuilder.BuildApplication(file, evt.StateData.Paths.BuildPath.FullPath, log))
+                                            => await DotNetBuilder.BuildApplication(file, evt.StateData.Paths.BuildPath.FullPath, m => log(m.Value)))
                                    .PipeTo(
                                         Self,
-                                        success: s => string.IsNullOrWhiteSpace(s)
+                                        success: s => s is null
                                                      ? OperationResult.Success()
                                                      : OperationResult.Failure(s))
                                    .Ignore();
@@ -295,11 +298,11 @@ namespace ServiceManager.ProjectDeployment.Actors
                                 evt.StateData.CompletionSource?.TrySetException(e);
 
                                 return GoTo(BuildState.Failing)
-                                   .Using(evt.StateData.SetError(e.Unwrap()?.Message ?? "Unkowen"));
+                                   .Using(evt.StateData.SetError(DeploymentErrorCode.From(e.Unwrap()?.Message ?? "Unkowen")));
                             }
                         case IOperationResult result:
                             return !result.Ok
-                                ? GoTo(BuildState.Failing).Using(StateData.SetError(result.Error ?? string.Empty))
+                                ? GoTo(BuildState.Failing).Using(StateData.SetError(DeploymentErrorCode.From(result.Error ?? string.Empty)))
                                 : GoTo(BuildState.Compressing).ReplyingSelf(Trigger.Inst);
                         default:
                             return null;
@@ -335,7 +338,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                             _log.Warning(f.Cause, "Repository Extraction Failed {Name}", evt.StateData.AppData.Id);
 
                             return GoTo(BuildState.Failing)
-                               .Using(evt.StateData.SetError(f.Cause.Message))
+                               .Using(evt.StateData.SetError(DeploymentErrorCode.From(f.Cause.Message)))
                                .ReplyingSelf(Trigger.Inst);
                         default:
                             return null;
@@ -347,7 +350,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                 evt =>
                 {
                     evt.StateData.Target.Dispose();
-                    evt.StateData.CompletionSource?.SetException(new InvalidOperationException(evt.StateData.Error));
+                    evt.StateData.CompletionSource?.SetException(new InvalidOperationException(evt.StateData.Error.Value));
 
                     return GoTo(BuildState.Waiting)
                        .Using(evt.StateData.Clear(_log))
@@ -367,7 +370,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                         case StateTimeout when StateName != BuildState.Waiting:
                             _log.Info("Timeout in Building {Name}", evt.StateData.AppData.Id);
 
-                            return GoTo(BuildState.Failing).Using(evt.StateData.SetError(Reporter.TimeoutError));
+                            return GoTo(BuildState.Failing).Using(evt.StateData.SetError(DeploymentErrorCode.From(Reporter.TimeoutError)));
                         case Status.Failure f when StateName != BuildState.Waiting:
                             _log.Warning(
                                 "Operation Failed {Name}--{Error}",
@@ -376,7 +379,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                             evt.StateData.CompletionSource?.TrySetException(f.Cause);
 
                             return GoTo(BuildState.Failing)
-                               .Using(evt.StateData.SetError(f.Cause.Unwrap()?.Message ?? "Unkowen"));
+                               .Using(evt.StateData.SetError(DeploymentErrorCode.From(f.Cause.Unwrap()?.Message ?? "Unkowen")));
                         default:
                             return Stay();
                     }
@@ -390,8 +393,8 @@ namespace ServiceManager.ProjectDeployment.Actors
                         if (!StateData.Reporter.IsCompled)
                             StateData.Reporter.Compled(
                                 OperationResult.Failure(
-                                    string.IsNullOrWhiteSpace(StateData.Error)
-                                        ? DeploymentErrorCodes.GernalBuildError
+                                    string.IsNullOrWhiteSpace(StateData.Error.Value)
+                                        ? DeploymentErrorCode.GernalBuildError
                                         : StateData.Error));
 
                         Self.Tell(Trigger.Inst);

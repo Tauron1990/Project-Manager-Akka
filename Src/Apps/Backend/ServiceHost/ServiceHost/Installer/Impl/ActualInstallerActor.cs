@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Akka.Actor;
 using JetBrains.Annotations;
 using ServiceHost.ApplicationRegistry;
@@ -103,7 +104,7 @@ namespace ServiceHost.Installer.Impl
                         (context, step) =>
                         {
                             Log.Info("Prepare for Copy Data {Apps}", context.Name);
-                            string targetAppPath = Path.GetFullPath(Path.Combine(configuration.AppsLocation, context.Name));
+                            string targetAppPath = Path.GetFullPath(Path.Combine(configuration.AppsLocation, context.Name.Value));
 
 
                             if (context.AppType != AppType.Host)
@@ -159,7 +160,7 @@ namespace ServiceHost.Installer.Impl
                                 log =>
                                 {
                                     log.Info("Clearing Installation Directory during Recover {Apps}", context.Name);
-                                    context.InstallationPath.ClearDirectory();
+                                    ClearDirectory(context.InstallationPath);
                                 });
 
                             try
@@ -179,7 +180,7 @@ namespace ServiceHost.Installer.Impl
                                 log =>
                                 {
                                     log.Info("Delete Insttalation Files during Recovery {Apps}", context.Name);
-                                    context.InstallationPath.ClearDirectory();
+                                    ClearDirectory(context.InstallationPath);
                                 });
 
                             return StepId.Waiting;
@@ -198,13 +199,12 @@ namespace ServiceHost.Installer.Impl
                             Log.Info("Register Application for Host {Apps}", context.Name);
 
                             if (context.InstalledApp.IsEmpty())
-                                registry.Actor
-                                   .Ask<RegistrationResponse>(
+                                registry.Ask<RegistrationResponse>(
                                         new NewRegistrationRequest(context.SoftwareName, context.Name, context.InstallationPath, context.Source.Version, context.AppType, context.GetExe()),
                                         TimeSpan.FromSeconds(15))
                                    .PipeTo(Self).Ignore();
                             else
-                                registry.Actor
+                                registry
                                    .Ask<RegistrationResponse>(new UpdateRegistrationRequest(context.Name), TimeSpan.FromSeconds(15))
                                    .PipeTo(Self).Ignore();
 
@@ -279,6 +279,22 @@ namespace ServiceHost.Installer.Impl
         private void HandleFileInstall(FileInstallationRequest request)
             => Start(new InstallerContext(InstallType.Manual, request.Name, request.SoftwareName, request.Path, request.Override, request.AppType) { Exe = request.Exe });
 
+        private void ClearDirectory(string path)
+        {
+            foreach (FileSystemInfo info in new DirectoryInfo(path).EnumerateFileSystemInfos())
+            {
+                switch (info)
+                {
+                    case DirectoryInfo subDic:
+                        subDic.Delete(recursive: true);
+                        break;
+                    case FileInfo file:
+                        file.Delete();
+                        break;
+                }
+            }
+        }
+        
         private sealed class PreCopyCompled { }
 
         private sealed class CopyCompled { }

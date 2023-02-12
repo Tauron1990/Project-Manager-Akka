@@ -1,3 +1,3 @@
-﻿namespace ServiceHost.Client.Shared.ConfigurationServer;
+﻿namespace ServiceHost.ClientApp.Shared.ConfigurationServer;
 
 public interface IConfigQuery { }

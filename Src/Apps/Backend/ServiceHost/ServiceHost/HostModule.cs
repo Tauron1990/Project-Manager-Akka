@@ -1,29 +1,24 @@
-﻿using ServiceHost.ApplicationRegistry;
+﻿using Microsoft.Extensions.DependencyInjection;
+using ServiceHost.ApplicationRegistry;
 using ServiceHost.AutoUpdate;
 using ServiceHost.Installer;
 using ServiceHost.Services;
 using ServiceHost.Services.Impl;
-using ServiceHost.SharedApi;
+using Tauron;
+using Tauron.Features;
 
 namespace ServiceHost
 {
-    public sealed class HostModule : Module
+    public sealed class HostModule : IModule
     {
-        protected override void Load(ContainerBuilder builder)
+        public void Load(IServiceCollection builder)
         {
-            builder.RegisterFeature<AppManager, IAppManager>(AppManagerActor.New());
-            builder.RegisterFeature<AutoUpdater, IAutoUpdater>(AutoUpdateActor.New());
-            builder.RegisterFeature<Installer.Installer, IInstaller>(InstallManagerActor.New());
-            builder.RegisterFeature<AppRegistry, IAppRegistry>(AppRegistryActor.New());
+            builder.RegisterFeature<AppManager, IAppManager>(AppManagerActor.New(), "App-Manager");
+            builder.RegisterFeature<AutoUpdater, IAutoUpdater>(AutoUpdateActor.New(), "Auto-Updater");
+            builder.RegisterFeature<Installation, IInstaller>(InstallManagerActor.New(), "Installer");
+            builder.RegisterFeature<AppRegistry, IAppRegistry>(AppRegistryActor.New(), "Apps-Registry");
 
-            builder.RegisterStartUpAction<ManualInstallationTrigger>();
-            builder.RegisterStartUpAction<ServiceStartupTrigger>();
-            builder.RegisterStartUpAction<CleanUpDedector>();
-            builder.RegisterStartUpAction<ApiDispatcherStartup>();
-
-            builder.RegisterType<InstallChecker>().AsSelf();
-
-            base.Load(builder);
+            builder.AddTransient<InstallChecker>();
         }
     }
 }

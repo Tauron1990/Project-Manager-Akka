@@ -1,4 +1,4 @@
-﻿namespace ServiceHost.Client.Shared.ConfigurationServer.Data;
+﻿namespace ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 
 public enum ConfigDataAction
 {

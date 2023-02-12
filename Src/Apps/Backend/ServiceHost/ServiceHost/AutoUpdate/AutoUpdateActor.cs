@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 using Tauron;
 using Tauron.Features;
 using Tauron.ObservableExt;
@@ -28,20 +29,24 @@ namespace ServiceHost.AutoUpdate
                 obs => obs.CatchSafe(
                     i => (
                             from request in Observable.Return(i.Event)
-                               .Do(_ => Log.Info("Try Start Auto Update"))
-                               .Do(_ => UpdatePath.CreateDirectoryIfNotExis())
+                               .Do(_ => Logger.LogInformation("Try Start Auto Update"))
+                               .Do(_ =>
+                               {
+                                   if(!Directory.Exists(UpdatePath))
+                                       Directory.CreateDirectory(UpdatePath);
+                               })
                                .Do(r => File.Move(r.OriginalZip, UpdateZip, overwrite: true))
                             let hostPath = new Uri(Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location) ?? string.Empty).LocalPath
                             let autoUpdateExe = Path.Combine(UpdatePath, UpdaterExe)
                             let info = new SetupInfo(UpdateZip, "ServiceHost.exe", hostPath, Environment.ProcessId, 5000)
-                            select (hostPath, autoUpdateExe, info, exis: hostPath.ExisDirectory())
+                            select (hostPath, autoUpdateExe, info, exis: Directory.Exists(hostPath))
                         ).ConditionalSelect()
                        .ToResult<Unit>(
                             b =>
                             {
                                 b.When(
                                     m => !m.exis,
-                                    o => o.Do(_ => Log.Warning("Host Path Location not Found"))
+                                    o => o.Do(_ => Logger.LogWarning("Host Path Location not Found"))
                                        .ToUnit());
 
                                 b.When(
@@ -52,22 +57,30 @@ namespace ServiceHost.AutoUpdate
                                        .ToUnit());
                             }),
                     (_, exception) => Observable.Return(Unit.Default)
-                       .Do(_ => Log.Warning(exception, "Error on Start Auto Update"))));
+                       .Do(_ => Logger.LogWarning(exception, "Error on Start Auto Update"))));
 
             Receive<StartCleanUp>(
                 obs => obs.CatchSafe(
                     p => Observable.Return(Unit.Default)
-                       .Do(_ => Log.Info("Cleanup after Auto Update"))
+                       .Do(_ => Logger.LogInformation("Cleanup after Auto Update"))
                        .Do(_ => KillProcess(p.Event.Id))
-                       .Do(_ => UpdateZip.DeleteFile())
-                       .Do(_ => UpdatePath.DeleteDirectory(recursive: true)),
+                       .Do(_ =>
+                       {
+                           if(File.Exists(UpdateZip))
+                            File.Delete(UpdateZip);
+                       })
+                       .Do(_ =>
+                       {
+                           if(Directory.Exists(UpdatePath))
+                               Directory.Delete(UpdatePath, recursive: true);
+                       }),
                     (_, e) => Observable.Return(Unit.Default)
-                       .Do(_ => Log.Error(e, "Error on Cleanup Auto Update Files"))));
+                       .Do(_ => Logger.LogError(e, "Error on Cleanup Auto Update Files"))));
         }
 
         private void KillProcess(int id)
         {
-            Log.Info("Killing Update process");
+            Logger.LogInformation("Killing Update process");
             try
             {
                 using var process = Process.GetProcessById(id);
@@ -88,7 +101,7 @@ namespace ServiceHost.AutoUpdate
             catch (ArgumentException) { }
             catch (Exception e)
             {
-                Log.Error(e, "Error on Getting Update Process");
+                Logger.LogError(e, "Error on Getting Update Process");
             }
         }
     }

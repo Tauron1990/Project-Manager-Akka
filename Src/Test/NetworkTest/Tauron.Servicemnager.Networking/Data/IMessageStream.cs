@@ -7,5 +7,5 @@ public interface IMessageStream : IDisposable
     
     IByteReader ReadStream { get; }
 
-    bool Connected();
+    ValueTask<bool> Connected();
 }

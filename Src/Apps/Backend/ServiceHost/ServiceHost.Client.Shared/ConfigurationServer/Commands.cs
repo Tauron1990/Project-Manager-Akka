@@ -1,7 +1,7 @@
-﻿using ServiceHost.Client.Shared.ConfigurationServer.Data;
+﻿using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
-namespace ServiceHost.Client.Shared.ConfigurationServer;
+namespace ServiceHost.ClientApp.Shared.ConfigurationServer;
 
 public sealed record UpdateServerConfigurationCommand(ServerConfigugration ServerConfigugration) : SimpleCommand<ConfigurationApi, UpdateServerConfigurationCommand>, IConfigCommand
 {

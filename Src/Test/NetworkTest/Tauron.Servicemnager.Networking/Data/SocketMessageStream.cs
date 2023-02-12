@@ -18,8 +18,8 @@ public sealed class SocketMessageStream : IMessageStream
         _networkStream = IByteReader.Stream(new NetworkStream(socket));
     }
 
-    public bool Connected()
-        => _socket.IsConnected();
+    public ValueTask<bool> Connected()
+        => ValueTask.FromResult(_socket.IsConnected());
 
     public void Dispose()
     {

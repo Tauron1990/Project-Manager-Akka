@@ -46,7 +46,7 @@ public sealed class MessageReader<TMessage> : IDisposable
     {
         try
         {
-            while (!token.IsCancellationRequested && (_messageStream.DataAvailable || _messageStream.Connected()))
+            while (!token.IsCancellationRequested && (_messageStream.DataAvailable || await _messageStream.Connected().ConfigureAwait(false)))
             {
                 if(!_messageStream.DataAvailable)
                 {

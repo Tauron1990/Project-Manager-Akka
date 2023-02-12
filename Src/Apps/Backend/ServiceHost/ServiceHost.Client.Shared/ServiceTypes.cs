@@ -1,6 +1,6 @@
 ﻿using Tauron.Application.Master.Commands.ServiceRegistry;
 
-namespace ServiceHost.Client.Shared;
+namespace ServiceHost.ClientApp.Shared;
 
 public static class ServiceTypes
 {

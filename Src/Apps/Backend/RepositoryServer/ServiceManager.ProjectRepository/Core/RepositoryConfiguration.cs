@@ -1,5 +1,6 @@
 ﻿using JetBrains.Annotations;
 using Tauron.Application.AkkaNode.Services.Reporting;
+using Tauron.Application.Master.Commands.Deployment.Repository;
 
 namespace ServiceManager.ProjectRepository.Core
 {
@@ -20,6 +21,6 @@ namespace ServiceManager.ProjectRepository.Core
         public RepositoryConfiguration()
             : this(DefaultUrl, null) { }
 
-        void IReporterProvider.SendMessage(string msg) => Logger?.Send(msg);
+        void IReporterProvider.SendMessage(RepositoryMessage msg) => Logger?.Send(msg);
     }
 }

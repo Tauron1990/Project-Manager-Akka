@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Akka.Actor;
 using Ionic.Zip;
+using Tauron.Application.Master.Commands;
 
 namespace ServiceHost.Installer.Impl.Source
 {
@@ -46,7 +47,7 @@ namespace ServiceHost.Installer.Impl.Source
 
         public void CleanUp(InstallerContext context) { }
 
-        public int Version => 0;
+        public SimpleVersion Version => SimpleVersion.NoVersion;
         public string ToZipFile(InstallerContext context) => (string)context.SourceLocation;
     }
 }

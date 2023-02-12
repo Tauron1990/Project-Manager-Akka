@@ -7,7 +7,7 @@ using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 
-namespace ServiceHost.Client.Shared.ConfigurationServer;
+namespace ServiceHost.ClientApp.Shared.ConfigurationServer;
 
 [PublicAPI]
 public sealed class ConfigurationApi : SenderBase<ConfigurationApi, IConfigQuery, IConfigCommand>, IQueryIsAliveSupport

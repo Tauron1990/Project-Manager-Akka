@@ -6,7 +6,7 @@ using Akka.Actor;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
-using ServiceHost.Client.Shared.ConfigurationServer;
+using ServiceHost.ClientApp.Shared.ConfigurationServer;
 using ServiceManager.ProjectDeployment;
 using ServiceManager.ProjectRepository;
 using ServiceManager.ServiceDeamon.Management;

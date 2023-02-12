@@ -3,7 +3,7 @@ using Akka.DependencyInjection;
 
 namespace ServiceHost.SharedApi
 {
-    public sealed class ApiDispatcherStartup : IStartUpAction
+    public sealed class ApiDispatcherStartup
     {
         private readonly ActorSystem _system;
 

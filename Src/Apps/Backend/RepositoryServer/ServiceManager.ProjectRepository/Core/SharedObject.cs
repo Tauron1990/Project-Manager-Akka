@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Tauron.Application.Master.Commands.Deployment.Repository;
 
 namespace ServiceManager.ProjectRepository.Core
 {
@@ -60,7 +61,7 @@ namespace ServiceManager.ProjectRepository.Core
             }
         }
 
-        protected void SendMessage(string msg) => Configuration.SendMessage(msg);
+        protected void SendMessage(RepositoryMessage msg) => Configuration.SendMessage(msg);
 
         private void Init(TConfiguration configuration) => Configuration = configuration;
 

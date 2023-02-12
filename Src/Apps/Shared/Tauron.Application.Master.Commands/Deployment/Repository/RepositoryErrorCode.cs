@@ -1,4 +1,5 @@
-﻿using Vogen;
+﻿using Tauron.Operations;
+using Vogen;
 
 namespace Tauron.Application.Master.Commands.Deployment.Repository;
 
@@ -8,5 +9,8 @@ namespace Tauron.Application.Master.Commands.Deployment.Repository;
 [Instance("InvalidRepoName", "InvalidRepoName")]
 [Instance("DatabaseNoRepoFound", "DatabaseNoRepoFound")]
 #pragma warning disable MA0097
-public readonly partial struct RepositoryErrorCode { }
+public readonly partial struct RepositoryErrorCode : IErrorConvertable
+{
+    Error IErrorConvertable.ToError() => Value;
+}
 #pragma warning restore MA0097

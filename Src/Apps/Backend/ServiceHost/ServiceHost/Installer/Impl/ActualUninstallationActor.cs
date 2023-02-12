@@ -60,7 +60,7 @@ namespace ServiceHost.Installer.Impl
                         context =>
                         {
                             Log.Info("Stoping Appliocation {Name}", context.Name);
-                            manager.Actor
+                            manager
                                .Ask<StopResponse>(new StopApp(context.Name), TimeSpan.FromMinutes(1))
                                .PipeTo(Self).Ignore();
 

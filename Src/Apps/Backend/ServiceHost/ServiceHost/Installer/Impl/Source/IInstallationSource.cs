@@ -1,11 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Akka.Actor;
+using Tauron.Application.Master.Commands;
 
 namespace ServiceHost.Installer.Impl.Source
 {
     public interface IInstallationSource
     {
-        int Version { get; }
+        SimpleVersion Version { get; }
         Status ValidateInput(InstallerContext context);
 
         Task<Status> PrepareforCopy(InstallerContext context);

@@ -1,8 +1,9 @@
-﻿using ServiceHost.Client.Shared.ConfigurationServer.Data;
-using ServiceHost.Client.Shared.ConfigurationServer.Events;
+﻿using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Events;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
+using Tauron.Application.Master.Commands;
 
-namespace ServiceHost.Client.Shared.ConfigurationServer;
+namespace ServiceHost.ClientApp.Shared.ConfigurationServer;
 
 public sealed record QueryConfigEventSource : ResultCommand<ConfigurationApi, QueryConfigEventSource, ConfigEventSource>, IConfigQuery
 {
@@ -29,7 +30,7 @@ public sealed record QuerySpecificConfig(string Id) : ResultCommand<Configuratio
     protected override string Info => $"SpecificConfig-Query-{Id}";
 }
 
-public sealed record QueryFinalConfigData(string ApplicationName, string SoftwareName) : ResultCommand<ConfigurationApi, QueryFinalConfigData, FinalAppConfig>, IConfigQuery
+public sealed record QueryFinalConfigData(AppName ApplicationName, string SoftwareName) : ResultCommand<ConfigurationApi, QueryFinalConfigData, FinalAppConfig>, IConfigQuery
 {
     protected override string Info => $"FinalConfigData-Query-{ApplicationName}-{SoftwareName}";
 }

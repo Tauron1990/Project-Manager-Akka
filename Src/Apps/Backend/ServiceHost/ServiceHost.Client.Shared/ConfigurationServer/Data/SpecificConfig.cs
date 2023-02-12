@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-namespace ServiceHost.Client.Shared.ConfigurationServer.Data;
+namespace ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 
 public sealed record SpecificConfig(string Id, string ConfigContent, string? Info, ImmutableList<Condition> Conditions) : ConfigElement(ConfigContent, Info);
 

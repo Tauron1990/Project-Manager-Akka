@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Tauron.Application.Master.Commands;
 
 namespace ServiceHost.Installer.Impl.Source
 {
@@ -20,7 +21,7 @@ namespace ServiceHost.Installer.Impl.Source
 
         public void CleanUp(InstallerContext context) { }
 
-        public int Version => -1;
+        public SimpleVersion Version => SimpleVersion.NoVersion;
 
         public string ToZipFile(InstallerContext context)
             => throw new NotSupportedException("Empty Source can not converted to zip file");

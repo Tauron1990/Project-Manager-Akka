@@ -5,6 +5,7 @@ using ServiceManager.ProjectRepository.Data;
 using SharpRepository.Repository;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
+using Tauron.Application.Master.Commands.Deployment;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
 using Tauron.Features;
@@ -17,7 +18,7 @@ namespace ServiceManager.ProjectRepository.Actors
         {
             return Feature.Create(
                 () => new RepositoryManagerImpl(),
-                _ => new RmIState(configuration.RepositoryConfiguration.GetInstance<RepositoryEntry, string>(RepositoryManager.RepositoryKey), configuration.FileSystem, configuration.DataTransferManager));
+                _ => new RmIState(configuration.RepositoryConfiguration.GetInstance<RepositoryEntry, RepositoryName>(RepositoryManager.RepositoryKey), configuration.FileSystem, configuration.DataTransferManager));
         }
 
 
@@ -36,6 +37,6 @@ namespace ServiceManager.ProjectRepository.Actors
             SupervisorStrategy = SupervisorStrategy.StoppingStrategy;
         }
 
-        public sealed record RmIState(IRepository<RepositoryEntry, string> Repositorys, IDirectory Bucket, DataTransferManager DataTransferManager);
+        public sealed record RmIState(IRepository<RepositoryEntry, RepositoryName> Repositorys, IDirectory Bucket, DataTransferManager DataTransferManager);
     }
 }

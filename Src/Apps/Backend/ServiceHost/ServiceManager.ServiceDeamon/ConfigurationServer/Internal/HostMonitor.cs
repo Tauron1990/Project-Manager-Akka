@@ -6,9 +6,10 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Akka.Actor;
-using ServiceHost.Client.Shared.ConfigurationServer;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
-using ServiceHost.Client.Shared.ConfigurationServer.Events;
+using Microsoft.Extensions.Logging;
+using ServiceHost.ClientApp.Shared.ConfigurationServer;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Events;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Data;
 using SharpRepository.Repository;
 using Tauron;
@@ -20,7 +21,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
 {
     public sealed class HostMonitor : ActorFeatureBase<HostMonitor.State>
     {
-        public static IPreparedFeature New(string name, IObservable<IConfigEvent> publisher, ServerConfigugration serverConfigugration, IRepository<SeedUrlEntity, string> seeds)
+        public static IPreparedFeature New(HostName name, IObservable<IConfigEvent> publisher, ServerConfigugration serverConfigugration, IRepository<SeedUrlEntity, string> seeds)
             => Feature.Create(
                 () => new HostMonitor(),
                 c => new State(
@@ -44,11 +45,11 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
                         r =>
                         {
                             r.Subscription.DisposeWith(this);
-                            Log.Info("Installation Subscription Compled");
+                            Logger.LogInformation("Installation Subscription Compled");
                         },
                         e =>
                         {
-                            Log.Warning(e, "Installation Subscrion Failed {Name}", CurrentState.Name);
+                            Logger.LogWarning(e, "Installation Subscrion Failed {Name}", CurrentState.Name);
                             Timers.StartSingleTimer(ReSheduleInstallEvent.Inst, ReSheduleInstallEvent.Inst, TimeSpan.FromMinutes(1));
                         });
 
@@ -70,18 +71,18 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
             void LogResponse(OperationResponse response, string eventType)
             {
                 if (response.Success)
-                    Log.Info("Successfuly" + eventType + "for {HostName}", CurrentState.Name);
+                    Logger.LogInformation("Successfuly" + eventType + "for {HostName}", CurrentState.Name);
                 else
-                    Log.Warning("Error on" + eventType + "for {HostName}", CurrentState.Name);
+                    Logger.LogWarning("Error on" + eventType + "for {HostName}", CurrentState.Name);
             }
 
             void LogError(Exception e, string eventType)
-                => Log.Error(e, "Error on " + eventType + " for {HostName}", CurrentState.Name);
+                => Logger.LogError(e, "Error on " + eventType + " for {HostName}", CurrentState.Name);
 
             (from evt in CurrentState.Publisher.OfType<ServerConfigurationEvent>()
              from state in UpdateAndSyncActor(evt)
              select state.State with { ServerConfigugration = state.Event.Configugration })
-               .AutoSubscribe(UpdateState, e => Log.Error(e, "Error on Update ServerConfiguration"))
+               .AutoSubscribe(UpdateState, e => Logger.LogError(e, "Error on Update ServerConfiguration"))
                .DisposeWith(this);
 
             (from evt in root.OfType<SeedDataEvent>()
@@ -112,7 +113,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
                .Merge(root.OfType<ConditionUpdateEvent>().Select(t => t.Config));
 
             (from evt in specificUpdate
-             where ConditionChecker.MeetCondition("ServiceHost", CurrentState.Name, evt)
+             where ConditionChecker.MeetCondition("ServiceHost", CurrentState.Name.Value, evt)
              from response in api.ExecuteCommand(new UpdateHostConfigCommand(CurrentState.Name))
              select response)
                .AutoSubscribe(
@@ -121,7 +122,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
                .DisposeWith(this);
 
             (from evt in specificUpdate
-             let apps = CurrentState.Apps.Where(ha => ConditionChecker.MeetCondition(ha.SoftwareName, ha.Name, evt))
+             let apps = CurrentState.Apps.Where(ha => ConditionChecker.MeetCondition(ha.SoftwareName, ha.Name.Value, evt))
              from responses in Task.WhenAll(apps.Select(ha => api.ExecuteCommand(new UpdateAppConfigCommand(CurrentState.Name, ha.Name, CurrentState.ServerConfigugration.RestartServices))))
              from response in responses
              select response)
@@ -134,7 +135,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
         }
 
         public record State(
-            string Name, IObservable<IConfigEvent> Publisher, ServerConfigugration ServerConfigugration, ImmutableList<HostApp> Apps, HostApi Api,
+            HostName Name, IObservable<IConfigEvent> Publisher, ServerConfigugration ServerConfigugration, ImmutableList<HostApp> Apps, HostApi Api,
             IRepository<SeedUrlEntity, string> Seeds);
 
         private sealed record ReSheduleInstallEvent

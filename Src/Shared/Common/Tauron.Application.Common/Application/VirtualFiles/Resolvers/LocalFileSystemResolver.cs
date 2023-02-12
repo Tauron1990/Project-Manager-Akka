@@ -11,7 +11,7 @@ public sealed class LocalFileSystemResolver : IFileSystemResolver
 
     public string Scheme => SchemeName;
 
-    public IVirtualFileSystem? TryResolve(PathInfo path, IServiceProvider services)
+    public IVirtualFileSystem? TryResolve(in PathInfo path, IServiceProvider services)
     {
         PathInfo relative = GenericPathHelper.ToRelativePath(path);
         string fullQualifed = Path.GetFullPath(relative.Path);

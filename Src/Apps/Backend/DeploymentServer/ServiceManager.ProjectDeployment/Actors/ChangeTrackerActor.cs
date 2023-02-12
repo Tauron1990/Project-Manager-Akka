@@ -5,7 +5,9 @@ using Akka.Actor;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Streams.Implementation.Fusing;
+using Microsoft.Extensions.Logging;
 using Tauron;
+using Tauron.Application;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
@@ -32,6 +34,8 @@ namespace ServiceManager.ProjectDeployment.Actors
 
         protected override void ConfigImpl()
         {
+            var logger = TauronEnviroment.LoggerFactory.CreateLogger<ChangeTrackerActor>();
+            
             Stop.Subscribe(_ => CurrentState.AppInfos.Complete());
             TryReceive<QueryAppChangeSource>(
                 "QueryChanedSource",
@@ -48,11 +52,11 @@ namespace ServiceManager.ProjectDeployment.Actors
                             switch (p)
                             {
                                 case QueueOfferResult.Failure f:
-                                    Log<>.Error(f.Cause, "Error In Change Tracker");
+                                    logger.LogError(f.Cause, "Error In Change Tracker");
 
                                     break;
                                 case QueueOfferResult.QueueClosed _:
-                                    Log.Warning("Unexpectem Tracker Queue Close.");
+                                    logger.LogError("Unexpectem Tracker Queue Close");
 
                                     break;
                             }

@@ -6,7 +6,7 @@ using Tauron.Application.Master.Commands.Administration.Host;
 
 namespace ServiceHost
 {
-    public sealed class ServiceStartupTrigger : IStartUpAction
+    public sealed class ServiceStartupTrigger
     {
         private readonly InstallChecker _checker;
         private readonly IAppManager _manager;

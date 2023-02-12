@@ -2,6 +2,6 @@
 {
     public interface IApiMessageTranslator
     {
-        string Translate(string message);
+        string Translate<T>(T message);
     }
 }

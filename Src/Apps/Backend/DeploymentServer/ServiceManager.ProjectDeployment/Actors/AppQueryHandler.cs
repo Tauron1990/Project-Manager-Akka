@@ -10,6 +10,8 @@ using Tauron;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
+using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
 using Tauron.Application.VirtualFiles;
@@ -21,7 +23,7 @@ namespace ServiceManager.ProjectDeployment.Actors
 {
     public sealed class AppQueryHandler : ReportingActor<AppQueryHandler.AppQueryHandlerState>
     {
-        public static IPreparedFeature New(IRepository<AppData, string> apps, IDirectory files, DataTransferManager dataTransfer, IActorRef changeTracker)
+        public static IPreparedFeature New(IRepository<AppData, AppName> apps, IDirectory files, DataTransferManager dataTransfer, IActorRef changeTracker)
             => Feature.Create(() => new AppQueryHandler(), _ => new AppQueryHandlerState(apps, files, dataTransfer, changeTracker));
 
         protected override void ConfigImpl()
@@ -43,7 +45,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                 m => m.Event == null,
                                 o => o.Select(
                                     m => m.New(default(AppInfo))
-                                       .CompledReporter(OperationResult.Failure(DeploymentErrorCodes.QueryAppNotFound))));
+                                       .CompledReporter(OperationResult.Failure(DeploymentErrorCode.QueryAppNotFound))));
                             b.When(m => m.Event != null, o => o.Select(evt => evt.New<AppInfo?>(evt.Event.ToInfo())));
                         }));
 
@@ -60,7 +62,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                 o => o.Select(
                                     evt => evt
                                        .New(default(FileTransactionId))
-                                       .CompledReporter(OperationResult.Failure(DeploymentErrorCodes.QueryAppNotFound))));
+                                       .CompledReporter(OperationResult.Failure(DeploymentErrorCode.QueryAppNotFound))));
                             b.When(d => d.Event.App != null, SelectVersion);
 
                             static IObservable<ReporterEvent<FileTransactionId?, AppQueryHandlerState>> SelectVersion(
@@ -76,7 +78,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                 o => o.Select(
                                                     evt => evt
                                                        .New(default(FileTransactionId))
-                                                       .CompledReporter(OperationResult.Failure(DeploymentErrorCodes.QueryFileNotFound))));
+                                                       .CompledReporter(OperationResult.Failure(DeploymentErrorCode.QueryFileNotFound))));
                                             b.When(
                                                 m => m.Event.File != null,
                                                 o => o
@@ -91,7 +93,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                             DataTransferRequest.FromStream(
                                                                 () => evt.Event.File.Open(FileAccess.Read),
                                                                 evt.Event.Manager,
-                                                                evt.Event.AppName)))
+                                                                TransferData.From(evt.Event.AppName.Value))))
                                                    .Select(evt => evt.New<FileTransactionId?>(evt.State.DataTransfer.RequestWithTransaction(evt.Event))));
                                         });
                         }));
@@ -108,7 +110,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                 o => o.Select(
                                     evt => evt
                                        .New(default(BinaryList))
-                                       .CompledReporter(OperationResult.Failure(DeploymentErrorCodes.QueryAppNotFound))));
+                                       .CompledReporter(OperationResult.Failure(DeploymentErrorCode.QueryAppNotFound))));
                             b.When(
                                 evt => evt.Event != null,
                                 o => o.Select(
@@ -133,10 +135,10 @@ namespace ServiceManager.ProjectDeployment.Actors
 
                             m.Reporter.Compled(
                                 m.Event == default
-                                    ? OperationResult.Failure(DeploymentErrorCodes.GeneralQueryFailed)
+                                    ? OperationResult.Failure(DeploymentErrorCode.GeneralQueryFailed)
                                     : OperationResult.Success(m.Event));
                         }));
 
-        public sealed record AppQueryHandlerState(IRepository<AppData, string> Apps, IDirectory Files, DataTransferManager DataTransfer, IActorRef ChangeTracker);
+        public sealed record AppQueryHandlerState(IRepository<AppData, AppName> Apps, IDirectory Files, DataTransferManager DataTransfer, IActorRef ChangeTracker);
     }
 }

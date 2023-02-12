@@ -13,7 +13,8 @@ namespace ServiceHost.Installer.Impl
 
         public void Make(string from)
         {
-            BackupLocation.CreateDirectoryIfNotExis();
+            if(!Directory.Exists(BackupLocation))
+                Directory.CreateDirectory(BackupLocation);
 
             _backFrom = from;
             _backupFile = Path.Combine(BackupLocation, "Backup.zip");
@@ -32,10 +33,13 @@ namespace ServiceHost.Installer.Impl
                 zip.ExtractAll(_backFrom, ExtractExistingFileAction.OverwriteSilently);
             }
 
-            _backupFile.DeleteFile();
+            CleanUp();
         }
 
         public void CleanUp()
-            => _backupFile.DeleteFile();
+        {
+            if(File.Exists(_backupFile))
+                File.Delete(_backupFile);
+        }
     }
 }

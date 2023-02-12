@@ -1,7 +1,7 @@
 ﻿namespace Tauron.Application.Master.Commands.Administration.Host;
 
-public sealed record UpdateAppConfigResponse(bool Success, string App) : OperationResponse(Success)
+public sealed record UpdateAppConfigResponse(bool Success, AppName App) : OperationResponse(Success)
 {
     public UpdateAppConfigResponse()
-        : this(Success: false, App: "NoAppOnError") { }
+        : this(Success: false, App: AppName.From("NoAppOnError")) { }
 }

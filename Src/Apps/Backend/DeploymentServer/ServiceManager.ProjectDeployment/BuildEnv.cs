@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Tauron.Application.VirtualFiles;
 using Tauron.Temp;
 
 namespace ServiceManager.ProjectDeployment
@@ -14,6 +15,7 @@ namespace ServiceManager.ProjectDeployment
 
         private static TempStorage? _storage;
 
-        public static TempStorage TempFiles => _storage ??= TempStorage.CleanAndCreate(ApplicationPath);
+        public static TempStorage TempFiles 
+            => _storage ??= TempStorage.CleanAndCreate(VirtualFileFactory.Shared.Local(ApplicationPath));
     }
 }

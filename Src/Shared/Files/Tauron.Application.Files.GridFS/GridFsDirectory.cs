@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using MessagePack.Resolvers;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Tauron.Application.Files.GridFS.Core;
@@ -18,18 +16,54 @@ public sealed class GridFsDirectory : DirectoryBase<GridFsContext>
     public override PathInfo OriginalPath => Context.OriginalPath;
     public override DateTime LastModified => Context.File?.UploadDateTime ?? DateTime.MinValue;
     public override IDirectory? ParentDirectory => Context.Parent;
-    public override bool Exist => Context.File is not null;
+    public override bool Exist => true;
     public override string Name => GenericPathHelper.GetName(Context.OriginalPath);
-    public override IEnumerable<IDirectory> Directories { get; }
-    public override IEnumerable<IFile> Files { get; }
+    public override IEnumerable<IDirectory> Directories => FindDirectorys();
+    public override IEnumerable<IFile> Files => FindFiles();
 
     private IEnumerable<IDirectory> FindDirectorys()
     {
+        #pragma warning disable EPS06
         foreach (GridFSFileInfo file in FetchFiles(OriginalPath.Path))
         {
-            if(file.Filename.StartsWith(OriginalPath.Path))
+            if(file.Filename.StartsWith(OriginalPath.Path, StringComparison.Ordinal))
             {
-                
+                var span = file.Filename.AsSpan();
+                span = span[OriginalPath.Path.Length..];
+                int index = span.IndexOf(GenericPathHelper.GenericSeperator);
+                if(index == -1)
+                    continue;
+
+                yield return new GridFsDirectory(
+                    Context with
+                    {
+                        OriginalPath = GenericPathHelper.Combine(OriginalPath, span[..index].ToString()),
+                        Parent = this,
+                    },
+                    NodeType.Directory);
+            }
+        }
+    }
+    
+    private IEnumerable<IFile> FindFiles()
+    {
+        foreach (GridFSFileInfo file in FetchFiles(OriginalPath.Path))
+        {
+            if(file.Filename.StartsWith(OriginalPath.Path, StringComparison.Ordinal))
+            {
+                var span = file.Filename.AsSpan();
+                span = span[OriginalPath.Path.Length..];
+                int index = span.IndexOf(GenericPathHelper.GenericSeperator);
+                if(index != -1)
+                    continue;
+
+                yield return new GridFsFile(
+                    Context with
+                    {
+                        File = file,
+                        OriginalPath = GenericPathHelper.Combine(OriginalPath, span[..index].ToString()),
+                        Parent = this,
+                    });
             }
         }
     }
@@ -42,7 +76,20 @@ public sealed class GridFsDirectory : DirectoryBase<GridFsContext>
         return curser.ToEnumerable();
     }
 
-    protected override IDirectory GetDirectory(GridFsContext context, in PathInfo name) => throw new NotImplementedException();
+    protected override IDirectory GetDirectory(GridFsContext context, in PathInfo name) 
+        => new GridFsDirectory(
+            context with
+            {
+                OriginalPath = GenericPathHelper.Combine(OriginalPath, name),
+                Parent = this,
+            },
+            NodeType.Directory);
 
-    protected override IFile GetFile(GridFsContext context, in PathInfo name) => throw new NotImplementedException();
+    protected override IFile GetFile(GridFsContext context, in PathInfo name)
+    {
+        PathInfo newPath = GenericPathHelper.Combine(OriginalPath, name);
+        GridFSFileInfo? entry = context.FindEntry(newPath.Path);
+
+        return new GridFsFile(context with { File = entry, OriginalPath = newPath });
+    }
 }

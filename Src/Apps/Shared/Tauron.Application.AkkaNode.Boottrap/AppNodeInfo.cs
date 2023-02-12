@@ -1,11 +1,12 @@
 ﻿using JetBrains.Annotations;
+using Tauron.Application.Master.Commands;
 
 namespace Tauron.Application.AkkaNode.Bootstrap;
 
 [UsedImplicitly]
 public sealed class AppNodeInfo
 {
-    public string ApplicationName { get; set; } = string.Empty;
+    public AppName ApplicationName { get; set; } = AppName.Empty;
 
     public string Actorsystem { get; set; } = string.Empty;
 

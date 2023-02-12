@@ -1,10 +1,11 @@
 ﻿using System.IO;
 using Microsoft.Extensions.Configuration;
+using Tauron.Application.Master.Commands;
 using Tauron.Application.Master.Commands.Administration.Host;
 
 namespace ServiceHost.Installer
 {
-    public sealed class ManualInstallationTrigger : IStartUpAction
+    public sealed class ManualInstallationTrigger
     {
         private readonly IInstaller _installer;
         private readonly ManualInstallationConfiguration _trigger = new();
@@ -20,9 +21,9 @@ namespace ServiceHost.Installer
             if (_trigger.Install != InstallType.Manual) return;
 
             if (_trigger.AppType == AppType.Host)
-                _trigger.AppName = "Host Self Update";
+                _trigger.AppName = AppName.From("Host Self Update");
 
-            _installer.Actor.Tell(new FileInstallationRequest(_trigger.SoftwareName, _trigger.AppName, Path.GetFullPath(_trigger.ZipFile), _trigger.Override, _trigger.AppType, _trigger.Exe));
+            _installer.Tell(new FileInstallationRequest(_trigger.SoftwareName, _trigger.AppName, Path.GetFullPath(_trigger.ZipFile), _trigger.Override, _trigger.AppType, _trigger.Exe));
         }
     }
 }

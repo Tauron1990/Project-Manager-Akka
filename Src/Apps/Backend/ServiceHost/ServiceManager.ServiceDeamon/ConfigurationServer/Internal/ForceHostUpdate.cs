@@ -1,4 +1,4 @@
-﻿using ServiceHost.Client.Shared.ConfigurationServer.Events;
+﻿using ServiceHost.ClientApp.Shared.ConfigurationServer.Events;
 
 namespace ServiceManager.ServiceDeamon.ConfigurationServer.Internal
 {

@@ -1,4 +1,6 @@
-﻿namespace ServiceHost.Services
+﻿using Tauron.Application.Master.Commands;
+
+namespace ServiceHost.Services
 {
-    public sealed record RestartApp(string Name);
+    public sealed record RestartApp(AppName Name);
 }

@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using RestEase;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using ServiceManager.Shared.Api;
 using ServiceManager.Shared.ServiceDeamon;
 

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Immutable;
-using Akka.Util;
-using ServiceHost.Client.Shared.ConfigurationServer;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
+using Stl;
+using Tauron;
 
 namespace ServiceManager.ServiceDeamon.ConfigurationServer.Data
 {

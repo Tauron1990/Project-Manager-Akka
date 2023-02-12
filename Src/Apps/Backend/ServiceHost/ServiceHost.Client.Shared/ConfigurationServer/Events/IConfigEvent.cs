@@ -1,3 +1,3 @@
-﻿namespace ServiceHost.Client.Shared.ConfigurationServer.Events;
+﻿namespace ServiceHost.ClientApp.Shared.ConfigurationServer.Events;
 
 public interface IConfigEvent { }

@@ -1,20 +1,20 @@
 ﻿using System.Threading.Tasks;
-using DotNetty.Transport.Bootstrapping;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using NLog;
-using ServiceHost.Client.Shared;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using ServiceManager.ProjectDeployment;
 using ServiceManager.ProjectDeployment.Data;
 using ServiceManager.ProjectRepository;
 using ServiceManager.ServiceDeamon.Management;
 using SharpRepository.MongoDbRepository;
 using SharpRepository.Repository.Configuration;
+using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
-using Tauron.Application.Files.GridFS.Old;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.Master.Commands.ServiceRegistry;
@@ -31,7 +31,7 @@ namespace InfrastructureService
             ImmutableListSerializer<SeedUrl>.Register();
             ImmutableListSerializer<AppFileInfo>.Register();
 
-            await Bootstrap.StartNode(
+            await AppNode.StartNode(
                     args,
                     KillRecpientType.Service,
                     IpcApplicationType.Client,
@@ -40,7 +40,7 @@ namespace InfrastructureService
                         ab.OnMemberUp(
                                 (context, system, cluster) =>
                                 {
-                                    string ApplyMongoUrl(string baseUrl, string repoKey, SharpRepositoryConfiguration configuration)
+                                    MongoUrl ApplyMongoUrl(string baseUrl, string repoKey, SharpRepositoryConfiguration configuration)
                                     {
                                         var builder = new MongoUrlBuilder(baseUrl) { DatabaseName = repoKey, ApplicationName = context.HostingEnvironment.ApplicationName };
                                         var mongoUrl = builder.ToString();
@@ -48,16 +48,16 @@ namespace InfrastructureService
                                         configuration.AddRepository(
                                             new MongoDbRepositoryConfiguration(repoKey, mongoUrl)
                                             {
-                                                Factory = typeof(MongoDbConfigRepositoryFactory)
+                                                Factory = typeof(MongoDbConfigRepositoryFactory),
                                             });
 
-                                        return mongoUrl;
+                                        return new MongoUrl(mongoUrl);
                                     }
 
-                                    ServiceRegistry.Get(system)
+                                    ServiceRegistryApi.Get(system)
                                        .RegisterService(
                                             new RegisterService(
-                                                context.HostingEnvironment.ApplicationName,
+                                                ServiceName.From(context.HostingEnvironment.ApplicationName),
                                                 cluster.SelfUniqueAddress,
                                                 ServiceTypes.Infrastructure));
 
@@ -82,7 +82,7 @@ namespace InfrastructureService
                                         system,
                                         new RepositoryManagerConfiguration(
                                             config,
-                                            fileSystemBuilder.CreateMongoDb(url),
+                                            fileSystemBuilder.GridFs(url),
                                             DataTransferManager.New(system, "Repository-DataTransfer")));
 
                                     url = ApplyMongoUrl(connectionstring, DeploymentManager.RepositoryKey, config);
@@ -90,7 +90,7 @@ namespace InfrastructureService
                                         system,
                                         new DeploymentConfiguration(
                                             config,
-                                            fileSystemBuilder.CreateMongoDb(url),
+                                            fileSystemBuilder.GridFs(url),
                                             DataTransferManager.New(system, "Deployment-DataTransfer"),
                                             RepositoryApi.CreateProxy(system)));
 

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using ServiceManager.ProjectDeployment.Data;
 using ServiceManager.Server.AppCore;
 using ServiceManager.Server.AppCore.Helper;

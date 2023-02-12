@@ -6,5 +6,5 @@ public interface IFileSystemResolver
 {
     string Scheme { get; }
 
-    IVirtualFileSystem? TryResolve(PathInfo path, IServiceProvider services);
+    IVirtualFileSystem? TryResolve(in PathInfo path, IServiceProvider services);
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using ServiceManager.Shared.Api;
 using Stl.CommandR;
 using Stl.Fusion;

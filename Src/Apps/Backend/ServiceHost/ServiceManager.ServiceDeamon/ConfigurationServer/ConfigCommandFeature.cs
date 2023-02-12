@@ -3,14 +3,14 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Akka.Util;
 using Be.Vlaanderen.Basisregisters.Generators.Guid;
-using ServiceHost.Client.Shared.ConfigurationServer;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
-using ServiceHost.Client.Shared.ConfigurationServer.Events;
+using ServiceHost.ClientApp.Shared.ConfigurationServer;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Events;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Data;
 using ServiceManager.ServiceDeamon.ConfigurationServer.Internal;
 using SharpRepository.Repository;
+using Stl;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Operations;
@@ -19,7 +19,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
 {
     public class ConfigCommandFeature : ReportingActor<ConfigFeatureConfiguration>
     {
-        private static readonly Guid Seednamespace = new("08C98B41-9FF3-4A40-BAF6-3A4FD3810D89");
+        private static readonly Guid SeedNamespace = new("08C98B41-9FF3-4A40-BAF6-3A4FD3810D89");
 
         protected override void ConfigImpl()
         {
@@ -82,16 +82,16 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                                request.State.Seeds,
                                request.Event.Action,
                                new SeedUrlEntity(
-                                   Deterministic.Create(Seednamespace, request.Event.SeedUrl.Url).ToString("N"),
+                                   Deterministic.Create(SeedNamespace, request.Event.SeedUrl.Url).ToString("N"),
                                    request.Event.SeedUrl)))
-                       let opt = SendEvent(request.State.EventSender, dataOption.Select<IConfigEvent>(data => new SeedDataEvent(data.Url, request.Event.Action)))
+                       let opt = SendEvent(request.State.EventSender, dataOption.Select(data => SeedDataEvent.Create(data.Url, request.Event.Action)))
                        select opt.Select(_ => OperationResult.Success()));
 
             TryReceive<UpdateGlobalConfigCommand>(
                 nameof(UpdateGlobalConfigCommand),
                 obs => from request in obs
                        from data in Task.Run(() => UpdateRepo(request.State.GlobalRepository, request.Event.Action, new GlobalConfigEntity(GlobalConfigEntity.EntityId, request.Event.Config)))
-                       let opt = SendEvent(request.State.EventSender, data.Select<IConfigEvent>(d => new GlobalConfigEvent(d.Config, request.Event.Action)))
+                       let opt = SendEvent(request.State.EventSender, data.Select(d => GlobalConfigEvent.Create(d.Config, request.Event.Action)))
                        select opt.Select(_ => OperationResult.Success()));
 
             TryReceive<UpdateSpecificConfigCommand>(
@@ -104,7 +104,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                                ? SpecificConfigEntity.Patch(state.Apps.Get(request.Event.Id).OptionNotNull(), evt)
                                : SpecificConfigEntity.From(evt))
                        let newData = UpdateRepo(state.Apps, evt.Action, data)
-                       let opt = SendEvent(state.EventSender, newData.Select<IConfigEvent>(d => new SpecificConfigEvent(d.Config, evt.Action)))
+                       let opt = SendEvent(state.EventSender, newData.Select(d => SpecificConfigEvent.Create(d.Config, evt.Action)))
                        select opt.Select(_ => OperationResult.Success(), () => OperationResult.Failure(ConfigError.SpecificConfigurationNotFound)));
 
             TryReceive<UpdateConditionCommand>(
@@ -133,7 +133,7 @@ namespace ServiceManager.ServiceDeamon.ConfigurationServer
                                              }
                                 })
                        let updateData = UpdateRepo(state.Apps, ConfigDataAction.Update, newData)
-                       let result = SendEvent(state.EventSender, updateData.Select<IConfigEvent>(e => new ConditionUpdateEvent(e.Config, evt.Condition, evt.Name, evt.Action)))
+                       let result = SendEvent(state.EventSender, updateData.Select(e => ConditionUpdateEvent.Create(e.Config, evt.Condition, evt.Name, evt.Action)))
                        select result.Select(_ => OperationResult.Success(), () => OperationResult.Failure(ConfigError.SpecificConfigurationNotFound)));
 
             TryReceive<ForceUpdateHostConfigCommand>(

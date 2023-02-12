@@ -10,6 +10,6 @@ public sealed record GridFsContext(GridFSBucket Bucket, GridFSFileInfo? File, Pa
     public GridFSFileInfo FindEntry(ObjectId id)
         => Bucket.Find(Builders<GridFSFileInfo>.Filter.Eq("_id", id)).Single();
 
-    public GridFSFileInfo FindEntry(string fileName)
+    public GridFSFileInfo? FindEntry(string fileName)
         => Bucket.Find(Builders<GridFSFileInfo>.Filter.Eq(f => f.Filename, fileName)).SingleOrDefault();
 }

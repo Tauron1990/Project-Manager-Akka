@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Tauron.Application.VirtualFiles;
 using Tauron.Temp;
 
 namespace ServiceManager.ProjectRepository.Core
@@ -13,6 +14,7 @@ namespace ServiceManager.ProjectRepository.Core
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "Tauron\\ReporitoryManager");
 
-        public static TempStorage TempFiles => _storage ??= TempStorage.CleanAndCreate(DataPath.CombinePath("Temp"));
+        public static TempStorage TempFiles 
+            => _storage ??= TempStorage.CleanAndCreate(VirtualFileFactory.Shared.Local(Path.Combine(DataPath, "Temp")));
     }
 }

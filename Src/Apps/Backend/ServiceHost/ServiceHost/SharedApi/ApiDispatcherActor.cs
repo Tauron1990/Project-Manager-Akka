@@ -17,7 +17,7 @@ namespace ServiceHost.SharedApi
     {
         public ApiDispatcherActor(AppNodeInfo configuration, Lazy<IAppManager> appManager, Lazy<IAppRegistry> appRegistry, Lazy<IInstaller> installer)
         {
-            Receive<GetHostName>(_ => Sender.Tell(new GetHostNameResult(configuration.ApplicationName)));
+            Receive<GetHostName>(_ => Sender.Tell(new GetHostNameResult(HostName.From(configuration.ApplicationName.Value))));
 
             Receive<IHostApiCommand>(
                 cb =>

@@ -2,9 +2,10 @@
 using Akka.Cluster;
 using DotNetty.Transport.Bootstrapping;
 using Master.Seed.Node.Commands;
+using Microsoft.Extensions.Hosting;
 using Petabridge.Cmd.Cluster;
 using Petabridge.Cmd.Host;
-using ServiceHost.Client.Shared;
+using ServiceHost.ClientApp.Shared;
 using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.Master.Commands.KillSwitch;
 using Tauron.Application.Master.Commands.ServiceRegistry;
@@ -17,7 +18,7 @@ namespace Master.Seed.Node
         {
             //Beacon? beacon = null;
 
-            await Bootstrap.StartNode(
+            await AppNode.StartNode(
                     args,
                     KillRecpientType.Seed,
                     IpcApplicationType.Client,
@@ -31,10 +32,10 @@ namespace Master.Seed.Node
                                     cluster.RegisterOnMemberUp(
                                         () =>
                                         {
-                                            ServiceRegistry.Start(
+                                            ServiceRegistryApi.Start(
                                                 system,
                                                 new RegisterService(
-                                                    context.HostingEnvironment.ApplicationName,
+                                                    ServiceName.From(context.HostingEnvironment.ApplicationName),
                                                     cluster.SelfUniqueAddress,
                                                     ServiceTypes.SeedNode));
                                         });

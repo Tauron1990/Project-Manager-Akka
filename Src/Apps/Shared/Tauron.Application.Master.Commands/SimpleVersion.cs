@@ -12,4 +12,7 @@ public readonly partial struct SimpleVersion
 {
     private static Validation Validate(int input)
         => input >= 0 ? Validation.Ok : Validation.Invalid("Version should be Positive");
+
+    public static SimpleVersion operator +(SimpleVersion version, int increment)
+        => From(version.Value + increment);
 }

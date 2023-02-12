@@ -1,8 +1,10 @@
-﻿namespace ServiceHost.Services.Impl
+﻿using Tauron.Application.Master.Commands.Administration.Host;
+
+namespace ServiceHost.Services.Impl
 {
-    public record InternalStopApp(bool Restart)
+    public record InternalStopApp(AppState Restart)
     {
         public InternalStopApp()
-            : this(Restart: false) { }
+            : this(Restart: AppState.NotRunning) { }
     }
 }

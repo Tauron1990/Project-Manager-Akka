@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Akka.Configuration;
 using Akka.Hosting;
-using ServiceHost.Client.Shared.ConfigurationServer.Data;
+using ServiceHost.ClientApp.Shared.ConfigurationServer.Data;
 using ServiceManager.Client.Components.Operations;
 using ServiceManager.Client.Shared.Configuration;
 using ServiceManager.Shared.ServiceDeamon;

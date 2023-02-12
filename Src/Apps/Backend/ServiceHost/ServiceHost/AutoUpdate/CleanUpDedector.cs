@@ -2,7 +2,7 @@
 
 namespace ServiceHost.AutoUpdate
 {
-    public sealed class CleanUpDedector : IStartUpAction
+    public sealed class CleanUpDedector
     {
         private readonly int _id;
         private readonly bool _switch;

@@ -5,17 +5,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Tauron.Application.Master.Commands.Deployment.Build;
 
 namespace ServiceManager.ProjectDeployment.Build
 {
     public static class DotNetBuilder
     {
-        public static Task<string?> BuildApplication(FileInfo project, string output, Action<string> log)
+        public static Task<DeploymentErrorCode?> BuildApplication(FileInfo project, string output, Action<DeploymentMessage> log)
             => Task.Run(async () => await BuildApplicationAsync(project, output, log));
 
-        private static async Task<string?> BuildApplicationAsync(FileInfo project, string output, Action<string> log)
+        private static async ValueTask<DeploymentErrorCode?> BuildApplicationAsync(FileInfo project, string output, Action<DeploymentMessage> log)
         {
-            var arguments = new StringBuilder()
+            StringBuilder arguments = new StringBuilder()
                .Append(" publish ")
                .Append($"\"{project.FullName}\"")
                .Append($" -o \"{output}\"")
@@ -26,19 +27,19 @@ namespace ServiceManager.ProjectDeployment.Build
             var path = DedectDotNet(project);
 
             if (string.IsNullOrWhiteSpace(path))
-                return DeploymentErrorCodes.BuildDotnetNotFound;
+                return DeploymentErrorCode.BuildDotnetNotFound;
 
             using var process = new Process
                                 {
                                     StartInfo = new ProcessStartInfo(path, arguments.ToString())
                                                 {
                                                     UseShellExecute = false,
-                                                    CreateNoWindow = false
-                                                }
+                                                    CreateNoWindow = false,
+                                                },
                                 };
 
 
-            log(DeploymentMessages.BuildStart);
+            log(DeploymentMessage.BuildStart);
             process.Start();
 
             await Task.Delay(5000);
@@ -52,15 +53,15 @@ namespace ServiceManager.ProjectDeployment.Build
 
             if (!process.HasExited)
             {
-                log(DeploymentMessages.BuildKilling);
+                log(DeploymentMessage.BuildKilling);
                 process.Kill();
 
-                return DeploymentErrorCodes.BuildDotNetFailed;
+                return DeploymentErrorCode.BuildDotNetFailed;
             }
 
-            log(DeploymentMessages.BuildCompled);
+            log(DeploymentMessage.BuildCompled);
 
-            return process.ExitCode == 0 ? null : DeploymentErrorCodes.BuildDotNetFailed;
+            return process.ExitCode == 0 ? null : DeploymentErrorCode.BuildDotNetFailed;
         }
 
         private static string? DedectDotNet(FileSystemInfo project)

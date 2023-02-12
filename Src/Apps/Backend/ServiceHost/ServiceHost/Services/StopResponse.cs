@@ -1,4 +1,8 @@
-﻿namespace ServiceHost.Services
+﻿using JetBrains.Annotations;
+using Tauron.Application.Master.Commands;
+
+namespace ServiceHost.Services
 {
-    public sealed record StopResponse(string Name, bool Error);
+    [PublicAPI]
+    public sealed record StopResponse(AppName Name, bool Error);
 }

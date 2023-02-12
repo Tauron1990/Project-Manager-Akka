@@ -1,4 +1,6 @@
-﻿namespace ServiceHost.ApplicationRegistry
+﻿using Tauron.Application.Master.Commands;
+
+namespace ServiceHost.ApplicationRegistry
 {
-    public sealed record InstalledAppQuery(string Name);
+    public sealed record InstalledAppQuery(AppName Name);
 }

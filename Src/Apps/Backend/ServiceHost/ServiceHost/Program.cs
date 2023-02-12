@@ -6,14 +6,19 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using Akka.Actor;
 using Akka.Cluster;
-using DotNetty.Transport.Bootstrapping;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using Newtonsoft.Json;
 using NLog;
-using ServiceHost.Client.Shared;
+using ServiceHost.AutoUpdate;
+using ServiceHost.ClientApp.Shared;
 using ServiceHost.Installer;
 using Tauron;
 using Tauron.Application.AkkaNode.Bootstrap;
@@ -23,6 +28,42 @@ using Tauron.Servicemnager.Networking.Data;
 
 namespace ServiceHost
 {
+    public sealed class IpcMessageFormatter : INetworkMessageFormatter<IDictionary<string, string>>
+    {
+        private const string BeginMessage = "<start>";
+        private const string EndMessage = "<end>";
+        public Memory<byte> Header { get; }
+        public Memory<byte> Tail { get; }
+
+        public IpcMessageFormatter()
+        {
+            Header = Encoding.UTF8.GetBytes(BeginMessage);
+            Tail = Encoding.UTF8.GetBytes(EndMessage);
+        }
+
+        public IDictionary<string, string> ReadMessage(in ReadOnlySequence<byte> bufferMemory) 
+            => JsonConvert.DeserializeObject<Dictionary<string, string>>(Encoding.UTF8.GetString(bufferMemory)) 
+               ?? new Dictionary<string, string>(StringComparer.Ordinal);
+
+        public static byte[] Serialize(IEnumerable<string> args)
+        {
+            var message = $"{BeginMessage}{new ExposedCommandLineProvider(args).Serialize()}{EndMessage}";
+            return Encoding.UTF8.GetBytes(message);
+        }
+            
+        private sealed class ExposedCommandLineProvider : CommandLineConfigurationProvider
+        {
+            internal ExposedCommandLineProvider(IEnumerable<string> args) : base(args) { }
+
+            internal string Serialize()
+            {
+                Load();
+
+                return JsonConvert.SerializeObject(Data);
+            }
+        }
+    }
+    
     public static class Program
     {
         private const string MonitorName = @"Global\Tauron.Application.ProjectManagerHost";
@@ -46,13 +87,8 @@ namespace ServiceHost
                     {
                         await using var client = new NamedPipeClientStream(".", MonitorName, PipeDirection.In, PipeOptions.Asynchronous);
                         await client.ConnectAsync(10000, CancellationToken.None);
-
-                        byte[] data = Encoding.UTF8.GetBytes(new ExposedCommandLineProvider(args).Serialize());
-                        var (message, lenght) = new NetworkMessageFormatter(MemoryPool<byte>.Shared)
-                           .WriteMessage(NetworkMessage.Create("Args", data));
-                        using var mem = message;
-
-                        await client.WriteAsync(mem.Memory[..lenght]);
+                        
+                        await client.WriteAsync(IpcMessageFormatter.Serialize(args));
                     }
                     catch (Exception e)
                     {
@@ -81,61 +117,69 @@ namespace ServiceHost
 
         private static async Task StartApp(string[] args, ExitManager exitManager)
         {
-            await Bootstrap.StartNode(
+            
+            await AppNode.StartNode(
                     args,
                     KillRecpientType.Host,
                     IpcApplicationType.Server,
                     ab =>
                     {
-                        ab.ConfigureAutoFac(
-                                cb =>
-                                {
-                                    cb.RegisterType<CommandHandlerStartUp>().As<IStartUpAction>();
-                                    cb.RegisterModule<HostModule>();
-                                })
-                           .ConfigureAkkaSystem(
-                                (context, system) =>
-                                {
-                                    system.RegisterOnTermination(exitManager.RegularExit);
-                                    var cluster = Cluster.Get(system);
-
-                                    #if TEST
-                                    cluster.Join(cluster.SelfAddress);
-                                    #endif
-
-                                    cluster.RegisterOnMemberRemoved(
-                                        () =>
-                                        {
-                                            exitManager.MemberExit();
-                                            system.Terminate()
-                                               .Ignore();
-                                        });
-                                    cluster.RegisterOnMemberUp(
-                                        () => ServiceRegistry.Get(system)
-                                           .RegisterService(
-                                                new RegisterService(
-                                                    context.HostingEnvironment.ApplicationName,
-                                                    cluster.SelfUniqueAddress,
-                                                    ServiceTypes.ServideHost)));
-                                });
+                        ab.ConfigureServices((_, collection) =>
+                            {
+                                collection.AddSingleton(exitManager);
+                                collection.RegisterModule<HostModule>();
+                            })
+                            .RegisterStartUp<ClusterStartup>(static s => s.Run())
+                            .RegisterStartUp<CommandHandlerStartUp>(static s => s.Run())
+                            .RegisterStartUp<CleanUpDedector>(static s => s.Run())
+                            .RegisterStartUp<ServiceStartupTrigger>(static s => s.Run())
+                            .RegisterStartUp<ManualInstallationTrigger>(static s => s.Run());
                     },
                     consoleLog: true)
-               .Build().RunAsync();
+                .Build()
+               .RunAsync().ConfigureAwait(false);
         }
 
-        private sealed class ExposedCommandLineProvider : CommandLineConfigurationProvider
+        internal sealed class ClusterStartup
         {
-            internal ExposedCommandLineProvider(IEnumerable<string> args) : base(args) { }
+            private readonly ActorSystem _system;
+            private readonly ExitManager _exitManager;
+            private readonly HostingEnvironment _environment;
 
-            internal string Serialize()
+            internal ClusterStartup(ActorSystem system, ExitManager exitManager, HostingEnvironment environment)
             {
-                Load();
+                _system = system;
+                _exitManager = exitManager;
+                _environment = environment;
+            }
 
-                return JsonConvert.SerializeObject(Data);
+            internal void Run()
+            {
+                _system.RegisterOnTermination(_exitManager.RegularExit);
+                var cluster = Cluster.Get(_system);
+
+                #if TEST
+                cluster.Join(cluster.SelfAddress);
+                #endif
+
+                cluster.RegisterOnMemberRemoved(
+                    () =>
+                    {
+                        _exitManager.MemberExit();
+                        _system.Terminate()
+                            .Ignore();
+                    });
+                cluster.RegisterOnMemberUp(
+                    () => ServiceRegistryApi.Get(_system)
+                        .RegisterService(
+                            new RegisterService(
+                                ServiceName.From(_environment.ApplicationName),
+                                cluster.SelfUniqueAddress,
+                                ServiceTypes.ServideHost)));
             }
         }
 
-        private sealed class CommandHandlerStartUp : IStartUpAction
+        private sealed class CommandHandlerStartUp
         {
             private readonly Func<IConfiguration, ManualInstallationTrigger> _installTrigger;
 
@@ -203,7 +247,7 @@ namespace ServiceHost
         //    //}
         //}
 
-        private sealed class ExitManager
+        internal sealed class ExitManager
         {
             private bool _regular;
 
@@ -220,18 +264,26 @@ namespace ServiceHost
             internal void RegularExit() => _regular = true;
         }
 
-        public sealed class IncomingCommandHandler
+        public sealed class IncomingCommandHandler : IDisposable
         {
-            private readonly MessageBuffer _buffer = new(MemoryPool<byte>.Shared);
+            private readonly Channel<IDictionary<string, string>> _provider;
+            private readonly MessageReader<IDictionary<string, string>> _messageReader;
             private readonly CancellationTokenSource _cancellationToken = new();
-            private readonly List<IMemoryOwner<byte>> _incomming = new();
             private readonly Func<IConfiguration, ManualInstallationTrigger> _installTrigger;
 
-            private readonly NamedPipeServerStream _reader = new(MonitorName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+            private readonly NamedPipeServerStream _reader = new(MonitorName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
             public IncomingCommandHandler(Func<IConfiguration, ManualInstallationTrigger> installTrigger)
             {
                 _installTrigger = installTrigger;
+
+                _provider = Channel.CreateUnbounded<IDictionary<string, string>>();
+                _messageReader = new MessageReader<IDictionary<string, string>>(
+                    new PipeMessageStream(_reader),
+                    new IpcMessageFormatter());
+                
+                
+                
                 Task.Factory.StartNew(async () => await Reader(), TaskCreationOptions.LongRunning)
                    .Ignore();
             }
@@ -240,51 +292,20 @@ namespace ServiceHost
 
             private async Task Reader()
             {
+                await _reader.WaitForConnectionAsync(_cancellationToken.Token).ConfigureAwait(false);
+                
+                var readerTask = _messageReader.ReadAsync(_provider.Writer, _cancellationToken.Token);
+                
                 try
                 {
-                    while (true)
+                    await foreach (var data in _provider.Reader.ReadAllAsync(_cancellationToken.Token).ConfigureAwait(false))
                     {
-                        await _reader.WaitForConnectionAsync(_cancellationToken.Token);
-                        var messageNotRead = true;
+                        var config = new ConfigurationBuilder().AddInMemoryCollection(data!).Build();
 
-                        while (messageNotRead)
-                        {
-                            var mem = MemoryPool<byte>.Shared.Rent();
-                            var amount = await _reader.ReadAsync(mem.Memory);
-                            if (amount == 0)
-                            {
-                                mem.Dispose();
-
-                                continue;
-                            }
-
-                            _incomming.Add(mem);
-                            var msg = _buffer.AddBuffer(mem.Memory);
-
-                            if (msg == null) continue;
-
-                            switch (msg.Type)
-                            {
-                                case "Args":
-                                    messageNotRead = false;
-                                    ParseAndRunData(Encoding.UTF8.GetString(msg.Data));
-
-                                    break;
-                            }
-                        }
-
-                        foreach (var owner in _incomming) owner.Dispose();
-                        _incomming.Clear();
-
-                        //using var buffer = MemoryPool<byte>.Shared.Rent(4);
-                        //if (!await TryRead(buffer, 4, _cancellationToken.Token)) continue;
-
-                        //var count = BitConverter.ToInt32(buffer.Memory.Span);
-                        //using var dataBuffer = MemoryPool<byte>.Shared.Rent(count);
-
-                        //if (await TryRead(buffer, count, _cancellationToken.Token)) 
-                        //    ParseAndRunData(Encoding.UTF8.GetString(dataBuffer.Memory[..count].Span));
+                        _installTrigger(config).Run();
                     }
+                    
+                    await readerTask.ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception e)
@@ -292,34 +313,8 @@ namespace ServiceHost
                     LogManager.GetCurrentClassLogger().Error(e, "Error on Read CommandLine from outer process");
                 }
 
-                await _reader.DisposeAsync();
+                await _reader.DisposeAsync().ConfigureAwait(false);
                 Handler = null;
-            }
-
-            //private async Task<bool> TryRead(IMemoryOwner<byte> buffer, int lenght, CancellationToken token)
-            //{
-            //    var currentLenght = 0;
-
-            //    while (true)
-            //    {
-            //        if (_reader.IsMessageComplete)
-            //            return currentLenght == lenght;
-            //        if (currentLenght > lenght)
-            //            return false;
-
-            //        currentLenght = await _reader.ReadAsync(buffer.Memory.Slice(currentLenght, lenght - currentLenght), token);
-
-            //        if (currentLenght == lenght)
-            //            return _reader.IsMessageComplete;
-            //    }
-            //}
-
-            private void ParseAndRunData(string rawdata)
-            {
-                var data = JsonConvert.DeserializeObject<Dictionary<string, string>>(rawdata);
-                var config = new ConfigurationBuilder().AddInMemoryCollection(data).Build();
-
-                _installTrigger(config).Run();
             }
 
             public void Stop()
@@ -331,6 +326,13 @@ namespace ServiceHost
                     handler.Stop();
                 else
                     Handler = handler;
+            }
+
+            public void Dispose()
+            {
+                _messageReader.Dispose();
+                _cancellationToken.Dispose();
+                _reader.Dispose();
             }
         }
 
