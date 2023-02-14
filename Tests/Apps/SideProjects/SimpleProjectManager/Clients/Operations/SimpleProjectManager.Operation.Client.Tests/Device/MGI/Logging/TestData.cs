@@ -70,8 +70,8 @@ public class TestData
 
         public IByteReader ReadStream => _byteReader;
         
-        public bool Connected()
-            => _byteReader.HasData;
+        public ValueTask<bool> Connected()
+            => ValueTask.FromResult(_byteReader.HasData);
 
         private sealed class TestByteReader : IByteReader
         {

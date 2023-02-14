@@ -6,6 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\..\..\Shared\UI\Tauron.Application.Wpf\Tauron.Application.Wpf.csproj" />
+        <ProjectReference Include="..\..\..\..\Shared\Workshop\Tauron.Application.Workshop.StateManagement.Akka\Tauron.Application.Workshop.StateManagement.Akka.csproj" />
         <ProjectReference Include="..\Tauron.Application.Localizer.DataModel\Tauron.Application.Localizer.DataModel.csproj" />
     </ItemGroup>
 

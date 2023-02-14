@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
+using Akka.Hosting;
 using JetBrains.Annotations;
 using ServiceManager.ProjectDeployment.Actors;
 using Tauron.Application.AkkaNode.Services.Core;

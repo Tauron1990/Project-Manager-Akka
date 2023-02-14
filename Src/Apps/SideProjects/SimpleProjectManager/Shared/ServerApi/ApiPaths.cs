@@ -13,4 +13,6 @@ public class ApiPaths
     public const string TaskApi = "Api/TaskManager";
 
     public const string DeviceApi = "Api/Devices";
+
+    public const string LogsApi = "Api/Logs";
 }

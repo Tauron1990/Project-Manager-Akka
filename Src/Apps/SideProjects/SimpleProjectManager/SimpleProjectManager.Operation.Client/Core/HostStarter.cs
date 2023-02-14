@@ -3,6 +3,7 @@ using Akka.Cluster;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared;
+using SimpleProjectManager.Client.Operations.Shared.Clustering;
 using SimpleProjectManager.Operation.Client.Config;
 using Tauron.TAkka;
 
@@ -13,15 +14,17 @@ public partial class HostStarter : BackgroundService
     private readonly OperationConfiguration _configuration;
     private readonly NameService _nameService;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<HostStarter> _logger;
     private readonly ActorSystem _system;
 
     public HostStarter(
-        IHostApplicationLifetime hostApplicationLifetime, ILogger<HostStarter> logger, ActorSystem system,
+        IHostApplicationLifetime hostApplicationLifetime, ILoggerFactory loggerFactory, ActorSystem system,
         OperationConfiguration configuration, NameService nameService)
     {
         _hostApplicationLifetime = hostApplicationLifetime;
-        _logger = logger;
+        _loggerFactory = loggerFactory;
+        _logger = loggerFactory.CreateLogger<HostStarter>();
         _system = system;
         _configuration = configuration;
         _nameService = nameService;
@@ -38,6 +41,9 @@ public partial class HostStarter : BackgroundService
     {
         try
         {
+            var logsProvider = _system.ActorOf(() => new ClusterLogProvider(_loggerFactory.CreateLogger<ClusterLogProvider>()));
+            ClusteringApi.Get(_system).Register(logsProvider);
+            
             await Cluster.Get(_system).JoinAsync(Address.Parse(_configuration.AkkaUrl), stoppingToken).ConfigureAwait(false);
             _system.ActorOf(() => new NameClient(_configuration.Name, _nameService), "ClientNameManager");
         }

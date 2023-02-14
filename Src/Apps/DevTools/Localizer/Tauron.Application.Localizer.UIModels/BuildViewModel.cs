@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Windows.Input;
 using DynamicData;
@@ -103,11 +104,12 @@ namespace Tauron.Application.Localizer.UIModels
     public sealed class BuildViewModel : UiActor
     {
         public BuildViewModel(
-            ILifetimeScope lifetimeScope, IUIDispatcher dispatcher, ProjectFileWorkspace workspace,
+            IServiceProvider lifetimeScope, IUIDispatcher dispatcher, ProjectFileWorkspace workspace,
             LocLocalizer localizer, IDialogFactory dialogFactory, IOperationManager manager)
             : base(lifetimeScope, dispatcher)
         {
-            this.Receive<IncommingEvent>(e => e.Action());
+            
+            //this.Receive<IncommingEvent>(e => e.Action());
 
             #region Import Integration
 

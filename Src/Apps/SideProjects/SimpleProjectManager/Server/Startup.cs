@@ -1,11 +1,13 @@
 using Akka.Cluster.Hosting;
 using Akka.DependencyInjection;
+using Akka.Hosting;
 using Akka.Persistence;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
 using SimpleProjectManager.Server.Configuration;
 using SimpleProjectManager.Server.Controllers.ModelBinder;
+using SimpleProjectManager.Server.Core.Clustering;
 using SimpleProjectManager.Server.Core.DeviceManager;
 using SimpleProjectManager.Server.Core.JobManager;
 using SimpleProjectManager.Server.Core.Projections.Core;
@@ -76,7 +78,12 @@ public class Startup
                     configurationBuilder
                        .WithClustering(new ClusterOptions { Roles = new[] { "Master", "ProjectManager" } })
                        .WithDistributedPubSub("ProjectManager")
-                       .AddStartup((sys, _) => Persistence.Instance.Apply(sys));
+                       .StartActors((system, registry, resolver) 
+                               => registry.Register<ClusterLogManager>(system.ActorOf(resolver.Props<ClusterLogManager>(), "ClusterLogmanager")))
+                       .AddStartup((sys, _) =>
+                       {
+                           Persistence.Instance.Apply(sys);
+                       });
                 })
            .OnMemberRemoved(
                 (_, system, _) =>
