@@ -30,7 +30,9 @@ public sealed partial class InitClientOperationController
         {
             try
             {
-                ClusteringApi.Get(_system).Register(_system.ActorOf(() => new ClusterLogProvider(_factory.CreateLogger<ClusterLogProvider>())));
+                ClusteringApi.Get(_system).Register(_system.ActorOf(() => new ClusterLogProvider(
+                    "Project Manager Server",
+                    _factory.CreateLogger<ClusterLogProvider>())));
 
                 IActorRef actor = await _registry.Actor.ConfigureAwait(false);
 

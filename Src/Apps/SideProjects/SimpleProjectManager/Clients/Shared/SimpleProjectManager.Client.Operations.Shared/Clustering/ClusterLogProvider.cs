@@ -7,10 +7,12 @@ namespace SimpleProjectManager.Client.Operations.Shared.Clustering;
 
 public sealed partial class ClusterLogProvider : ReceiveActor
 {
+    private readonly string _name;
     private readonly ILogger<ClusterLogProvider> _logger;
 
-    public ClusterLogProvider(ILogger<ClusterLogProvider> logger)
+    public ClusterLogProvider(string name, ILogger<ClusterLogProvider> logger)
     {
+        _name = name;
         _logger = logger;
         
         Receive<QueryLogFileNames>(QueryFiles);
@@ -56,15 +58,15 @@ public sealed partial class ClusterLogProvider : ReceiveActor
             if(Directory.Exists(path))
             {
                 string[] files = Directory.GetFiles(path, "*.log");
-                Sender.Tell(new LogFilesNamesResponse(ImmutableList<string>.Empty.AddRange(files)));
+                Sender.Tell(new LogFilesNamesResponse(_name, ImmutableList<string>.Empty.AddRange(files)));
             }
             else
-                Sender.Tell(new LogFilesNamesResponse(ImmutableList<string>.Empty));
+                Sender.Tell(new LogFilesNamesResponse(_name, ImmutableList<string>.Empty));
         }
         catch (Exception e)
         {
             ErrorQueryFiles(e);
-            Sender.Tell(new LogFilesNamesResponse(ImmutableList<string>.Empty));
+            Sender.Tell(new LogFilesNamesResponse(_name, ImmutableList<string>.Empty));
         }
     }
 }

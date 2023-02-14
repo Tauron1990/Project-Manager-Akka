@@ -12,13 +12,23 @@ public sealed class ClusterLogManager : ReceiveActor
     {
         Receive<ClusterActorDiscoveryMessage.ActorUp>(up => _logProviders.Add(up.Actor));
         Receive<ClusterActorDiscoveryMessage.ActorDown>(down => _logProviders.Remove(down.Actor));
-        
-        Receive<QueryLogFileNames>(names)
+
+        Receive<QueryLogFileNames>(QueryNames);
     }
-    
+
+    private void QueryNames(QueryLogFileNames obj)
+    {
+        
+    }
+
     protected override void PreStart()
     {
         ClusteringApi.Get(Context.System).Subscribe();
         base.PreStart();
     }
+}
+
+internal sealed class FileTracker
+{
+    
 }

@@ -41,7 +41,9 @@ public partial class HostStarter : BackgroundService
     {
         try
         {
-            var logsProvider = _system.ActorOf(() => new ClusterLogProvider(_loggerFactory.CreateLogger<ClusterLogProvider>()));
+            var logsProvider = _system.ActorOf(() => new ClusterLogProvider(
+                _configuration.Name.Value, 
+                _loggerFactory.CreateLogger<ClusterLogProvider>()));
             ClusteringApi.Get(_system).Register(logsProvider);
             
             await Cluster.Get(_system).JoinAsync(Address.Parse(_configuration.AkkaUrl), stoppingToken).ConfigureAwait(false);
