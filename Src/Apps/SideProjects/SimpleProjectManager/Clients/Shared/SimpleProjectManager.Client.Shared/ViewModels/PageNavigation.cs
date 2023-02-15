@@ -16,6 +16,8 @@ public class PageNavigation
     public const string UploadFilesUrl = "/Upload";
     public const string EditJobUrl = "/EditJob";
     public const string DevicesUrl = "/Devices";
+    public const string LogFilesUrl = "/LogFiles";
+    
     #pragma warning disable GU0023
     public static readonly ImmutableList<string> All = ImmutableList<string>.Empty.AddRange(GetAll());
     #pragma warning restore GU0023
@@ -35,6 +37,7 @@ public class PageNavigation
         yield return UploadFilesUrl;
         yield return EditJobUrl;
         yield return DevicesUrl;
+        yield return LogFilesUrl;
     }
 
     public void ShowCurrentJobs()

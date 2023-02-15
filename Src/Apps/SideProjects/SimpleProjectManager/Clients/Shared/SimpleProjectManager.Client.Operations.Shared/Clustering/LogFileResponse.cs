@@ -1,3 +1,3 @@
 ﻿namespace SimpleProjectManager.Client.Operations.Shared.Clustering;
 
-public sealed record LogFileResponse(string log);
+public sealed record LogFileResponse(string Log);
