@@ -1,5 +1,6 @@
 ﻿using System.Reactive;
 using Stl.CommandR;
+using Tauron.Application.Master.Commands.ServiceRegistry;
 
 namespace ServiceManager.Server.AppCore.ClusterTracking.Data
 {
@@ -9,5 +10,5 @@ namespace ServiceManager.Server.AppCore.ClusterTracking.Data
 
     public sealed record UpdateStatusCommand(string Url, string Status) : ICommand<Unit>;
 
-    public sealed record UpdateNameCommand(string Url, string Name, string ServiceType) : ICommand<Unit>;
+    public sealed record UpdateNameCommand(string Url, ServiceName Name, string ServiceType) : ICommand<Unit>;
 }

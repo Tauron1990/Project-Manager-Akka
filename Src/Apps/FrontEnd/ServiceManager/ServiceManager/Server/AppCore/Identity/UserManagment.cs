@@ -188,7 +188,7 @@ namespace ServiceManager.Server.AppCore.Identity
                     {
                         await using var db = CreateDbContext(readWrite: true);
 
-                        if (await AsyncEnumerable.CountAsync(db.Users, token) != 0)
+                        if (await db.Users.CountAsync(token) != 0)
                             return "Es sind schon User Registriert. Kein Setup erforderlich";
 
                         var (adminName, adminPassword) = command;
@@ -260,14 +260,14 @@ namespace ServiceManager.Server.AppCore.Identity
                     async (s, _) =>
                     {
                         var login = s.GetRequiredService<SignInManager<IdentityUser>>();
-                        var authService = s.GetRequiredService<IServerSideAuthService>();
+                        var authService = s.GetRequiredService<IAuth>();
                         var contetxt = s.GetRequiredService<IHttpContextAccessor>().HttpContext;
 
                         if (contetxt == null) return "Kein Request";
 
                         if (login.IsSignedIn(contetxt.User))
                         {
-                            await authService.SignOut(new SignOutCommand(command.Session, Force: true), token);
+                            await authService.SignOut(new SignOutCommand(command.Session, true), token);
                             await login.SignOutAsync();
 
                             return string.Empty;

@@ -3,14 +3,18 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Akka.Actor;
 using Akka.Cluster;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using ServiceHost.ClientApp.Shared;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.Helper;
 using Stl.CommandR;
 using Tauron;
 using Tauron.AkkaHost;
+using Tauron.Application;
 using Tauron.Application.Master.Commands.ServiceRegistry;
 using Tauron.Features;
 using Tauron.TAkka;
@@ -19,24 +23,31 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
 {
     public sealed class ClusterHostManagerActor : ActorFeatureBase<ClusterHostManagerActor.ClusterState>
     {
-        public static Func<ICommander, IPreparedFeature> New()
+        public static Func<ICommander, ILogger<ClusterHostManagerActor>, IPreparedFeature> New()
         {
-            static IPreparedFeature _(ICommander commander)
+            static IPreparedFeature _(ICommander commander, ILogger<ClusterHostManagerActor> logger)
                 => Feature.Create(
-                    () => new ClusterHostManagerActor(),
+                    () => new ClusterHostManagerActor(logger),
                     c => new ClusterState(commander, ImmutableHashSet<MemberAddress>.Empty, Cluster.Get(c.System)));
 
             return _;
         }
+        
+        private readonly ILogger<ClusterHostManagerActor> _logger;
+
+        private ClusterHostManagerActor(ILogger<ClusterHostManagerActor> logger) => _logger = logger;
 
 
         protected override void ConfigImpl()
         {
             var cluster = Cluster.Get(Context.System);
 
-            ServiceRegistry serviceRegistry = ServiceRegistry.Start(
+            ServiceRegistryApi serviceRegistry = ServiceRegistryApi.Start(
                 Context.System,
-                c => new RegisterService(ActorApplication.ServiceProvider.GetRequiredService<IHostEnvironment>().ApplicationName, c.SelfUniqueAddress, ServiceTypes.ServiceManager));
+                c => new RegisterService(
+                    ServiceName.From(TauronEnviroment.ServiceProvider.GetRequiredService<IHostEnvironment>().ApplicationName), 
+                    c.SelfUniqueAddress, 
+                    ServiceTypes.ServiceManager));
 
             cluster.RegisterOnMemberUp(() => cluster.Subscribe(Self, ClusterEvent.SubscriptionInitialStateMode.InitialStateAsEvents, typeof(ClusterEvent.IClusterDomainEvent)));
 
@@ -84,7 +95,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking
                                         success: q => q,
                                         failure: e =>
                                                  {
-                                                     Log.Warning(e, "Error on Query Service Data for {Address}", c.Member.UniqueAddress);
+                                                     _logger.LogWarning(e, "Error on Query Service Data for {Address}", c.Member.UniqueAddress);
 
                                                      return new QueryRegistratedServiceResponse(null);
                                                  })

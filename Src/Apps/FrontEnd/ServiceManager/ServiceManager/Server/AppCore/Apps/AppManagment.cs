@@ -12,11 +12,16 @@ using ServiceManager.Server.Hubs;
 using ServiceManager.Shared.Apps;
 using Stl.Fusion;
 using Tauron;
+using Tauron.Application.AkkaNode.Services.Core;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
+using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.Deployment;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Build.Querys;
+using Tauron.Application.Master.Commands.Deployment.Repository;
+using UnitsNet;
 
 namespace ServiceManager.Server.AppCore.Apps
 {
@@ -54,8 +59,25 @@ namespace ServiceManager.Server.AppCore.Apps
         public virtual Task<AppList> QueryAllApps(CancellationToken token)
             => Run(QueryAllAppsImpl, token);
 
-        public virtual Task<AppInfo> QueryApp(string name, CancellationToken token)
+        public virtual Task<AppInfo> QueryApp(AppName name, CancellationToken token)
             => Run(name, QueryAppImpl, token);
+
+        public virtual async Task<QueryRepositoryResult> QueryRepository(RepositoryName name, CancellationToken token)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var host = scope.ServiceProvider.GetRequiredService<IProcessServiceHost>();
+            var api = scope.ServiceProvider.GetRequiredService<RepositoryApi>();
+            
+            
+            await EnsureApi(host, api);
+
+            var result = await api.Send(new RegisterRepository(name, true), Duration.FromSeconds(30), static _ => {}, token);
+
+            if(result.HasValue)
+                return new QueryRepositoryResult(false, result.Value.Info ?? result.Value.Code);
+
+            return new QueryRepositoryResult(true, string.Empty);
+        }
 
         public virtual Task<string> CreateNewApp(ApiCreateAppCommand command, CancellationToken token)
             => Run(command, CreateNewAppImpl, token);
@@ -77,7 +99,7 @@ namespace ServiceManager.Server.AppCore.Apps
             var host = scope.ServiceProvider.GetRequiredService<IProcessServiceHost>();
             var api = scope.ServiceProvider.GetRequiredService<DeploymentApi>();
 
-            await EnsureDeploymentApi(host, api);
+            await EnsureApi(host, api);
 
             return await runner(host, api, scope.ServiceProvider, token);
         }
@@ -91,7 +113,7 @@ namespace ServiceManager.Server.AppCore.Apps
         }
 
 
-        private async Task EnsureDeploymentApi(IProcessServiceHost host, DeploymentApi deploymentApi)
+        private async Task EnsureApi(IProcessServiceHost host, IQueryIsAliveSupport deploymentApi)
         {
             var response = await deploymentApi.QueryIsAlive(_system, TimeSpan.FromSeconds(20));
 
@@ -106,7 +128,7 @@ namespace ServiceManager.Server.AppCore.Apps
 
         private async Task<string> DeleteAppImpl(ApiDeleteAppCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
-            var result = await api.Command<DeleteAppCommand, AppInfo>(new DeleteAppCommand(command.Name), new ApiParameter(TimeSpan.FromSeconds(20), token));
+            var result = await api.Command<DeleteAppCommand, AppInfo>(new DeleteAppCommand(command.Name), new ApiParameter(Duration.FromSeconds(20), token));
 
             return result.ErrorToString();
         }
@@ -117,8 +139,8 @@ namespace ServiceManager.Server.AppCore.Apps
             {
                 var (appName, projectName, repositoryName) = command;
                 var result = await api.Command<CreateAppCommand, AppInfo>(
-                    new CreateAppCommand(appName, projectName, repositoryName),
-                    new ApiParameter(TimeSpan.FromSeconds(20), token));
+                    new CreateAppCommand(appName, repositoryName, projectName),
+                    new ApiParameter(Duration.FromSeconds(20), token));
 
                 return result.Fold(_ => string.Empty, err => err.Info ?? err.Code);
             }
@@ -132,21 +154,21 @@ namespace ServiceManager.Server.AppCore.Apps
 
         private async Task<AppList> QueryAllAppsImpl(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
-            var queryResult = await api.Query<QueryApps, AppList>(new ApiParameter(TimeSpan.FromSeconds(20), token));
+            var queryResult = await api.Query<QueryApps, AppList>(new ApiParameter(Duration.FromSeconds(20), token));
 
             return queryResult.Fold(l => l, err => throw new InvalidOperationException(err.Info ?? err.Code));
         }
 
-        private async Task<AppInfo> QueryAppImpl(string command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
+        private async Task<AppInfo> QueryAppImpl(AppName command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
-            var queryResult = await api.Query<QueryApp, AppInfo>(new QueryApp(command), new ApiParameter(TimeSpan.FromSeconds(20), token));
+            var queryResult = await api.Query<QueryApp, AppInfo>(new QueryApp(command), new ApiParameter(Duration.FromSeconds(20), token));
 
             return queryResult.Fold(
                 ai => ai,
                 err => AppInfo.Empty with
                        {
                            Deleted = true,
-                           Name = err.Info ?? err.Code
+                           Name = AppName.From(err.Info ?? err.Code),
                        });
         }
 
@@ -173,13 +195,13 @@ namespace ServiceManager.Server.AppCore.Apps
                 var result =
                     await api.Command<CreateAppCommand, AppInfo>(
                         new CreateAppCommand(name, repository, projectName),
-                        new ApiParameter(TimeSpan.FromSeconds(20), token, MessageSender));
+                        new ApiParameter(Duration.FromSeconds(20), token, MessageSender));
 
                 return result.Fold(
                     _ => DefaultApps.Apps.Length - 1 == command.Step
                         ? new RunAppSetupResponse(-1, null, IsCompled: true, "Setup Fertig")
                         : new RunAppSetupResponse(command.Step + 1, null, IsCompled: false, $"Anwednug {name} wurde erstellt"),
-                    err => err.Code == DeploymentErrorCodes.CommandDuplicateApp
+                    err => err.Code == DeploymentErrorCode.CommandDuplicateApp
                         ? new RunAppSetupResponse(command.Step + 1, null, IsCompled: false, $"Anwendung {name} ist schon Erstellt")
                         : new RunAppSetupResponse(-1, err.Code, IsCompled: true, "Schwerer Fehler"));
             }
@@ -195,7 +217,7 @@ namespace ServiceManager.Server.AppCore.Apps
         {
             try
             {
-                var queryResult = await api.Query<QueryApps, AppList>(new ApiParameter(TimeSpan.FromSeconds(20), token));
+                var queryResult = await api.Query<QueryApps, AppList>(new ApiParameter(Duration.FromSeconds(20), token));
 
                 return queryResult.Fold(
                     apps => new NeedSetupData(null, DefaultApps.Apps.Any(c => apps.Apps.All(i => i.Name != c.Name))),
