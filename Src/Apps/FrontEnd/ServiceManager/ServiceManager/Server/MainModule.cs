@@ -20,13 +20,13 @@ namespace ServiceManager.Server
             builder.RegisterSettingsManager(c => c.WithProvider<LocalConfigurationProvider>());
             builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>().SingleInstance();
 
-            builder.RegisterEventDispatcher<IConfigEvent, ConfigEventDispatcher, ConfigApiEventDispatcherRef>(ConfigApiEventDispatcherActor.New());
-            builder.RegisterEventDispatcher<AppInfo, AppEventDispatcher, AppEventDispatcherRef>(AppEventDispatcherActor.New());
+            builder.RegisterEventDispatcher<IConfigEvent, ConfigEventDispatcher, ConfigApiEventDispatcherRef>(ConfigApiEventDispatcherActor.New(), "ConfigApiEventDispatcherActor");
+            builder.RegisterEventDispatcher<AppInfo, AppEventDispatcher, AppEventDispatcherRef>(AppEventDispatcherActor.New(), "AppEventDispatcherRef");
 
             builder.RegisterType<NodeRepository>().As<INodeRepository>().SingleInstance();
             builder.RegisterType<PropertyChangedNotifer>().As<IPropertyChangedNotifer>().SingleInstance();
 
-            builder.RegisterFeature<ClusterNodeManagerRef, IClusterNodeManager>(ClusterHostManagerActor.New());
+            builder.RegisterFeature<ClusterNodeManagerRef, IClusterNodeManager>(ClusterHostManagerActor.New(), "ClusterHostManagerActor");
             builder.RegisterFeature<ProcessServiceHostRef, IProcessServiceHost>(ProcessServiceHostActor.New());
 
             builder.Register(c => DeploymentApi.CreateProxy(c.Resolve<ActorSystem>())).SingleInstance();

@@ -5,6 +5,7 @@ using Akka;
 using Akka.Actor;
 using Akka.Streams;
 using Akka.Streams.Dsl;
+using Microsoft.Extensions.Logging;
 using Tauron;
 using Tauron.Application;
 using Tauron.Application.AkkaNode.Services.Core;
@@ -19,14 +20,16 @@ namespace ServiceManager.Server.AppCore.Helper
 
     public abstract class EventDispatcherRef : FeatureActorRefBase<IEventDispatcher>, IEventDispatcher
     {
-        protected EventDispatcherRef(string? name) : base(name) { }
-
         public void Init() => Tell(new InitActor());
     }
 
     public abstract class RestartingEventDispatcherActorBase<TEventType, TEventSource> : ActorFeatureBase<RestartingEventDispatcherActorBase<TEventType, TEventSource>.State>
         where TEventSource : IQueryIsAliveSupport
     {
+        private readonly ILogger _logger;
+
+        protected RestartingEventDispatcherActorBase(ILogger logger) => _logger = logger;
+
         protected override void ConfigImpl()
         {
             var materializer = Context.Materializer();
@@ -49,14 +52,14 @@ namespace ServiceManager.Server.AppCore.Helper
                                 t =>
                                 {
                                     if (t.IsFaulted)
-                                        Log.Warning(t.Exception, "Event Stream Failed");
+                                        _logger.LogWarning(t.Exception, "Event Stream Failed");
 
                                     Self.Tell(new TryQueryEventSource());
                                 }),
                         e =>
                         {
                             if (e is not TaskCanceledException)
-                                Log.Error(e, "Error on get Event Sources from Service");
+                                _logger.LogError(e, "Error on get Event Sources from Service");
                             Timers.StartSingleTimer(nameof(TryQueryEventSource), new TryQueryEventSource(), TimeSpan.FromSeconds(30));
                         }));
         }

@@ -1,5 +1,8 @@
 ﻿using System;
 using Stl.CommandR;
+using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.Deployment;
+using Tauron.Application.Master.Commands.Deployment.Build;
 
 namespace ServiceManager.Shared.Apps
 {
@@ -24,7 +27,7 @@ namespace ServiceManager.Shared.Apps
 
     public sealed record QueryRepositoryResult(bool IsOk, string Error);
     
-    public sealed record ApiCreateAppCommand(string Name, string ProjectName, string RepositoryName) : ICommand<string>;
+    public sealed record ApiCreateAppCommand(AppName Name, ProjectName ProjectName, RepositoryName RepositoryName) : ICommand<string>;
 
-    public sealed record ApiDeleteAppCommand(string Name) : ICommand<string>;
+    public sealed record ApiDeleteAppCommand(AppName Name) : ICommand<string>;
 }

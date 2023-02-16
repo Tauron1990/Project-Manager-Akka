@@ -10,7 +10,7 @@ using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 namespace Tauron.Application.Master.Commands.Deployment.Repository;
 
 [PublicAPI]
-public sealed class RepositoryApi : ISender
+public sealed class RepositoryApi : ISender, IQueryIsAliveSupport
 {
     public const string RepositoryPath = @"RepositoryManager";
 

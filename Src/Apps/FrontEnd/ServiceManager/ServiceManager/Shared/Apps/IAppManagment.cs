@@ -1,6 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Stl.Fusion;
+using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.Deployment;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 
 namespace ServiceManager.Shared.Apps
@@ -16,9 +18,9 @@ namespace ServiceManager.Shared.Apps
         Task<AppList> QueryAllApps(CancellationToken token);
 
         [ComputeMethod]
-        Task<AppInfo> QueryApp(string name, CancellationToken token);
+        Task<AppInfo> QueryApp(AppName name, CancellationToken token);
 
-        Task<QueryRepositoryResult> QueryRepository(string name, CancellationToken token);
+        Task<QueryRepositoryResult> QueryRepository(RepositoryName name, CancellationToken token);
 
         Task<string> CreateNewApp(ApiCreateAppCommand command, CancellationToken token);
 

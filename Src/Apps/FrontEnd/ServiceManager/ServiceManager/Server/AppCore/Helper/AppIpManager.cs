@@ -8,6 +8,8 @@ using Akka.Configuration;
 using Akka.Hosting;
 using ServiceManager.Shared.ClusterTracking;
 using Tauron.Application;
+using Tauron.Application.Master.Commands.Administration.Configuration;
+using Tauron.Application.VirtualFiles;
 
 namespace ServiceManager.Server.AppCore.Helper
 {
@@ -30,6 +32,18 @@ namespace ServiceManager.Server.AppCore.Helper
 
         public IObservable<AppIp> IpChanged { get; }
 
+        private async ValueTask WriteText(IFile file, string content)
+        {
+            await using var streamWriter = new StreamWriter(file.CreateNew());
+            await streamWriter.WriteAsync(content);
+        }
+        
+        private async ValueTask<string> ReadText(IFile file)
+        {
+            using var streamReader = new StreamReader(file.Open(FileAccess.Read));
+            return await streamReader.ReadToEndAsync();
+        }
+        
         public async Task<string> WriteIp(string ip)
         {
             try
@@ -37,11 +51,11 @@ namespace ServiceManager.Server.AppCore.Helper
                 var baseConfig = ConfigurationFactory.ParseString(await File.ReadAllTextAsync("seed.conf"));
                 baseConfig = ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.hostname = {ip}").WithFallback(baseConfig);
 
-                var targetFile = Path.Combine(TauronEnviroment.DefaultProfilePath, "servicemanager-ip.dat");
+                var targetFile = TauronEnviroment.DefaultProfilePath.GetFile("servicemanager-ip.dat");
 
                 await File.WriteAllTextAsync("seed.conf", baseConfig.ToString(includeFallback: true));
-                await File.WriteAllTextAsync(targetFile, ip);
-
+                await WriteText(targetFile, ip);
+                
                 return string.Empty;
             }
             catch (Exception e)
@@ -60,28 +74,30 @@ namespace ServiceManager.Server.AppCore.Helper
 
         public async Task Aquire()
         {
-            var targetFile = Path.Combine(TauronEnviroment.DefaultProfilePath, "servicemanager-ip.dat");
+            var targetFile = TauronEnviroment.DefaultProfilePath.GetFile("servicemanager-ip.dat");
             var potentialIp = await TryFindIp();
             var needPatch = false;
 
-            if (File.Exists(targetFile))
+            if (targetFile.Exist)
+            {
                 try
                 {
-                    var old = await File.ReadAllTextAsync(targetFile);
+                    var old = await ReadText(targetFile);
                     if (potentialIp != null && old != potentialIp)
                     {
                         needPatch = true;
-                        await File.WriteAllTextAsync(targetFile, potentialIp);
+                        await WriteText(targetFile, potentialIp);
                     }
                     else if (!string.IsNullOrWhiteSpace(old))
                     {
-                        #if DEBUG
+#if DEBUG
                         needPatch = true;
-                        #endif
+#endif
                         Ip = new AppIp(old, IsValid: true);
                     }
                 }
                 catch (IOException) { }
+            }
             else
                 needPatch = true;
 
@@ -98,7 +114,7 @@ namespace ServiceManager.Server.AppCore.Helper
 
             try
             {
-                string seedPath = Path.Combine(Program.ExeFolder, AkkaConfigurationBuilder.Seed);
+                string seedPath = Path.Combine(Program.ExeFolder, AkkaConfigurationHelper.Seed);
 
                 var baseConfig = ConfigurationFactory.ParseString(await File.ReadAllTextAsync(seedPath));
 
@@ -108,7 +124,7 @@ namespace ServiceManager.Server.AppCore.Helper
 
                 Ip = new AppIp(potentialIp, IsValid: true);
 
-                await File.WriteAllTextAsync(targetFile, potentialIp);
+                await WriteText(targetFile, potentialIp);
             }
             catch (Exception e)
             {

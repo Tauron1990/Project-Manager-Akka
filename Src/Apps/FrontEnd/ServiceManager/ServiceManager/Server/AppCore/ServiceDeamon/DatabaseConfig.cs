@@ -21,6 +21,7 @@ using Tauron;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 using Tauron.Operations;
+using UnitsNet;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
@@ -113,7 +114,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
                     if (canSend)
                     {
-                        var scResult = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(TimeSpan.FromSeconds(10)));
+                        var scResult = await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(Duration.FromSeconds(10)));
                         var sc = scResult.GetOrThrow();
 
                         if (token.IsCancellationRequested) return string.Empty;
