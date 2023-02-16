@@ -16,7 +16,6 @@ try
     IHostBuilder builder = AppNode.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: false)
        .ConfigureServices(
             sc => sc.RegisterModules(
-                new AkkaModule(),
                 new CommonModule(),
                 new DataModule(),
                 new MainModule(),

@@ -6,6 +6,7 @@ using SimpleProjectManager.Client.Shared.ViewModels.Devices;
 using SimpleProjectManager.Client.Shared.ViewModels.EditJob;
 using SimpleProjectManager.Client.ViewModels;
 using SimpleProjectManager.Client.ViewModels.Devices;
+using SimpleProjectManager.Client.ViewModels.LogFiles;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using Tauron;
@@ -43,5 +44,7 @@ public static class ServiceRegistrar
         services.AddTransient<SingleSensorViewModel>();
         services.AddTransient<SingleButtonViewModel>();
         services.AddTransient<LogsDisplayViewModel>();
+
+        services.AddTransient<LogFilesViewModel>();
     }
 }

@@ -1,20 +1,22 @@
-﻿using Akka.Actor;
+﻿using System.Reflection;
+using Akka.Actor;
+using Akka.DependencyInjection;
 using Akka.Hosting;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Stl.Collections;
-using Tauron.Application;
 
 namespace Tauron.AkkaHost;
 
+[PublicAPI]
 public static class ActorApplicationExtensions
 {
     [PublicAPI]
     public static IHostBuilder ConfigureAkkaApplication(this IHostBuilder hostBuilder, Action<IActorApplicationBuilder>? config = null)
     {
         var builder = new ActorApplicationBluilder(hostBuilder);
+        Module.Internal.HandlerRegistry.ModuleHandler = new ActorApplicationHandler(builder);
+        
         config?.Invoke(builder);
 
         return hostBuilder.UseServiceProviderFactory(
@@ -26,140 +28,38 @@ public static class ActorApplicationExtensions
             });
     }
 
-    private sealed class ActorApplicationBluilder : IActorApplicationBuilder
-    {
-        private readonly IHostBuilder _builder;
+    public static IActorApplicationBuilder ConfigureAkka(this IActorApplicationBuilder builder, Action<AkkaConfigurationBuilder> config)
+        => builder.ConfigureAkka((_, _, c) => config(c));
 
-        private List<Action<HostBuilderContext, IServiceProvider, AkkaConfigurationBuilder>>? _config = new();
-        private HostBuilderContext? _context;
+    public static IActorApplicationBuilder StartActors(this IActorApplicationBuilder builder, Action<ActorSystem, IActorRegistry> starter)
+        => builder.ConfigureAkka(b => b.StartActors(starter));
+    
+    public static IActorApplicationBuilder StartActors(this IActorApplicationBuilder builder, Action<ActorSystem, IActorRegistry, IDependencyResolver> starter)
+        => builder.ConfigureAkka(b => b.StartActors(starter));
 
-        internal ActorApplicationBluilder(IHostBuilder builder)
-            => _builder = builder;
+    public static IActorApplicationBuilder StartActors(this IActorApplicationBuilder builder, ActorStarter starter)
+        => builder.ConfigureAkka(b => b.StartActors(starter));
 
-        internal IServiceCollection Collection { get; set; } = new ServiceCollection();
+    public static IActorApplicationBuilder StartActors(this IActorApplicationBuilder builder, ActorStarterWithResolver starter)
+        => builder.ConfigureAkka(b => b.StartActors(starter));
+    
+    public static IActorApplicationBuilder ConfigureServices(this IActorApplicationBuilder builder, Action<IServiceCollection> config)
+        => builder.ConfigureServices((_, sc) => config(sc));
 
-        internal bool ConfigurationFinisht { get; set; }
+    public static IActorApplicationBuilder ScanModules(this IActorApplicationBuilder builder, IEnumerable<Assembly> assemblies)
+        => builder.ConfigureServices(s => s.ScanModules(assemblies));
 
-        public IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, AkkaConfigurationBuilder> system)
-            => ConfigureAkka((h, _, c) => system(h, c));
-
-        public IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, IServiceProvider, AkkaConfigurationBuilder> system)
-        {
-            if(_config is null)
-                throw new InvalidOperationException("Akka Configuration is already Finisht");
-
-            _config.Add(system);
-
-            return this;
-        }
+    public static IActorApplicationBuilder ScanModules(this IActorApplicationBuilder builder, Predicate<Assembly>? predicate = null)
+        => builder.ConfigureServices(s => s.ScanModules(predicate));
 
 
-        public IActorApplicationBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate)
-        {
-            CheckConfigFinisht();
-            _builder.ConfigureHostConfiguration(configureDelegate);
+    public static IActorApplicationBuilder RegisterModule<TModule>(this IActorApplicationBuilder builder)
+        where TModule : class, IModule, new()
+        => builder.ConfigureServices(s => s.RegisterModule<TModule>());
 
-            return this;
-        }
+    public static IActorApplicationBuilder RegisterModule(this IActorApplicationBuilder builder, IModule module)
+        => builder.ConfigureServices(s => s.RegisterModule(module));
 
-        public IActorApplicationBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> configureDelegate)
-        {
-            CheckConfigFinisht();
-            _builder.ConfigureAppConfiguration(configureDelegate);
-
-            return this;
-        }
-
-        public IActorApplicationBuilder ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureDelegate)
-        {
-            if(ConfigurationFinisht)
-                configureDelegate(_context!, Collection);
-            else
-                _builder.ConfigureServices(configureDelegate);
-
-            return this;
-        }
-
-        public IActorApplicationBuilder ConfigureContainer<TContainerBuilder>(Action<HostBuilderContext, TContainerBuilder> configureDelegate)
-        {
-            _builder.ConfigureContainer(configureDelegate);
-
-            return this;
-        }
-
-        internal void Init(HostBuilderContext context)
-            => _context = context;
-
-        private void CheckConfigFinisht()
-        {
-            if(ConfigurationFinisht)
-                throw new InvalidOperationException("The Configuration Process is already Finisht");
-        }
-
-        private string GetActorSystemName(IConfiguration config)
-        {
-            if(_context is null)
-                throw new InvalidOperationException("HostBuilder Context is Null");
-
-            string? name = config["actorsystem"];
-
-            return !string.IsNullOrWhiteSpace(name)
-                ? name
-                : _context.HostingEnvironment.ApplicationName.Replace('.', '-');
-        }
-
-        internal void AddAkka()
-        {
-            if(_context is null)
-                throw new InvalidOperationException("HostBuilder Context is Null");
-
-            #pragma warning disable GU0011
-            Collection.AddAkka(
-                GetActorSystemName(_context.Configuration),
-                (builder, provider) =>
-                {
-                    if(_config is null)
-                        throw new InvalidOperationException("Akka _config is null");
-
-                    _config.ForEach(a => a(_context, provider, builder));
-                    _config = null;
-                });
-        }
-    }
-
-
-    private sealed class ActorServiceProviderFactory : IServiceProviderFactory<IActorApplicationBuilder>
-    {
-        private readonly ActorApplicationBluilder _actorBuilder;
-
-        internal ActorServiceProviderFactory(ActorApplicationBluilder actorBuilder) => _actorBuilder = actorBuilder;
-
-        public IActorApplicationBuilder CreateBuilder(IServiceCollection services)
-        {
-            _actorBuilder.ConfigurationFinisht = true;
-            services.AddRange(_actorBuilder.Collection);
-            _actorBuilder.Collection = services;
-
-            return _actorBuilder;
-        }
-
-
-        public IServiceProvider CreateServiceProvider(IActorApplicationBuilder containerBuilder)
-        {
-            if(_actorBuilder != containerBuilder) throw new InvalidOperationException("Builder was replaced during Configuration");
-
-            _actorBuilder.AddAkka();
-
-            ServiceProvider prov = _actorBuilder.Collection.BuildServiceProvider();
-            TauronEnviromentSetup.Run(prov);
-
-            var lifetime = prov.GetRequiredService<IHostApplicationLifetime>();
-
-            var system = prov.GetRequiredService<ActorSystem>();
-
-            lifetime.ApplicationStopping.Register(() => system.Terminate());
-
-            return prov;
-        }
-    }
+    public static IActorApplicationBuilder RegisterModules(this IActorApplicationBuilder builder, params IModule[] modules)
+        => builder.ConfigureServices(s => s.RegisterModules(modules));
 }

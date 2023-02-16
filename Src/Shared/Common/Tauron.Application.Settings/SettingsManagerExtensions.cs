@@ -1,6 +1,8 @@
 ﻿using System;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
+using Tauron.AkkaHost;
 using Tauron.TAkka;
 
 namespace Tauron.Application.Settings;
@@ -10,7 +12,7 @@ namespace Tauron.Application.Settings;
 [PublicAPI]
 public static class SettingsManagerExtensions
 {
-    public static void RegisterSettingsManager(this IServiceCollection builder, Action<SettingsConfiguration>? config = null)
+    public static void RegisterSettingsManager(this IActorApplicationBuilder builder, Action<SettingsConfiguration>? config = null)
     {
         if(config != null)
         {
@@ -18,13 +20,8 @@ public static class SettingsManagerExtensions
             config(s);
         }
 
-        builder.AddSingleton<IDefaultActorRef<SettingsManager>>(
-            c =>
-            {
-                var man = new DefaultActorRef<SettingsManager>(c.GetRequiredService<ActorRefFactory<SettingsManager>>());
-                man.Init("Settings-Manager");
-
-                return man;
-            });
+        builder.StartActors(
+            (system, registry, resolver) =>
+                registry.Register<SettingsManager>(system.ActorOf(resolver.Props<SettingsManager>(),"Settings-Manager")));
     }
 }

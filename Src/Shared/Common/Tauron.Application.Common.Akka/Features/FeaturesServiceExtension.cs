@@ -1,104 +1,82 @@
 ﻿using System.Reflection;
 using Akka.Actor;
+using Akka.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
+using Tauron.AkkaHost;
 
 namespace Tauron.Features;
 
 [PublicAPI]
 public static class FeaturesServiceExtension
 {
-    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del)
-        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
-        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, null, null);
-
-    public static IServiceCollection RegisterFeature<TInterfaceType>(
-        this IServiceCollection builder, Delegate del,
+    public static IActorApplicationBuilder RegisterFeature<TInterfaceType>(
+        this IActorApplicationBuilder builder, Delegate del,
         string? actorName)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
-        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, actorName, null);
+        => RegisterFeature<TInterfaceType>(builder, del, actorName, supervisorStrategy: null);
 
-    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del, Func<SuperviserData>? supervisorStrategy)
+    public static IActorApplicationBuilder RegisterFeature<TInterfaceType>(this IActorApplicationBuilder builder, Delegate del, Func<SuperviserData>? supervisorStrategy)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
-        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, null, supervisorStrategy);
+        => RegisterFeature<TInterfaceType>(builder, del, actorName: null, supervisorStrategy);
 
-    public static IServiceCollection RegisterFeature<TInterfaceType>(this IServiceCollection builder, Delegate del, string? actorName, Func<SuperviserData>? supervisorStrategy)
+    public static IActorApplicationBuilder RegisterFeature<TInterfaceType>(
+        this IActorApplicationBuilder builder, Delegate del)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
-        => RegisterFeature<TInterfaceType, TInterfaceType>(builder, del, actorName, supervisorStrategy);
+        => RegisterFeature<TInterfaceType>(builder, del, actorName: null, supervisorStrategy: null);
 
-    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
-        this IServiceCollection builder, Delegate del)
-        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
-        where TImpl : TInterfaceType
-        => RegisterFeature<TImpl, TInterfaceType>(builder, del, null, null);
-
-    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
-        this IServiceCollection builder, Delegate del,
-        Func<SuperviserData>? supervisorStrategy)
-        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
-        where TImpl : TInterfaceType
-        => RegisterFeature<TImpl, TInterfaceType>(builder, del, null, supervisorStrategy);
-
-    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
-        this IServiceCollection builder, Delegate del,
-        string? actorName)
-        where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
-        where TImpl : TInterfaceType
-        => RegisterFeature<TImpl, TInterfaceType>(builder, del, actorName, null);
-
-    public static IServiceCollection RegisterFeature<TImpl, TInterfaceType>(
-        this IServiceCollection builder, Delegate del,
+    public static IActorApplicationBuilder RegisterFeature<TInterfaceType>(
+        this IActorApplicationBuilder builder, Delegate del,
         string? actorName, Func<SuperviserData>? supervisorStrategy)
         where TInterfaceType : class, IFeatureActorRef<TInterfaceType>
-        where TImpl : TInterfaceType
     {
         var param = del.Method.GetParameters().Select(info => info.ParameterType).ToArray();
-        ObjectFactory factory = ActivatorUtilities.CreateFactory(typeof(TImpl), GetParameters(typeof(TImpl)));
 
-        return builder.AddSingleton<TInterfaceType>(
-            s =>
-            {
-                var inst = (TImpl)factory(s, null);
-
-                inst.Init(
-                    CreateActor,
-                    () => del.DynamicInvoke(param.Select(s.GetService).ToArray()) switch
-                    {
-                        IPreparedFeature feature => Feature.Props(feature),
-                        IPreparedFeature[] features => Feature.Props(features),
-                        IEnumerable<IPreparedFeature> features => Feature.Props(features.ToArray()),
-                        _ => throw new InvalidOperationException("Invalid Feature Construction Method"),
-                    });
-
-                return inst;
-
-                async Task<IActorRef> CreateActor(Props props)
+        return builder
+            .ConfigureServices(s => s.AddSingleton<TInterfaceType>())
+            .StartActors(
+                async (system, registry, resolver) =>
                 {
-                    var system = (ExtendedActorSystem)s.GetRequiredService<ActorSystem>();
+                    Props props = CreateProps(resolver);
 
-                    if(supervisorStrategy is null) return system.ActorOf(props, actorName);
+                    registry.Register<TInterfaceType>(await CreateActor(system, props).ConfigureAwait(false));
+                });
+        
+        Props CreateProps(IDependencyResolver s)
+        {
+            return del.DynamicInvoke(param.Select(s.GetService).ToArray()) switch
+            {
+                IPreparedFeature feature => Feature.Props(feature),
+                IPreparedFeature[] features => Feature.Props(features),
+                IEnumerable<IPreparedFeature> features => Feature.Props(features.ToArray()),
+                _ => throw new InvalidOperationException("Invalid Feature Construction Method"),
+            };
+        }
+        
+        async ValueTask<IActorRef> CreateActor(ActorSystem system, Props props)
+        {
+            if(supervisorStrategy is null) return system.ActorOf(props, actorName);
 
-                    SuperviserData data = supervisorStrategy();
-                    var selector = new ActorSelection(system.Guardian, data.Name);
-                    IActorRef supervisor;
-                    try
-                    {
-                        supervisor = await selector.ResolveOne(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
-                    }
-                    catch (ActorNotFoundException)
-                    {
-                        supervisor = system.ActorOf(Props.Create(() => new GenericSupervisorActor(data.SupervisorStrategy)), data.Name);
-                    }
+            SuperviserData data = supervisorStrategy();
+            ActorSelection selector = system.ActorSelection($"/user/{data.Name}");
+            IActorRef supervisor;
+            try
+            {
+                supervisor = await selector.ResolveOne(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            }
+            catch (ActorNotFoundException)
+            {
+                supervisor = system.ActorOf(Props.Create(() => new GenericSupervisorActor(data.SupervisorStrategy)), data.Name);
+            }
 
-                    GenericSupervisorActor.CreateActorResult? result = await supervisor
-                       .Ask<GenericSupervisorActor.CreateActorResult>(
-                            new GenericSupervisorActor.CreateActor(actorName, props),
-                            TimeSpan.FromSeconds(15))
-                       .ConfigureAwait(false);
+            GenericSupervisorActor.CreateActorResult? result = await supervisor
+                .Ask<GenericSupervisorActor.CreateActorResult>(
+                    new GenericSupervisorActor.CreateActor(actorName, props),
+                    TimeSpan.FromSeconds(15))
+                .ConfigureAwait(false);
 
-                    return result.Actor;
-                }
-            });
+            return result.Actor;
+        }
     }
 
     private static Type[] GetParameters(Type type)

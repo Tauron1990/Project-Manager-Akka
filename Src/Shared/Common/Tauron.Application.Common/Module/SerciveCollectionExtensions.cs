@@ -6,6 +6,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyModel;
+using Tauron.Module.Internal;
 
 namespace Tauron;
 
@@ -36,7 +37,7 @@ public static class SerciveCollectionExtensions
                                     let inst = TryActivate(type)
                                     where inst is not null
                                     select inst)
-            module.Load(collection);
+            HandlerRegistry.ModuleHandler.Handle(collection, module);
 
         return collection;
     }
@@ -82,7 +83,7 @@ public static class SerciveCollectionExtensions
 
     public static IServiceCollection RegisterModule(this IServiceCollection collection, IModule module)
     {
-        module.Load(collection);
+        HandlerRegistry.ModuleHandler.Handle(collection, module);
 
         return collection;
     }

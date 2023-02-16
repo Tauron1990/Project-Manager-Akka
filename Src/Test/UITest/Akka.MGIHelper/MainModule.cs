@@ -6,7 +6,7 @@ using Akka.MGIHelper.UI.FanControl;
 using Akka.MGIHelper.UI.MgiStarter;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Tauron;
+using Tauron.AkkaHost;
 using Tauron.Application.CommonUI;
 using Tauron.Application.Settings;
 using Tauron.Application.Settings.Provider;
@@ -16,19 +16,22 @@ using Tauron.TAkka;
 
 namespace Akka.MGIHelper
 {
-    public sealed class MainModule : IModule
+    public sealed class MainModule : AkkaModule
     {
-        public void Load(IServiceCollection collection)
+        public override void Load(IActorApplicationBuilder builder)
+        {
+            builder.RegisterSettingsManager(
+                c => c.WithProvider<XmlProvider>()
+                    .WithProvider(ProviderConfig.Json(SettingTypes.FanControlOptions, "fancontrol.json"))
+                    .WithProvider(ProviderConfig.Json(SettingTypes.WindowOptions, "window.json")));
+        }
+
+        public override void Load(IServiceCollection collection)
         {
             collection.RegisterView<MainWindow, MainWindowViewModel>();
             collection.RegisterView<MgiStarterControl, MgiStarterControlModel>();
             collection.RegisterView<AutoFanControl, AutoFanControlModel>();
             collection.RegisterView<LogWindow, LogWindowViewModel>();
-
-            collection.RegisterSettingsManager(
-                c => c.WithProvider<XmlProvider>()
-                    .WithProvider(ProviderConfig.Json(SettingTypes.FanControlOptions, "fancontrol.json"))
-                    .WithProvider(ProviderConfig.Json(SettingTypes.WindowOptions, "window.json")));
 
 
             collection.AddSingleton<WindowOptions>(

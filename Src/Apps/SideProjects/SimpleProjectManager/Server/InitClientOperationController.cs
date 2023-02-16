@@ -26,18 +26,18 @@ public sealed partial class InitClientOperationController
 
     public void Run()
     {
-        async void MemberUp()
+        void MemberUp()
         {
             try
             {
-                ClusteringApi.Get(_system).Register(_system.ActorOf(() => new ClusterLogProvider(
-                    "Project Manager Server",
-                    _factory.CreateLogger<ClusterLogProvider>())));
-
-                IActorRef actor = await _registry.Actor.ConfigureAwait(false);
+                ClusteringApi.Get(_system).Register(
+                    _system.ActorOf(
+                        () => new ClusterLogProvider(
+                            "Project Manager Server",
+                            _factory.CreateLogger<ClusterLogProvider>())));
 
                 ClusterActorDiscovery.Get(_system)
-                   .RegisterActor(new ClusterActorDiscoveryMessage.RegisterActor(actor, nameof(NameRegistryFeature)));
+                    .RegisterActor(new ClusterActorDiscoveryMessage.RegisterActor(_registry.Actor, nameof(NameRegistryFeature)));
             }
             catch (Exception e)
             {

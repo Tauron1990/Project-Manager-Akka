@@ -157,6 +157,8 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="OneOf" Version="3.0.223" />
+        <PackageReference Include="OneOf.SourceGenerator" Version="3.0.223" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
         <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.6.8" />
@@ -255,6 +257,9 @@
         </Compile>
         <Compile Update="Shared\Devices\LogsDisplay.cs">
             <DependentUpon>LogsDisplay.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Pages\LogFiles.cs">
+          <DependentUpon>LogFiles.razor</DependentUpon>
         </Compile>
     </ItemGroup>
 

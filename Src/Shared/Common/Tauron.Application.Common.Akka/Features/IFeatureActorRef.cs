@@ -7,10 +7,8 @@ namespace Tauron.Features;
 public interface IFeatureActorRef<out TInterface> : ICanTell
     where TInterface : IFeatureActorRef<TInterface>
 {
-    Task<IActorRef> Actor { get; }
-
-    void Init(Func<Props, Task<IActorRef>> factory, Func<Props> resolver);
-
+    IActorRef Actor { get; }
+    
     TInterface Tell(object msg);
 
     TInterface Forward(object msg);

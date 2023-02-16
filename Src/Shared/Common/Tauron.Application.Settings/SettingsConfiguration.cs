@@ -1,6 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
+using Tauron.AkkaHost;
 
 #pragma warning disable GU0011
 
@@ -9,30 +10,30 @@ namespace Tauron.Application.Settings;
 [PublicAPI]
 public sealed class SettingsConfiguration
 {
-    private readonly IServiceCollection _builder;
+    private readonly IActorApplicationBuilder _builder;
 
-    public SettingsConfiguration(IServiceCollection builder) => _builder = builder;
+    public SettingsConfiguration(IActorApplicationBuilder builder) => _builder = builder;
 
     public SettingsConfiguration WithProvider<TType>()
         where TType : class, ISettingProviderConfiguration
     {
-        _builder.AddScoped<ISettingProviderConfiguration, TType>();
+        _builder.ConfigureServices(s => s.AddScoped<ISettingProviderConfiguration, TType>());
 
         return this;
     }
 
     public SettingsConfiguration WithProvider<TType>(Func<TType> setting)
-        where TType : ISettingProviderConfiguration
+        where TType : class, ISettingProviderConfiguration
     {
-        _builder.AddScoped<ISettingProviderConfiguration>(_ => setting());
+        _builder.ConfigureServices(s => s.AddScoped<ISettingProviderConfiguration>(_ => setting()));
 
         return this;
     }
 
     public SettingsConfiguration WithProvider<TType>(Func<IServiceProvider, TType> setting)
-        where TType : ISettingProviderConfiguration
+        where TType : class, ISettingProviderConfiguration
     {
-        _builder.AddScoped<ISettingProviderConfiguration>(p => setting(p));
+        _builder.ConfigureServices(s => s.AddScoped<ISettingProviderConfiguration>(setting));
 
         return this;
     }

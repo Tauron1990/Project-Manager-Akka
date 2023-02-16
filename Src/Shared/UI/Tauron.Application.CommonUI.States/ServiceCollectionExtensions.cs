@@ -1,5 +1,5 @@
 ﻿using JetBrains.Annotations;
-using Microsoft.Extensions.DependencyInjection;
+using Tauron.AkkaHost;
 using Tauron.Application.CommonUI.Model;
 
 namespace Tauron.Application.CommonUI;
@@ -7,7 +7,8 @@ namespace Tauron.Application.CommonUI;
 [PublicAPI]
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection RegisterModelActor<TActor>(this IServiceCollection builder)
+    public static IActorApplicationBuilder RegisterModelActor<TActor>(this IActorApplicationBuilder builder)
         where TActor : ActorModel
-        => builder.RegisterDefaultActor<TActor>();
+        => builder.StartActors((system, registry, resolver) 
+            => registry.Register<TActor>(system.ActorOf(resolver.Props<TActor>(), typeof(TActor).Name)));
 }

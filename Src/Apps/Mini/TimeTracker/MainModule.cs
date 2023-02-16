@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Tauron;
+using Tauron.AkkaHost;
 using Tauron.Application.CommonUI;
 using Tauron.Application.Settings;
 using TimeTracker.Data;
@@ -12,9 +12,14 @@ using SystemClock = TimeTracker.Managers.SystemClock;
 
 namespace TimeTracker
 {
-    public sealed class MainModule : IModule
+    public sealed class MainModule : AkkaModule
     {
-        public void Load(IServiceCollection builder)
+        public override void Load(IActorApplicationBuilder builder)
+        {
+            builder.RegisterSettingsManager(c => c.WithProvider<AppSettingsConfiguration>());
+        }
+
+        public override void Load(IServiceCollection builder)
         {
             builder.AddTransient<AddEntryDialog>();
             builder.AddTransient<CorrectionDialog>();
@@ -28,8 +33,6 @@ namespace TimeTracker
             builder.AddSingleton<ProfileManager>();
             builder.AddSingleton<CalculationManager>();
             builder.AddSingleton<ConcurancyManager>();
-
-            builder.RegisterSettingsManager(c => c.WithProvider<AppSettingsConfiguration>());
         }
     }
 }
