@@ -15,7 +15,7 @@
                 </MudCardHeader>
                 <MudCardContent>
                     <MudForm @bind-IsValid="_isValid">
-                        <MudTextFieldString Validation="_model.ValidateUrl" @ref="_urlField" Value="@_model.ClusterUrl"></MudTextFieldString>
+                        <MudTextField Validation="_model.ValidateUrl" @ref="_urlField" Value="@_model.ClusterUrl"></MudTextField>
                     </MudForm>
                 </MudCardContent>
                 <MudCardActions>
@@ -27,7 +27,7 @@
 </GenericAuthorizeView>
 
 @code {
-    private MudTextFieldString? _urlField;
+    private MudTextField<string>? _urlField;
 
     private bool _isValid;
 

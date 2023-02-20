@@ -1,14 +1,15 @@
-﻿@inherits WizardPageComponent<AppRegistrationInfo, RepositoryPage>
+﻿@using Tauron.Application.Master.Commands.Deployment
+@inherits WizardPageComponent<AppRegistrationInfo, RepositoryPage>
 
 <div class="d-flex flex-row">
-    <MudTextFieldString Class="ma-2" Label="Repository Name" Value="@Context.Data.Repository" ValueChanged="RepositoryChangedCallback" DebounceInterval="100"/>
+    <MudTextField T="string" Class="ma-2" Label="Repository Name" Value="@Context.Data.Repository.Value" ValueChanged="RepositoryChangedCallback" DebounceInterval="100"/>
     <MudCheckBox T=bool Class="ms-2" Label="Projekte Laden" Checked="@Context.Data.RequestRepository" CheckedChanged="LoadProjecktsChangedCallback"/>
 </div>
 
 @code {
 
     private void RepositoryChangedCallback(string newValue) 
-        => Context.Data = Context.Data with{ Repository = newValue};
+        => Context.Data = Context.Data with{ Repository = RepositoryName.From(newValue)};
 
     private void LoadProjecktsChangedCallback(bool request)
         => Context.Data = Context.Data with{RequestRepository = request};

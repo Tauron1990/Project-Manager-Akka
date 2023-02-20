@@ -6,7 +6,7 @@
 @inject ISessionResolver _session
 @inject NavigationManager _navigationManager
 
-@if (_state?.User.IsAuthenticated == true)
+@if (_state?.User?.IsAuthenticated() == true)
 {
     <MudButton StartIcon="@Icons.Material.Filled.Logout" Color="Color.Warning" Variant="Variant.Filled" OnClick="Logout">Abmelden</MudButton>
 }

@@ -8,7 +8,7 @@
         <MudText Typo="Typo.h5">Neue App Konfiguration</MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextFieldString @bind-Value="@_name" DebounceInterval="200" Validation="@_validateNameFunc" Label="Name der App Konfiguration"/>
+        <MudTextField @bind-Value="@_name" DebounceInterval="200" Validation="@_validateNameFunc" Label="Name der App Konfiguration"/>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="CancelCallback">Abbrechen</MudButton>

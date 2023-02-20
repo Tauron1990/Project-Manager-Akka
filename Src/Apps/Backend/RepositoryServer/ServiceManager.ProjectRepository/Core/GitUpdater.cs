@@ -5,6 +5,8 @@ using Tauron.Application.Master.Commands.Deployment.Repository;
 
 namespace ServiceManager.ProjectRepository.Core
 {
+    #pragma warning disable MA0064
+    
     public sealed class GitUpdater : SharedObject<GitUpdater, RepositoryConfiguration>
     {
         private Repository? _repository;
@@ -29,7 +31,7 @@ namespace ServiceManager.ProjectRepository.Core
             {
                 Init(source);
 
-                if (_repository == null)
+                if (_repository is null)
                 {
                     SendMessage(RepositoryMessage.DownloadRepository);
 
@@ -44,7 +46,7 @@ namespace ServiceManager.ProjectRepository.Core
 
         private (string Path, string Sha) Update()
         {
-            if (_repository == null)
+            if (_repository is null)
                 throw new InvalidOperationException("Not Repository Set");
 
             Commands.Pull(

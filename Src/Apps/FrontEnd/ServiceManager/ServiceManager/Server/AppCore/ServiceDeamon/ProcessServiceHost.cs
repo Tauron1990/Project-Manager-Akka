@@ -3,8 +3,10 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Hosting;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using ServiceHost.ClientApp.Shared.ConfigurationServer;
 using ServiceManager.ProjectDeployment;
@@ -17,7 +19,6 @@ using Tauron;
 using Tauron.Application.AkkaNode.Services.CleanUp;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.Files.GridFS;
-using Tauron.Application.Files.GridFS.Old;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
@@ -29,20 +30,11 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
     public sealed record TryStart(string? DatabaseUrl);
 
     public sealed record TryStartResponse(bool IsRunning, string Message);
-
-    public interface IProcessServiceHost : IFeatureActorRef<IProcessServiceHost>
-    {
-        public Task<TryStartResponse> TryStart(string? databaseUrl);
-
-        public Task<string> ConfigAlive(ConfigurationApi api, ActorSystem system);
-    }
+    
 
     [UsedImplicitly]
-    public sealed class ProcessServiceHostRef : FeatureActorRefBase<IProcessServiceHost>, IProcessServiceHost
+    public sealed class ProcessServiceHostRef : FeatureActorRefBase<ProcessServiceHostRef>
     {
-        public ProcessServiceHostRef()
-            : base("ServiceDeamonHost") { }
-
         public Task<TryStartResponse> TryStart(string? databaseUrl) => Ask<TryStartResponse>(new TryStart(databaseUrl), TimeSpan.FromMinutes(1));
 
         public async Task<string> ConfigAlive(ConfigurationApi api, ActorSystem system)
@@ -55,6 +47,10 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             var isAlive = await api.QueryIsAlive(system, TimeSpan.FromSeconds(10));
 
             return isAlive.IsAlive ? string.Empty : "Der Api Service ist nicht Verfügbar";
+        }
+
+        public ProcessServiceHostRef(IRequiredActor<ProcessServiceHostRef> actor) : base(actor)
+        {
         }
     }
 
@@ -104,7 +100,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                                          select response,
                                     (pair, exception) =>
                                     {
-                                        Log.Error(exception, "Error on start in Process ServiceManager Deamon");
+                                        Logger.LogError(exception, "Error on start in Process ServiceManager Deamon");
 
                                         return Observable.Return(pair.NewEvent(new TryStartResponse(IsRunning: false, exception.Message)));
                                     }));
@@ -217,7 +213,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                         system,
                         new RepositoryManagerConfiguration(
                             config,
-                            fileSystemBuilder.CreateMongoDb(url),
+                            fileSystemBuilder.GridFs(new MongoUrl(url)),
                             DataTransferManager.New(system, "Repository-DataTransfer")))
                    .Manager;
 
@@ -227,7 +223,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                         system,
                         new DeploymentConfiguration(
                             config,
-                            fileSystemBuilder.CreateMongoDb(url),
+                            fileSystemBuilder.GridFs(new MongoUrl(url)),
                             DataTransferManager.New(system, "Deployment-DataTransfer"),
                             RepositoryApi.CreateProxy(system, "Deployment-Repository-Proxy")))
                    .Manager;

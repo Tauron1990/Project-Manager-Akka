@@ -10,7 +10,7 @@
 
 @inject AddHelper _addHelper;
 
-@if (DocumentFormat.OpenXml.EMMA.Model == null || ToEdit == null || State == null)
+@if (Model == null || ToEdit == null || State == null)
 {
     <MudAlert Class="justify-space-around" Variant="Variant.Filled" Severity="Severity.Error">Keine Daten Übergeben</MudAlert>
 }

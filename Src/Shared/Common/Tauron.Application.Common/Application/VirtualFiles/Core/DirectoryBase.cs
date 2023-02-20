@@ -25,13 +25,13 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
 
     public abstract IEnumerable<IFile> Files { get; }
 
-    public IFile GetFile(PathInfo name)
+    public IFile GetFile(in PathInfo name)
         => SplitFilePath(name);
 
-    public IDirectory GetDirectory(PathInfo name)
+    public IDirectory GetDirectory(in PathInfo name)
         => SplitDirectoryPath(name);
 
-    public IDirectory MoveTo(PathInfo location)
+    public IDirectory MoveTo(in PathInfo location)
     {
         ValidateFeature(FileSystemFeature.Moveable);
 

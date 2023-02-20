@@ -38,7 +38,6 @@ namespace ServiceManager.Client
             collection.AddSingleton<DatabaseRequiredComponentHelper>();
             collection.AddSingleton<BasicAppsAlertModel>();
 
-            collection.AddSingleton<IUICommandTracker, UICommandTracker>();
             collection.AddSingleton<IEventAggregator, EventAggregator>();
         }
     }

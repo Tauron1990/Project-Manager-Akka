@@ -18,7 +18,7 @@ namespace ServiceHost.Installer.Impl
         private static readonly StepId Unistall = new(nameof(Unistall));
         private static readonly StepId Finalization = new(nameof(Finalization));
 
-        public ActualUninstallationActor(IAppRegistry registry, IAppManager manager)
+        public ActualUninstallationActor(AppRegistry registry, AppManager manager)
         {
             WhenStep(
                 StepId.Start,

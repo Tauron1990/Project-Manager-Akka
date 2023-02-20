@@ -12,7 +12,7 @@ public interface IVirtualFileSystem : IDirectory, IDisposable
 
     PathInfo Source { get; }
 
-    void Reload(PathInfo source);
+    void Reload(in PathInfo source);
 
     void Save();
 }

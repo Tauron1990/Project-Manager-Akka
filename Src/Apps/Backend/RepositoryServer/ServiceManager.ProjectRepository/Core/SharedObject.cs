@@ -4,7 +4,7 @@ using Tauron.Application.Master.Commands.Deployment.Repository;
 
 namespace ServiceManager.ProjectRepository.Core
 {
-    #pragma warning disable MT1000
+    #pragma warning disable MT1000, MA0018, MA0064
     public abstract class SharedObject<TObject, TConfiguration> : IDisposable
         where TObject : SharedObject<TObject, TConfiguration>, new()
         where TConfiguration : class, IReporterProvider, new()
@@ -61,7 +61,7 @@ namespace ServiceManager.ProjectRepository.Core
             }
         }
 
-        protected void SendMessage(RepositoryMessage msg) => Configuration.SendMessage(msg);
+        protected void SendMessage(in RepositoryMessage msg) => Configuration.SendMessage(msg);
 
         private void Init(TConfiguration configuration) => Configuration = configuration;
 
@@ -70,7 +70,9 @@ namespace ServiceManager.ProjectRepository.Core
             GC.SuppressFinalize(this);
         }
 
+#pragma warning disable MA0055
         ~SharedObject()
+#pragma warning restore MA0055
         {
             Dispose();
         }

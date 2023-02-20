@@ -16,9 +16,9 @@ internal sealed class PreparedFeatureList<TState> : IPreparedFeature
         _builder = builder;
     }
 
-    public KeyValuePair<Type, object> InitialState(IUntypedActorContext context)
+    public KeyValuePair<Type, object>? InitialState(IUntypedActorContext context)
         => new(typeof(TState), _builder(context));
 
-    public IEnumerable<IFeature<GenericState>> Materialize()
+    public IEnumerable<IFeature<GenericState>?> Materialize()
         => _target.SelectMany(preparedFeature => preparedFeature.Materialize());
 }

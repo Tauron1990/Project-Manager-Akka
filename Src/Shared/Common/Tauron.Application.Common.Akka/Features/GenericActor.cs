@@ -13,6 +13,10 @@ internal sealed class GenericActor : FeatureActorBase<GenericActor, GenericState
 
         return Create(
             context => new GenericState(features, context),
-            builder => builder.WithFeatures(features.SelectMany(feature => feature.Materialize())));
+            builder => builder.WithFeatures(
+                from feature in features
+                from state in feature.Materialize()
+                where state is not null
+                select state));
     }
 }

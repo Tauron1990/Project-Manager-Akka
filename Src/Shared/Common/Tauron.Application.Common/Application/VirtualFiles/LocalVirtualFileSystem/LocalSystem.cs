@@ -22,7 +22,7 @@ public sealed class LocalSystem : DelegatingVirtualFileSystem<LocalDirectory>, I
         set => Context.Attributes = value;
     }
 
-    protected override void ReloadImpl(LocalDirectory context, PathInfo filePath)
+    protected override void ReloadImpl(LocalDirectory context, in PathInfo filePath)
     {
         _rootPath = GenericPathHelper.ToRelativePath(filePath);
         Context = new LocalDirectory(new DirectoryContext(_rootPath, true, new DirectoryInfo(_rootPath)), LocalFeaturs);

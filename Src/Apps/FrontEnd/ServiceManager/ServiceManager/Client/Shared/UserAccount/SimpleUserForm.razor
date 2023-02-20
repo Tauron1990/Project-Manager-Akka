@@ -1,9 +1,9 @@
 ﻿<MudCard>
     <MudCardContent>
         <MudForm @bind-IsValid="_success">
-            <MudTextFieldString Label="Administrator Name" Value="@Name" ValueChanged="@NameChanged" Required="true" RequiredError="Administrator Name ist nodwendig"
+            <MudTextField Label="Administrator Name" Value="@Name" ValueChanged="@NameChanged" Required="true" RequiredError="Administrator Name ist nodwendig"
                                 DebounceInterval="200"/>
-            <MudTextFieldString Label="Administrator Passwort" Value="@Password" ValueChanged="@PasswordChanged" Required="true" RequiredError="Administrator Passwort ist notwendig"
+            <MudTextField Label="Administrator Passwort" Value="@Password" ValueChanged="@PasswordChanged" Required="true" RequiredError="Administrator Passwort ist notwendig"
                                 InputType="InputType.Password" DebounceInterval="200"/>
         </MudForm>
     </MudCardContent>

@@ -38,10 +38,10 @@ namespace ServiceManager.Client
         }
 
         public static void ReplaceState<TData>(this IMutableState<TData> state, Func<TData, TData> update)
-            => state.Set(update(state.LatestNonErrorValue));
+            => state.Set(update(state.LastNonErrorValue));
 
         public static async Task ReplaceState<TData>(this IMutableState<TData> state, Func<TData, Task<TData>> update)
-            => state.Set(await update(state.LatestNonErrorValue));
+            => state.Set(await update(state.LastNonErrorValue));
 
         public static void PublishError(this IEventAggregator aggregator, Exception error)
         {

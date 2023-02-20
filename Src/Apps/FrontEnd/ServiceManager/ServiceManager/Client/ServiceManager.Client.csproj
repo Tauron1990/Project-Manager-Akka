@@ -20,6 +20,12 @@
         <Compile Remove="ViewModels\Identity\UserState.cs" />
         <Compile Remove="ViewModels\Models\ModelBase.cs" />
         <None Include="ViewModels\Models\ModelBase.cs" />
+        <Compile Update="Shared\BaseComponents\Wizard\WizardRoot.Tempcs">
+          <DependentUpon>WizardRoot.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Shared\BaseComponents\Wizard\WizardRoot.cs">
+          <DependentUpon>WizardRoot.razor</DependentUpon>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>
@@ -48,16 +54,16 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web.Extensions" Version="5.0.0-preview9.20513.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.2" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="7.0.2" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.2" PrivateAssets="all" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="7.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.3" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-        <PackageReference Include="MudBlazor" Version="6.1.8" />
+        <PackageReference Include="MudBlazor" Version="6.1.9" />
         <PackageReference Include="Reactive.Wasm" Version="1.2.2" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion.Blazor" Version="4.3.8" />
+        <PackageReference Include="Stl.Fusion.Blazor" Version="4.3.11" />
         <PackageReference Include="System.Net.Http.Json" Version="7.0.0" />
     </ItemGroup>
 

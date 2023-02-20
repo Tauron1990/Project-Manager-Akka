@@ -1,13 +1,16 @@
 ﻿using System.Threading.Tasks;
+using Akka.Hosting;
 using Tauron.Features;
 
 namespace ServiceManager.Server.AppCore.ClusterTracking
 {
-    public sealed class ClusterNodeManagerRef : FeatureActorRefBase<IClusterNodeManager>, IClusterNodeManager
+    public sealed class ClusterNodeManagerRef : FeatureActorRefBase<ClusterNodeManagerRef>
     {
-        public ClusterNodeManagerRef()
-            : base() { }
 
         public Task<AllNodesResponse> QueryNodes() => Ask<AllNodesResponse>(new QueryAllNodes());
+
+        public ClusterNodeManagerRef(IRequiredActor<ClusterNodeManagerRef> actor) : base(actor)
+        {
+        }
     }
 }

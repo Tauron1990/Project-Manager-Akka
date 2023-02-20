@@ -5,20 +5,22 @@ using ServiceHost.Installer;
 using ServiceHost.Services;
 using ServiceHost.Services.Impl;
 using Tauron;
+using Tauron.AkkaHost;
 using Tauron.Features;
 
 namespace ServiceHost
 {
-    public sealed class HostModule : IModule
+    public sealed class HostModule : AkkaModule
     {
-        public void Load(IServiceCollection builder)
+        public override void Load(IActorApplicationBuilder builder)
         {
-            builder.RegisterFeature<AppManager, IAppManager>(AppManagerActor.New(), "App-Manager");
-            builder.RegisterFeature<AutoUpdater, IAutoUpdater>(AutoUpdateActor.New(), "Auto-Updater");
-            builder.RegisterFeature<Installation, IInstaller>(InstallManagerActor.New(), "Installer");
-            builder.RegisterFeature<AppRegistry, IAppRegistry>(AppRegistryActor.New(), "Apps-Registry");
-
-            builder.AddTransient<InstallChecker>();
+            builder.RegisterFeature<AppManager>(AppManagerActor.New(), "App-Manager");
+            builder.RegisterFeature<AutoUpdater>(AutoUpdateActor.New(), "Auto-Updater");
+            builder.RegisterFeature<Installation>(InstallManagerActor.New(), "Installer");
+            builder.RegisterFeature<AppRegistry>(AppRegistryActor.New(), "Apps-Registry");
         }
+
+        public override void Load(IServiceCollection builder) 
+            => builder.AddTransient<InstallChecker>();
     }
 }

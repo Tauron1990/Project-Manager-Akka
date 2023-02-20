@@ -12,7 +12,7 @@
         {
             <MudText Class="justify-center">Unbekannter Fehler</MudText>
         }
-        else if (Claims.Length == 0 || !_userState.User.IsAuthenticated)
+        else if (Claims.Length == 0 || _userState.User == null || !_userState.User.IsAuthenticated())
         {
             <MudText Class="justify-center">Bitte melde dich an um Zugriff zu erhalten!</MudText>
             <MudButton Class="justify-center" OnClick="NavigateToLogin" Variant="Variant.Text" Color="Color.Tertiary">Anmelden</MudButton>

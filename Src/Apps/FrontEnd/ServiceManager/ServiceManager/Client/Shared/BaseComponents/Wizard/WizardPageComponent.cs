@@ -1,9 +1,8 @@
-﻿using System.ComponentModel;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 
 namespace ServiceManager.Client.Shared.BaseComponents.Wizard
 {
-    public abstract class WizardPageComponent<TData, TPage> : Component
+    public abstract class WizardPageComponent<TData, TPage> : ComponentBase
     {
         [Parameter]
         public WizardContext<TData> Context { get; set; } = null!;

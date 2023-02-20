@@ -32,9 +32,9 @@ namespace ServiceHost.ApplicationRegistry
         private const string BaseFileName = "apps.dat";
         private const string AppFileExt = ".app";
 
-        public static Func<AppNodeInfo, IAppManager, AppNodeInfo, IEnumerable<IPreparedFeature>> New()
+        public static Func<AppNodeInfo, AppManager, AppNodeInfo, IEnumerable<IPreparedFeature>> New()
         {
-            static IEnumerable<IPreparedFeature> _(AppNodeInfo configuration, IAppManager manager, AppNodeInfo info)
+            static IEnumerable<IPreparedFeature> _(AppNodeInfo configuration, AppManager manager, AppNodeInfo info)
             {
                 yield return SubscribeFeature.New();
                 yield return Feature.Create(
@@ -415,7 +415,7 @@ namespace ServiceHost.ApplicationRegistry
             return null;
         }
 
-        public sealed record RegistryState(ImmutableDictionary<AppName, string> Apps, string AppsDirectory, ImmutableDictionary<Guid, IActorRef> OnGoingQuerys, IAppManager Manager, AppNodeInfo Info);
+        public sealed record RegistryState(ImmutableDictionary<AppName, string> Apps, string AppsDirectory, ImmutableDictionary<Guid, IActorRef> OnGoingQuerys, AppManager Manager, AppNodeInfo Info);
 
         private sealed record LoadData;
 

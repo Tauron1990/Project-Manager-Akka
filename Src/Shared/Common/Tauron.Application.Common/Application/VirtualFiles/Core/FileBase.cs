@@ -51,7 +51,7 @@ public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
         return CreateStream(Context, FileAccess.ReadWrite, true);
     }
 
-    public IFile MoveTo(PathInfo location)
+    public IFile MoveTo(in PathInfo location)
     {
         ValidateFeature(FileSystemFeature.Moveable);
 
@@ -68,6 +68,6 @@ public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
 
     protected abstract Stream CreateStream(TContext context, FileAccess access, bool createNew);
 
-    protected virtual IFile MoveTo(TContext context, PathInfo location)
+    protected virtual IFile MoveTo(TContext context, in PathInfo location)
         => throw new IOException("Move is not Implemented");
 }

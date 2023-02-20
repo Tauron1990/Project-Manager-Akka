@@ -6,6 +6,8 @@ using ServiceManager.Shared.Api;
 using ServiceManager.Shared.Apps;
 using ServiceManager.Shared.Identity;
 using Stl.Fusion.Server;
+using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.Deployment;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 
 namespace ServiceManager.Server.Controllers
@@ -34,8 +36,12 @@ namespace ServiceManager.Server.Controllers
 
         [HttpGet]
         [Publish]
-        public Task<AppInfo> QueryApp([FromQuery] string name, CancellationToken token)
-            => _appManagment.QueryApp(name, token);
+        public Task<AppInfo> QueryApp([FromQuery]AppName name, CancellationToken token) => _appManagment.QueryApp(name, token);
+
+        [HttpPost]
+        [Publish]
+        public Task<QueryRepositoryResult> QueryRepository(RepositoryName name, CancellationToken token) => _appManagment.QueryRepository(name, token);
+        
 
         [HttpPost]
         public Task<string> CreateNewApp([FromBody] ApiCreateAppCommand command, CancellationToken token)

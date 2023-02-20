@@ -38,9 +38,9 @@
             <MudCardContent>
                 @if (!ViewModel.HideOldPasswordBox)
                 {
-                    <MudTextFieldString @bind-Value="ViewModel.OldPassword" Label="Altes Passwort" Class="ma-2" InputType="InputType.Password"/>
+                    <MudTextField @bind-Value="ViewModel.OldPassword" Label="Altes Passwort" Class="ma-2" InputType="InputType.Password"/>
                 }
-                <MudTextFieldString @bind-Value="ViewModel.NewPassword" Label="Passwort" Class="ma-2" InputType="InputType.Password"/>
+                <MudTextField @bind-Value="ViewModel.NewPassword" Label="Passwort" Class="ma-2" InputType="InputType.Password"/>
             </MudCardContent>
             @if (!ViewModel.HideButtons)
             {

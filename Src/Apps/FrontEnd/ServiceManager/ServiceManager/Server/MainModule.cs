@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceHost.ClientApp.Shared.ConfigurationServer;
 using ServiceHost.ClientApp.Shared.ConfigurationServer.Events;
 using ServiceManager.Server.AppCore;
@@ -7,33 +8,41 @@ using ServiceManager.Server.AppCore.ClusterTracking;
 using ServiceManager.Server.AppCore.ClusterTracking.Data;
 using ServiceManager.Server.AppCore.ServiceDeamon;
 using ServiceManager.Server.AppCore.Settings;
+using Tauron.AkkaHost;
+using Tauron.Application.AkkaNode.Bootstrap;
 using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Repository;
+using Tauron.Application.Settings;
+using Tauron.Features;
 
 namespace ServiceManager.Server
 {
-    public sealed class MainModule : Module
+    public sealed class MainModule : AkkaModule
     {
-        protected override void Load(ContainerBuilder builder)
+        public override void Load(IActorApplicationBuilder builder)
         {
             builder.RegisterSettingsManager(c => c.WithProvider<LocalConfigurationProvider>());
-            builder.RegisterType<LocalConfiguration>().As<ILocalConfiguration>().SingleInstance();
-
+            
             builder.RegisterEventDispatcher<IConfigEvent, ConfigEventDispatcher, ConfigApiEventDispatcherRef>(ConfigApiEventDispatcherActor.New(), "ConfigApiEventDispatcherActor");
             builder.RegisterEventDispatcher<AppInfo, AppEventDispatcher, AppEventDispatcherRef>(AppEventDispatcherActor.New(), "AppEventDispatcherRef");
+            
+            builder.RegisterFeature<ClusterNodeManagerRef>(ClusterHostManagerActor.New(), "ClusterHostManagerActor");
+            builder.RegisterFeature<ProcessServiceHostRef>(ProcessServiceHostActor.New(), "ServiceDeamonHost");
+            
+            builder.RegisterStartUp<ActorStartUp>(s => s.Run());
+        }
 
-            builder.RegisterType<NodeRepository>().As<INodeRepository>().SingleInstance();
-            builder.RegisterType<PropertyChangedNotifer>().As<IPropertyChangedNotifer>().SingleInstance();
+        public override void Load(IServiceCollection builder)
+        {
+            builder.AddSingleton<ILocalConfiguration, LocalConfiguration>();
 
-            builder.RegisterFeature<ClusterNodeManagerRef, IClusterNodeManager>(ClusterHostManagerActor.New(), "ClusterHostManagerActor");
-            builder.RegisterFeature<ProcessServiceHostRef, IProcessServiceHost>(ProcessServiceHostActor.New());
+            builder.AddSingleton<INodeRepository, NodeRepository>();
+            builder.AddSingleton<IPropertyChangedNotifer, PropertyChangedNotifer>();
 
-            builder.Register(c => DeploymentApi.CreateProxy(c.Resolve<ActorSystem>())).SingleInstance();
-            builder.Register(c => RepositoryApi.CreateProxy(c.Resolve<ActorSystem>())).SingleInstance();
-            builder.Register(c => ConfigurationApi.CreateProxy(c.Resolve<ActorSystem>())).SingleInstance();
-
-            builder.RegisterStartUpAction<ActorStartUp>();
+            builder.AddSingleton(c => DeploymentApi.CreateProxy(c.GetRequiredService<ActorSystem>()));
+            builder.AddSingleton(c => RepositoryApi.CreateProxy(c.GetRequiredService<ActorSystem>()));
+            builder.AddSingleton(c => ConfigurationApi.CreateProxy(c.GetRequiredService<ActorSystem>()));
 
             base.Load(builder);
         }

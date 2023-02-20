@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Akka;
+using Akka.Hosting;
 using Akka.Streams.Dsl;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
@@ -17,8 +18,11 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
     public sealed class ConfigEventDispatcher : AggregateEvent<IConfigEvent> { }
 
     [UsedImplicitly]
-    public sealed class ConfigApiEventDispatcherRef : EventDispatcherRef
+    public sealed class ConfigApiEventDispatcherRef : EventDispatcherRef<ConfigApiEventDispatcherRef>, IEventDispatcher
     {
+        public ConfigApiEventDispatcherRef(IRequiredActor<ConfigApiEventDispatcherRef> actor) : base(actor)
+        {
+        }
     }
 
     public sealed class ConfigApiEventDispatcherActor : RestartingEventDispatcherActorBase<IConfigEvent, ConfigurationApi>

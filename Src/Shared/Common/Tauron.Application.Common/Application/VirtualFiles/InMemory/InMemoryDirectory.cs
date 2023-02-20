@@ -69,7 +69,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
         _exist = false;
     }
 
-    private IDirectory? AddTo(PathInfo path, string name, DirectoryContext context)
+    private IDirectory? AddTo(in PathInfo path, string name, DirectoryContext context)
         => GetDirectory(path) is InMemoryDirectory newDic
         && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData)
             ? new InMemoryDirectory(context with { Parent = newDic.DirectoryContext, Path = GenericPathHelper.Combine(newDic.OriginalPath, name) }, Features)

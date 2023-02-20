@@ -96,7 +96,7 @@
             using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
             var newId = await _serverInfo.GetCurrentId(cancel.Token);
-            if (newId == State.LatestNonErrorValue)
+            if (newId == State.LastNonErrorValue)
                 return "Server nicht neu Gestartet";
 
             if (_connection.State == HubConnectionState.Disconnected)

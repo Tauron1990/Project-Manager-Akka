@@ -34,7 +34,7 @@
         if (AuthState != null)
         {
             var result = await AuthState;
-            _headerMessage = result.User.IsAuthenticated ? $"Hallo: {result.User.Name}" : "Hallo Gast";
+            _headerMessage = result.User?.IsAuthenticated() == true ? $"Hallo: {result.User.Name}" : "Hallo Gast";
         }
         await base.OnParametersSetAsync();
     }

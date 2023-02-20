@@ -14,7 +14,7 @@ else
                         <MudText Class="ma-3">@(option.Path):</MudText>
                     </td>
                     <td class="d-flex">
-                        <MudTextFieldString Class="my-n3 mx-1 d-inline-flex" Style="width: 10vw" @bind-Text="@option.CurrentValue"/>
+                        <MudTextField T="string" Class="my-n3 mx-1 d-inline-flex" Style="width: 10vw" @bind-Text="@option.CurrentValue"/>
                         <MudButton Class="ma-1 d-inline-flex" OnClick="@(async () => await SendOption(option))">Einfügen</MudButton>
                     </td>
                 </tr>

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using Akka.Actor;
-using Akka.Streams.Implementation.Fusing;
 using Microsoft.Extensions.Logging;
 using ServiceManager.ProjectDeployment.Build;
 using ServiceManager.ProjectDeployment.Data;
@@ -23,7 +22,6 @@ using Tauron.Application.Master.Commands.Deployment.Build.Commands;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 using Tauron.Application.Master.Commands.Deployment.Repository;
 using Tauron.Application.VirtualFiles;
-using Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
 using Tauron.Application.Workshop;
 using Tauron.Features;
 using Tauron.ObservableExt;
@@ -60,134 +58,191 @@ namespace ServiceManager.ProjectDeployment.Actors
 
             CommandPhase2<ContinueCreateApp, CreateAppCommand, AppInfo>(
                 "CreateApp-Phase 2",
-                obs => obs.ConditionalSelect()
-                   .ToResult<AppInfo?>(
-                        b =>
-                        {
-                            b.When(
-                                m => !m.Result.Ok,
-                                o => o.ApplyWhen(
-                                        m => !m.Reporter.IsCompled,
-                                        data =>
-                                        {
-                                            data.Reporter.Compled(
-                                                OperationResult.Failure(
-                                                    data.Result,
-                                                    DeploymentErrorCode.CommandErrorRegisterRepository));
-                                        })
-                                   .Select(_ => default(AppInfo)));
-
-                            b.When(
-                                m => m.AppData != null,
-                                o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandDuplicateApp.ToString())))
-                                   .Select(_ => default(AppInfo)));
-
-                            b.When(
-                                m => m.AppData is null,
-                                o => o.Select(
-                                        m =>
-                                        {
-                                            var data = new AppData(
-                                                ImmutableList<AppFileInfo>.Empty,
-                                                m.Command.AppName,
-                                                SimpleVersion.NoVersion, 
-                                                DateTime.UtcNow,
-                                                DateTime.MinValue,
-                                                m.Command.TargetRepo,
-                                                m.Command.ProjectName);
-                                            m.State.Apps.Add(data);
-
-                                            return (Data: data.ToInfo(), Tracker: m.State.ChangeTracker);
-                                        })
-                                   .Do(i => i.Tracker.Tell(i.Data))
-                                   .Select(i => i.Data));
-                        }));
+                CreateAppExecutor);
 
             DirectCommandPhase1<PushVersionCommand>(
                 "PushVersion-Phase 1",
-                obs => obs.Select(m => (App: m.State.Apps.Get(m.Event.AppName), Data: m))
-                   .ConditionalSelect()
-                   .ToResult<Unit>(
-                        b =>
-                        {
-                            b.When(m => m.App == null, o => o.ToUnit(d => d.Data.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandAppNotFound))));
+                PushVersionPhase1Executor);
 
-                            b.When(
-                                m => m.App != null,
-                                o => o.ToUnit(
-                                    d => BuildRequest.SendWork(d.Data.State.WorkDistributor, d.Data.Reporter, d.App, d.Data.State.Repository, BuildEnv.TempFiles.CreateFile())
-                                       .PipeTo(
-                                            Self,
-                                            success: c => new ContinuePushNewVersion(OperationResult.Success(c), d.Data.Event, d.Data.Reporter),
-                                            failure: e => new ContinuePushNewVersion(OperationResult.Failure(e), d.Data.Event, d.Data.Reporter))));
-                        }));
 
             CommandPhase2<ContinuePushNewVersion, PushVersionCommand, AppBinary>(
                 "PushVersion-Phase 2",
-                obs => obs.ConditionalSelect()
-                   .ToResult<AppBinary?>(
+                PushVersionExecutor);
+
+            DirectCommandPhase1<DeleteAppCommand>(
+                "DeleteApp",
+                DeleteExecutor);
+
+            DirectCommandPhase1<ForceBuildCommand>(
+                "ForceBuild-Phase 1",
+                ForceBuildPhase1Executor);
+
+            CommandPhase2<ContinueForceBuild, ForceBuildCommand, FileTransactionId>(
+                "ForceBuild-Phase 2",
+                ForceBuildExecutor,
+                r => r.Event.TempData);
+        }
+
+        private IObservable<Unit> ForceBuildPhase1Executor(IObservable<ReporterEvent<ForceBuildCommand, AppCommandProcessorState>> obs)
+        {
+            return obs.Select(
+                    i => i.New(
+                        (Command: i.Event, App: new AppData(
+                            ImmutableList<AppFileInfo>.Empty,
+                            i.Event.AppName,
+                            SimpleVersion.NoVersion,
+                            DateTime.UtcNow,
+                            DateTime.MinValue,
+                            i.Event.Repository,
+                            i.Event.Project))))
+                .ToUnit(
+                    i => BuildRequest.SendWork(
+                            i.State.WorkDistributor,
+                            i.Reporter,
+                            i.Event.App,
+                            i.State.Repository,
+                            BuildEnv.TempFiles.CreateFile())
+                        .PipeTo(
+                            Self,
+                            success: d => new ContinueForceBuild(OperationResult.Success(d.File), i.Event.Command, i.Reporter, i.Event.App),
+                            failure: e => new ContinueForceBuild(OperationResult.Failure(e), i.Event.Command, i.Reporter, i.Event.App)));
+        }
+
+        private IObservable<Unit> PushVersionPhase1Executor(IObservable<ReporterEvent<PushVersionCommand, AppCommandProcessorState>> obs)
+        {
+            return obs.Select(m => (App: m.State.Apps.Get(m.Event.AppName), Data: m))
+                .ConditionalSelect()
+                .ToResult<Unit>(
+                    b =>
+                    {
+                        b.When(
+                            m => m.App is null,
+                            o => o.ToUnit(d => d.Data.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandAppNotFound))));
+
+                        b.When(
+                            m => m.App != null,
+                            o => o.ToUnit(
+                                d => BuildRequest.SendWork(
+                                        d.Data.State.WorkDistributor,
+                                        d.Data.Reporter,
+                                        d.App,
+                                        d.Data.State.Repository,
+                                        BuildEnv.TempFiles.CreateFile())
+                                    .PipeTo(
+                                        Self,
+                                        success: c => new ContinuePushNewVersion(OperationResult.Success(c), d.Data.Event, d.Data.Reporter),
+                                        failure: e => new ContinuePushNewVersion(
+                                            OperationResult.Failure(e),
+                                            d.Data.Event,
+                                            d.Data.Reporter))));
+                    });
+        }
+
+        private static IObservable<Unit> DeleteExecutor(IObservable<ReporterEvent<DeleteAppCommand, AppCommandProcessorState>> obs)
+        {
+            return obs.Select(m => m.New((Command: m.Event, App: m.State.Apps.Get(m.Event.AppName))))
+                .ConditionalSelect()
+                .ToResult<Unit>(
+                    b =>
+                    {
+                        b.When(
+                            m => m.Event.App is null,
+                            o => o.ToUnit(i => i.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandAppNotFound))));
+
+                        b.When(
+                            m => m.Event.App is not null,
+                            o => o.ToUnit(
+                                i =>
+                                {
+                                    i.State.Apps.Delete(i.Event.App);
+                                    i.State.ToDelete.Add(i.Event.App.Versions.Select(d => new ToDeleteRevision(d.Id)));
+
+                                    i.Reporter.Compled(OperationResult.Success(i.Event.App.ToInfo().MarkDeleted()));
+                                }));
+                    });
+        }
+
+        private static IObservable<FileTransactionId?> ForceBuildExecutor(IObservable<ContinueData<ForceBuildCommand>> obs)
+        {
+            return obs.ConditionalSelect()
+                .ToResult<FileTransactionId?>(
+                    b =>
+                    {
+                        b.When(
+                            m => m.Command.Manager is null || m.Result is { Ok: true, Outcome: not ITempFile },
+                            o => o.Select(_ => default(FileTransactionId)));
+                        b.When(
+                            m => !m.Result.Ok,
+                            o => o.ApplyWhen(d => !d.Reporter.IsCompled, data => data.Reporter.Compled(data.Result))
+                                .Select(_ => default(FileTransactionId)));
+
+                        b.When(
+                            m => m is { Result: { Ok: true, Outcome: ITempFile }, Command.Manager: { } },
+                            o => o.Select(
+                                continueData =>
+                                {
+                                    var file = (ITempFile)continueData.Result.Outcome!;
+                                    DataTransferManager man = continueData.Command.GetTransferManager();
+                                    DataTransferManager start = continueData.State.DataTransfer;
+
+                                    return start.RequestWithTransaction(DataTransferRequest.FromStream(() => new TempTransferInfo(file), man));
+                                }));
+                    });
+        }
+
+
+        private IObservable<AppBinary?> PushVersionExecutor(IObservable<ContinueData<PushVersionCommand>> obs) =>
+                obs.ConditionalSelect()
+                    .ToResult<AppBinary?>(
                         b =>
                         {
                             b.When(
-                                m => m.AppData == null,
+                                m => m.AppData is null,
                                 o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandAppNotFound)))
-                                   .Select(_ => default(AppBinary)));
+                                    .Select(_ => default(AppBinary)));
 
                             b.When(m => m.AppData != null, o => o.SelectMany(UpdateAppData));
 
                             static IObservable<AppBinary?> UpdateAppData(ContinueData<PushVersionCommand> m)
                             {
-                                var (commit, fileName) = ((RepositoryCommit, ITempFile))m.Result.Outcome!;
+                                (RepositoryCommit commit, ITempFile fileName) = ((RepositoryCommit, ITempFile))m.Result.Outcome!;
 
                                 return Observable.Using(
                                     () => fileName,
-                                    file =>
-                                        (
-                                            from info in Observable.Return((Commit: commit, File: file, Data: m))
+                                    file => (from info in Observable.Return((Commit: commit, File: file, Data: m))
                                             let oldApp = info.Data.AppData ?? AppData.Empty
                                             let newVersion = oldApp.Last + 1
                                             let newId = $"{oldApp.Id}-{newVersion}.zip"
                                             let newBinary = new AppFileInfo(newId, oldApp.Last + 1, DateTime.UtcNow, Deleted: false, Commit: info.Commit)
-                                            let newData = oldApp with
-                                                          {
-                                                              Last = newVersion,
-                                                              LastUpdate = DateTime.UtcNow,
-                                                              Versions = info.Data.AppData!.Versions.Add(newBinary)
-                                                          }
-                                            select (info.Data.State, NewData: newData, NewBinary: newBinary, info.File,
-                                                    ToDelete: newData.Versions.OrderByDescending(i => i.CreationTime).Skip(5)
-                                                       .Where(i => !i.Deleted).ToArray())
-                                        )
-                                       .Select(
+                                            let newData = oldApp with { Last = newVersion, LastUpdate = DateTime.UtcNow, Versions = info.Data.AppData!.Versions.Add(newBinary) }
+                                            select (info.Data.State, NewData: newData, NewBinary: newBinary, info.File, ToDelete: newData.Versions.OrderByDescending(i => i.CreationTime)
+                                                .Skip(5)
+                                                .Where(i => !i.Deleted)
+                                                .ToArray())).Select(
                                             i =>
                                             {
-                                                using var stream = i.State.Files.GetFile(i.NewBinary.Id).CreateNew();
-                                                using var fileStream = i.File.Stream;
+                                                using Stream stream = i.State.Files.GetFile(i.NewBinary.Id).CreateNew();
+                                                using Stream fileStream = i.File.Stream;
 
                                                 fileStream.Seek(0, SeekOrigin.Begin);
                                                 fileStream.CopyTo(stream);
 
-                                                var newData = i.ToDelete
-                                                   .Aggregate(
-                                                        i.NewData,
-                                                        (current, appFileInfo) => current! with
-                                                                                  {
-                                                                                      Versions = current.Versions
-                                                                                         .Replace(
-                                                                                              appFileInfo,
-                                                                                              appFileInfo with
-                                                                                              {
-                                                                                                  Deleted = true
-                                                                                              })
-                                                                                  });
+                                                AppData newData = i.ToDelete.Aggregate(
+                                                    i.NewData,
+                                                    (current, appFileInfo) => current! with
+                                                    {
+                                                        Versions = current.Versions.Replace(
+                                                            appFileInfo,
+                                                            appFileInfo with { Deleted = true })
+                                                    });
 
                                                 i.State.Apps.Update(newData!);
                                                 i.State.ToDelete.Add(i.ToDelete.Select(e => new ToDeleteRevision(e.Id)));
 
                                                 return (Data: newData, i.NewBinary, i.State);
                                             })
-                                       .Do(i => i.State.ChangeTracker.Tell(i.Data!.ToInfo()))
-                                       .Select(
+                                        .Do(i => i.State.ChangeTracker.Tell(i.Data!.ToInfo()))
+                                        .Select(
                                             i => new AppBinary(
                                                 i.NewBinary.Version,
                                                 i.Data!.Id,
@@ -196,73 +251,52 @@ namespace ServiceManager.ProjectDeployment.Actors
                                                 i.NewBinary.Commit,
                                                 i.Data.Repository)));
                             }
-                        }));
-
-            DirectCommandPhase1<DeleteAppCommand>(
-                "DeleteApp",
-                obs => obs.Select(m => m.New((Command: m.Event, App: m.State.Apps.Get(m.Event.AppName))))
-                   .ConditionalSelect()
-                   .ToResult<Unit>(
-                        b =>
-                        {
-                            b.When(m => m.Event.App is null, o => o.ToUnit(i => i.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandAppNotFound))));
-
-                            b.When(
-                                m => m.Event.App is not null,
-                                o => o.ToUnit(
-                                    i =>
+                        });
+        
+        private static IObservable<AppInfo?> CreateAppExecutor(IObservable<ContinueData<CreateAppCommand>> obs)
+        {
+            return obs.ConditionalSelect()
+                .ToResult<AppInfo?>(
+                    b =>
+                    {
+                        b.When(
+                            m => !m.Result.Ok,
+                            o => o.ApplyWhen(
+                                    m => !m.Reporter.IsCompled,
+                                    data =>
                                     {
-                                        i.State.Apps.Delete(i.Event.App);
-                                        i.State.ToDelete.Add(i.Event.App.Versions.Select(d => new ToDeleteRevision(d.Id)));
+                                        data.Reporter.Compled(
+                                            OperationResult.Failure(
+                                                data.Result,
+                                                DeploymentErrorCode.CommandErrorRegisterRepository));
+                                    })
+                                .Select(_ => default(AppInfo)));
 
-                                        i.Reporter.Compled(OperationResult.Success(i.Event.App.ToInfo().MarkDeleted()));
-                                    }));
-                        }));
+                        b.When(
+                            m => m.AppData != null,
+                            o => o.Do(m => m.Reporter.Compled(OperationResult.Failure(DeploymentErrorCode.CommandDuplicateApp.ToString())))
+                                .Select(_ => default(AppInfo)));
 
-            DirectCommandPhase1<ForceBuildCommand>(
-                "ForceBuild-Phase 1",
-                obs => obs.Select(
-                        i => i.New(
-                            (Command: i.Event, App: new AppData(
-                                 ImmutableList<AppFileInfo>.Empty,
-                                 i.Event.AppName,
-                                 SimpleVersion.NoVersion, 
-                                 DateTime.UtcNow,
-                                 DateTime.MinValue,
-                                 i.Event.Repository,
-                                 i.Event.Project))))
-                   .ToUnit(
-                        i => BuildRequest.SendWork(i.State.WorkDistributor, i.Reporter, i.Event.App, i.State.Repository, BuildEnv.TempFiles.CreateFile())
-                           .PipeTo(
-                                Self,
-                                success: d => new ContinueForceBuild(OperationResult.Success(d.File), i.Event.Command, i.Reporter, i.Event.App),
-                                failure: e => new ContinueForceBuild(OperationResult.Failure(e), i.Event.Command, i.Reporter, i.Event.App))));
-
-            CommandPhase2<ContinueForceBuild, ForceBuildCommand, FileTransactionId>(
-                "ForceBuild-Phase 2",
-                obs => obs.ConditionalSelect()
-                   .ToResult<FileTransactionId?>(
-                        b =>
-                        {
-                            b.When(m => m.Command.Manager is null || m.Result.Ok && m.Result.Outcome is not ITempFile, o => o.Select(_ => default(FileTransactionId)));
-                            b.When(
-                                m => !m.Result.Ok,
-                                o => o.ApplyWhen(d => !d.Reporter.IsCompled, data => data.Reporter.Compled(data.Result))
-                                   .Select(_ => default(FileTransactionId)));
-
-                            b.When(
-                                m => m.Result.Ok && m.Result.Outcome is ITempFile && m.Command.Manager != null,
-                                o => o.Select(
-                                    continueData =>
+                        b.When(
+                            m => m.AppData is null,
+                            o => o.Select(
+                                    m =>
                                     {
-                                        var man = continueData.Command.GetTransferManager();
-                                        var file = (ITempFile)continueData.Result.Outcome!;
-                                        var start = continueData.State.DataTransfer;
+                                        var data = new AppData(
+                                            ImmutableList<AppFileInfo>.Empty,
+                                            m.Command.AppName,
+                                            SimpleVersion.NoVersion,
+                                            DateTime.UtcNow,
+                                            DateTime.MinValue,
+                                            m.Command.TargetRepo,
+                                            m.Command.ProjectName);
+                                        m.State.Apps.Add(data);
 
-                                        return start.RequestWithTransaction(DataTransferRequest.FromStream(() => new TempTransferInfo(file), man));
-                                    }));
-                        }),
-                r => r.Event.TempData);
+                                        return (Data: data.ToInfo(), Tracker: m.State.ChangeTracker);
+                                    })
+                                .Do(i => i.Tracker.Tell(i.Data))
+                                .Select(i => i.Data));
+                    });
         }
 
         private void CommandPhase1<TCommand>(
@@ -296,7 +330,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                                     o => o.ToUnit(
                                         r =>
                                         {
-                                            var (msg, command, state) = r;
+                                            (IReporterMessage? msg, TCommand command, AppCommandProcessorState state) = r;
                                             logger.LogInformation("Command Phase 1 {Command} -- {Action}", typeof(TCommand).Name, msg!.GetType().Name);
 
                                             msg.SetListner(
@@ -341,7 +375,7 @@ namespace ServiceManager.ProjectDeployment.Actors
         }
 
 
-        private static AppData QueryApp(ICrudRepository<AppData, AppName> collection, AppName name)
+        private static AppData QueryApp(ICrudRepository<AppData, AppName> collection, in AppName name)
             => collection.Get(name);
 
         public sealed record AppCommandProcessorState(

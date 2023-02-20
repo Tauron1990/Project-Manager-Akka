@@ -18,7 +18,7 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
 
     public override PathInfo Source => Context.OriginalPath;
 
-    internal TResult? MoveElement<TResult, TElement>(string name, PathInfo path, TElement element, Func<DirectoryContext, PathInfo, TElement, TResult> factory)
+    internal TResult? MoveElement<TResult, TElement>(string name, in PathInfo path, TElement element, Func<DirectoryContext, PathInfo, TElement, TResult> factory)
         where TElement : IDataElement
         where TResult : class
     {
@@ -38,7 +38,7 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
             : null;
     }
 
-    private static InMemoryDirectory CreateContext(IFileSystemNode system, PathInfo startPath, ISystemClock clock)
+    private static InMemoryDirectory CreateContext(IFileSystemNode system, in PathInfo startPath, ISystemClock clock)
     {
         var root = new InMemoryRoot();
         var dicContext = new DirectoryContext(

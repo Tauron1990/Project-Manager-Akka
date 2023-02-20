@@ -17,9 +17,9 @@ namespace ServiceHost.Installer
     [UsedImplicitly]
     public sealed class InstallManagerActor : ActorFeatureBase<InstallManagerActor.InstallManagerState>
     {
-        public static Func<IAppRegistry, AppNodeInfo, IAppManager, IAutoUpdater, IEnumerable<IPreparedFeature>> New()
+        public static Func<AppRegistry, AppNodeInfo, AppManager, AutoUpdater, IEnumerable<IPreparedFeature>> New()
         {
-            static IEnumerable<IPreparedFeature> _(IAppRegistry registry, AppNodeInfo configuration, IAppManager manager, IAutoUpdater updater)
+            static IEnumerable<IPreparedFeature> _(AppRegistry registry, AppNodeInfo configuration, AppManager manager, AutoUpdater updater)
             {
                 yield return SubscribeFeature.New();
                 yield return Feature.Create(() => new InstallManagerActor(), new InstallManagerState(registry, configuration, manager, updater));
@@ -53,6 +53,6 @@ namespace ServiceHost.Installer
                     p => p.Event));
         }
 
-        public sealed record InstallManagerState(IAppRegistry Registry, AppNodeInfo Configuration, IAppManager AppManager, IAutoUpdater AutoUpdater);
+        public sealed record InstallManagerState(AppRegistry Registry, AppNodeInfo Configuration, AppManager AppManager, AutoUpdater AutoUpdater);
     }
 }

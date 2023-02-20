@@ -6,9 +6,9 @@ namespace ServiceHost.AutoUpdate
     {
         private readonly int _id;
         private readonly bool _switch;
-        private readonly IAutoUpdater _updater;
+        private readonly AutoUpdater _updater;
 
-        public CleanUpDedector(IConfiguration configuration, IAutoUpdater updater)
+        public CleanUpDedector(IConfiguration configuration, AutoUpdater updater)
         {
             _updater = updater;
             _switch = configuration.GetValue("cleanup", false);

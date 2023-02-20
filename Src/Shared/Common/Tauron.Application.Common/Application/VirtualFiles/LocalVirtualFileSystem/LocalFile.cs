@@ -66,7 +66,7 @@ public sealed class LocalFile : FileBase<FileContext>, IHasFileAttributes, IFull
     protected override void Delete(FileContext context)
         => context.Data.Delete();
 
-    protected override IFile MoveTo(FileContext context, PathInfo location)
+    protected override IFile MoveTo(FileContext context, in PathInfo location)
     {
         ValidateSheme(location, LocalFileSystemResolver.SchemeName);
 

@@ -65,7 +65,7 @@ namespace ServiceManager.Server.AppCore.Apps
         public virtual async Task<QueryRepositoryResult> QueryRepository(RepositoryName name, CancellationToken token)
         {
             using var scope = _scopeFactory.CreateScope();
-            var host = scope.ServiceProvider.GetRequiredService<IProcessServiceHost>();
+            var host = scope.ServiceProvider.GetRequiredService<ProcessServiceHostRef>();
             var api = scope.ServiceProvider.GetRequiredService<RepositoryApi>();
             
             
@@ -96,7 +96,7 @@ namespace ServiceManager.Server.AppCore.Apps
             if (Computed.IsInvalidating()) return default!;
 
             using var scope = _scopeFactory.CreateScope();
-            var host = scope.ServiceProvider.GetRequiredService<IProcessServiceHost>();
+            var host = scope.ServiceProvider.GetRequiredService<ProcessServiceHostRef>();
             var api = scope.ServiceProvider.GetRequiredService<DeploymentApi>();
 
             await EnsureApi(host, api);
@@ -106,14 +106,14 @@ namespace ServiceManager.Server.AppCore.Apps
 
         private async Task<TResult> Run<TResult, TParam>(TParam command, AppApiRunnerParam<TResult, TParam> runner, CancellationToken token)
         {
-            Task<TResult> RunLocal(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken innerToken)
+            Task<TResult> RunLocal(ProcessServiceHostRef host, DeploymentApi api, IServiceProvider services, CancellationToken innerToken)
                 => runner(command, host, api, services, innerToken);
 
             return await Run(RunLocal, token);
         }
 
 
-        private async Task EnsureApi(IProcessServiceHost host, IQueryIsAliveSupport deploymentApi)
+        private async Task EnsureApi(ProcessServiceHostRef host, IQueryIsAliveSupport deploymentApi)
         {
             var response = await deploymentApi.QueryIsAlive(_system, TimeSpan.FromSeconds(20));
 
@@ -126,14 +126,14 @@ namespace ServiceManager.Server.AppCore.Apps
             throw new InvalidOperationException(message);
         }
 
-        private async Task<string> DeleteAppImpl(ApiDeleteAppCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
+        private async Task<string> DeleteAppImpl(ApiDeleteAppCommand command, ProcessServiceHostRef host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             var result = await api.Command<DeleteAppCommand, AppInfo>(new DeleteAppCommand(command.Name), new ApiParameter(Duration.FromSeconds(20), token));
 
             return result.ErrorToString();
         }
         
-        private async Task<string> CreateNewAppImpl(ApiCreateAppCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
+        private async Task<string> CreateNewAppImpl(ApiCreateAppCommand command, ProcessServiceHostRef host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             try
             {
@@ -152,14 +152,14 @@ namespace ServiceManager.Server.AppCore.Apps
             }
         }
 
-        private async Task<AppList> QueryAllAppsImpl(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
+        private async Task<AppList> QueryAllAppsImpl(ProcessServiceHostRef host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             var queryResult = await api.Query<QueryApps, AppList>(new ApiParameter(Duration.FromSeconds(20), token));
 
             return queryResult.Fold(l => l, err => throw new InvalidOperationException(err.Info ?? err.Code));
         }
 
-        private async Task<AppInfo> QueryAppImpl(AppName command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
+        private async Task<AppInfo> QueryAppImpl(AppName command, ProcessServiceHostRef host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             var queryResult = await api.Query<QueryApp, AppInfo>(new QueryApp(command), new ApiParameter(Duration.FromSeconds(20), token));
 
@@ -172,7 +172,7 @@ namespace ServiceManager.Server.AppCore.Apps
                        });
         }
 
-        private async Task<RunAppSetupResponse> RunSetupImpl(RunAppSetupCommand command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
+        private async Task<RunAppSetupResponse> RunSetupImpl(RunAppSetupCommand command, ProcessServiceHostRef host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             var hub = services.GetRequiredService<IHubContext<ClusterInfoHub>>();
 
@@ -213,7 +213,7 @@ namespace ServiceManager.Server.AppCore.Apps
             }
         }
 
-        private async Task<NeedSetupData> NeedBasicAppsImpl(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token)
+        private async Task<NeedSetupData> NeedBasicAppsImpl(ProcessServiceHostRef host, DeploymentApi api, IServiceProvider services, CancellationToken token)
         {
             try
             {
@@ -231,8 +231,8 @@ namespace ServiceManager.Server.AppCore.Apps
             }
         }
 
-        private delegate Task<TResult> AppApiRunner<TResult>(IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token);
+        private delegate Task<TResult> AppApiRunner<TResult>(ProcessServiceHostRef host, DeploymentApi api, IServiceProvider services, CancellationToken token);
 
-        private delegate Task<TResult> AppApiRunnerParam<TResult, in TParam>(TParam command, IProcessServiceHost host, DeploymentApi api, IServiceProvider services, CancellationToken token);
+        private delegate Task<TResult> AppApiRunnerParam<TResult, in TParam>(TParam command, ProcessServiceHostRef host, DeploymentApi api, IServiceProvider services, CancellationToken token);
     }
 }

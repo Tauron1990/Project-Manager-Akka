@@ -10,6 +10,7 @@ using Octokit;
 using ServiceManager.ProjectRepository.Core;
 using ServiceManager.ProjectRepository.Data;
 using SharpRepository.Repository;
+using SharpRepository.Repository.Traits;
 using Tauron;
 using Tauron.Application;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
@@ -143,9 +144,10 @@ namespace ServiceManager.ProjectRepository.Actors
             IObservable<RequestResult> GetData(IObservable<(ITempFile TempFiles, TransferRepositoryRequest Request, RepositoryEntry Data)> input)
                 => input.SelectMany(
                         async m => (m.Request, m.Data, m.TempFiles,
-                                    CommitInfo: await m.Request.State.GitHubClient.Repository.Commit.GetSha1(m.Data.RepoId, "HEAD"), RepoZip: m.TempFiles.Stream))
+                                    CommitInfo: await m.Request.State.GitHubClient.Repository.Commit.GetSha1(m.Data.RepoId, "HEAD").ConfigureAwait(false), RepoZip: m.TempFiles.Stream))
                    .ApplyWhen(
-                        i => !(i.CommitInfo != i.Data.LastUpdate && UpdateRepository(i.Data, i.Request.Reporter, i.Request.Event, i.CommitInfo, i.RepoZip, i.Request.State)),
+                        i => !(!string.Equals(i.CommitInfo, i.Data.LastUpdate, StringComparison.Ordinal) 
+                               && UpdateRepository(i.Data, i.Request.Reporter, i.Request.Event, i.CommitInfo, i.RepoZip, i.Request.State)),
                         i =>
                         {
                             i.Request.Reporter.Send(RepositoryMessage.GetRepositoryFromDatabase);
@@ -178,7 +180,7 @@ namespace ServiceManager.ProjectRepository.Actors
             var repoName = repository.RepoName;
             var data2 = repos.AsQueryable().FirstOrDefault(r => r.RepoName == repoName);
 
-            if (data2 is null || commitInfo == data2.LastUpdate) return false;
+            if (data2 is null || string.Equals(commitInfo, data2.LastUpdate, StringComparison.Ordinal)) return false;
 
             if (!string.IsNullOrWhiteSpace(data.FileName))
                 try
@@ -207,6 +209,16 @@ namespace ServiceManager.ProjectRepository.Actors
                 unpackZip.ExtractAll(repoPath.FullPath, ExtractExistingFileAction.OverwriteSilently);
             }
 
+            PullAndCompress(data, reporter, repozip, repoName, repoConfiguration, repoPath, bucket, repos);
+
+            return true;
+        }
+
+        private void PullAndCompress(
+            RepositoryEntry data, Reporter reporter, Stream repozip, in RepositoryName repoName, RepositoryConfiguration repoConfiguration, ITempDic repoPath,
+            IDirectory bucket, ICanUpdate<RepositoryEntry> repos)
+        {
+
             Logger.LogInformation("Execute Git Pull for {Name}", repoName);
             using var updater = GitUpdater.GetOrNew(repoConfiguration);
             var result = updater.RunUpdate(repoPath.FullPath);
@@ -215,7 +227,7 @@ namespace ServiceManager.ProjectRepository.Actors
             Logger.LogInformation("Compress Repository {Name}", repoName);
             reporter.Send(RepositoryMessage.CompressRepository);
 
-            if (repozip.Length != 0)
+            if(repozip.Length != 0)
                 repozip.SetLength(0);
 
             using (var archive = new ZipFile())
@@ -236,8 +248,6 @@ namespace ServiceManager.ProjectRepository.Actors
 
             repos.Update(dataUpdate);
             repozip.Seek(0, SeekOrigin.Begin);
-
-            return true;
         }
 
         private static IObservable<TData> ObservableReturn<TData>(Func<TData> fac)

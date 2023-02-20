@@ -24,7 +24,7 @@ public abstract class SenderBase<TThis, TQueryType, TCommandType> : ISender
         where TQuery : ResultCommand<TThis, TQuery, TResult>, TQueryType
         => Query<TQuery, TResult>(query, parameter);
 
-    public Task<Option<Error>> Command<TCommand>(TCommand command, ApiParameter parameter)
+    public Task<Stl.Option<Error>> Command<TCommand>(TCommand command, ApiParameter parameter)
         where TCommand : SimpleCommand<TThis, TCommand>, TCommandType
         => ((TThis)this).Send(command, parameter.Timeout, parameter.Messages, parameter.CancellationToken);
 

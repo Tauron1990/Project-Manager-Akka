@@ -87,12 +87,12 @@ namespace ServiceManager.Client
                .AddAuthentication(
                     o => o.AddBlazor().AddRestEaseClient())
                .AddRestEaseClient()
-               .ConfigureHttpClientFactory((_, _, options) => options.HttpClientActions.Add(c =>
+               .ConfigureHttpClient((_, _, options) => options.HttpClientActions.Add(c =>
                                                                                             {
                                                                                                 Console.WriteLine($"Client Config: {c.BaseAddress} -- {baseAdress}");
                                                                                                 c.BaseAddress = baseAdress;
                                                                                             }))
-               .ConfigureWebSocketChannel(new WebSocketChannelProvider.Options { BaseUri = baseAdress })
+               .ConfigureWebSocketChannel(_ => new WebSocketChannelProvider.Options { BaseUri = baseAdress })
                .AddClientService<IClusterNodeTracking, IClusterNodeTrackingDef>()
                .AddClientService<IClusterConnectionTracker, IClusterConnectionTrackerDef>()
                .AddClientService<IServerInfo, IServerInfoDef>()

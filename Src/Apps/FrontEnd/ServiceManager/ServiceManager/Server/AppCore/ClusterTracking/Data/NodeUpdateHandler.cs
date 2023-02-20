@@ -44,7 +44,7 @@ namespace ServiceManager.Server.AppCore.ClusterTracking.Data
 
         public virtual async Task<Unit> UpdateName(UpdateNameCommand command, CancellationToken token = default)
         {
-            await _repository.UpdateClusterNode(command.Url, info => info with { Name = command.Name, ServiceType = command.ServiceType });
+            await _repository.UpdateClusterNode(command.Url, info => info with { Name = command.Name.Value, ServiceType = command.ServiceType });
             using (Computed.Invalidate())
             {
                 _tracker.GetInfo(command.Url).Ignore();

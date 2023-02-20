@@ -9,10 +9,10 @@ namespace ServiceHost
     public sealed class ServiceStartupTrigger
     {
         private readonly InstallChecker _checker;
-        private readonly IAppManager _manager;
+        private readonly AppManager _manager;
         private readonly ActorSystem _system;
 
-        public ServiceStartupTrigger(IAppManager manager, ActorSystem system, InstallChecker checker)
+        public ServiceStartupTrigger(AppManager manager, ActorSystem system, InstallChecker checker)
         {
             _manager = manager;
             _system = system;

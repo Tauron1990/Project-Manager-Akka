@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Actor;
+using Akka.Hosting;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Microsoft.Extensions.Logging;
@@ -13,14 +14,20 @@ using Tauron.Features;
 
 namespace ServiceManager.Server.AppCore.Helper
 {
-    public interface IEventDispatcher : IFeatureActorRef<IEventDispatcher>
+
+    public interface IEventDispatcher
     {
         void Init();
     }
 
-    public abstract class EventDispatcherRef : FeatureActorRefBase<IEventDispatcher>, IEventDispatcher
+    public abstract class EventDispatcherRef<TSelf> : FeatureActorRefBase<TSelf>
+        where TSelf : IFeatureActorRef<TSelf>
     {
         public void Init() => Tell(new InitActor());
+
+        protected EventDispatcherRef(IRequiredActor<TSelf> actor) : base(actor)
+        {
+        }
     }
 
     public abstract class RestartingEventDispatcherActorBase<TEventType, TEventSource> : ActorFeatureBase<RestartingEventDispatcherActorBase<TEventType, TEventSource>.State>

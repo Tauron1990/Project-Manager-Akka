@@ -45,7 +45,7 @@ public static class TauronEnviroment
 
     public static IDirectory DefaultProfilePath => DefaultPath.Value;
 
-    internal static string LocalApplicationData => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppRepository);
+    public static string LocalApplicationData => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppRepository);
 
     internal static string LocalApplicationTempFolder => Path.Combine(LocalApplicationData, "Temp");
 

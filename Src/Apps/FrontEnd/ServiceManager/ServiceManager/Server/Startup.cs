@@ -29,7 +29,10 @@ using ServiceManager.Shared.ServiceDeamon;
 using Stl.CommandR;
 using Stl.Fusion;
 using Stl.Fusion.EntityFramework;
+using Stl.Fusion.EntityFramework.Operations;
 using Stl.Fusion.Server;
+using Stl.Fusion.Server.Authentication;
+using Stl.Fusion.Server.Controllers;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
 
@@ -47,7 +50,8 @@ namespace ServiceManager.Server
                 builder =>
                 {
                     var targetPath = Path.Combine(Program.ExeFolder, "_database");
-                    targetPath.CreateDirectoryIfNotExis();
+                    if(!Directory.Exists(targetPath))
+                        Directory.CreateDirectory(targetPath);
 
                     var source = new SqliteConnectionStringBuilder
                                  {
@@ -62,10 +66,15 @@ namespace ServiceManager.Server
                .AddCommandService<INodeUpdateHandler, NodeUpdateHandler>();
 
             services.AddDbContextServices<UsersDatabase>(
-                o => o
-                   .AddFileBasedOperationLogChangeTracking(Path.Combine(Program.ExeFolder, "_changed"))
-                   .AddOperations()
-                   .AddAuthentication<FusionSessionInfoEntity, FusionUserEntity, string>());
+                o =>
+                {
+                    o.AddAuthentication<FusionSessionInfoEntity, FusionUserEntity, string>();
+                    o.AddOperations()
+                        .AddFileBasedOperationLogChangeTracking((_ => new FileBasedDbOperationLogChangeTrackingOptions<UsersDatabase>
+                        {
+                            FilePathFactory = t => Path.Combine(Program.ExeFolder, "_changed", t.Id),
+                        }));
+                });
 
             var fusion = services.AddFusion();
 
@@ -74,12 +83,20 @@ namespace ServiceManager.Server
 
             fusion.AddAuthentication(
                 o => o.AddServer(
-                    (_, options) =>
+                    _ => new SessionMiddleware.Options
                     {
-                        options.Cookie.Name = DefaultSessionConfig.Name;
-                        options.Cookie.Expiration = DefaultSessionConfig.Timeout;
+                        Cookie =
+                        {
+                            Name = DefaultSessionConfig.Name,
+                            Expiration = DefaultSessionConfig.Timeout,
+                        },
+
                     },
-                    signInControllerOptionsBuilder: (_, options) => options.DefaultScheme = IdentityConstants.ApplicationScheme));
+                    signInControllerOptionsFactory: 
+                    _ => new SignInController.Options
+                    {
+                        DefaultScheme = IdentityConstants.ApplicationScheme,
+                    }));
 
             fusion.AddComputeService<IClusterNodeTracking, ClusterNodeTracking>()
                .AddComputeService<IClusterConnectionTracker, ClusterConnectionTracker>()
@@ -163,7 +180,7 @@ namespace ServiceManager.Server
                         }
                         catch (ObjectDisposedException) { }
                     })
-               .AddModule<MainModule>();
+               .RegisterModule<MainModule>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

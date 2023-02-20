@@ -24,7 +24,7 @@ else
     {
         <UserAccountsSetupView/>
     }
-    else if (_authState == null || !_authState.User.IsAuthenticated)
+    else if (_authState == null || _authState.User == null || !_authState.User.IsAuthenticated())
     {
         <LoginRegisterView/>
     }

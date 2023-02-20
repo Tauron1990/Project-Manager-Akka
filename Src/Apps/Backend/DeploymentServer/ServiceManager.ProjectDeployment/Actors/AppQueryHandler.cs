@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using Akka.Actor;
+using Akka.Util;
 using ServiceManager.ProjectDeployment.Data;
 using SharpRepository.Repository;
+using Stl;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 using Tauron.Application.AkkaNode.Services.Reporting;
@@ -42,7 +44,7 @@ namespace ServiceManager.ProjectDeployment.Actors
                         b =>
                         {
                             b.When(
-                                m => m.Event == null,
+                                m => m.Event is null,
                                 o => o.Select(
                                     m => m.New(default(AppInfo))
                                        .CompledReporter(OperationResult.Failure(DeploymentErrorCode.QueryAppNotFound))));

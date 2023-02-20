@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Akka;
+using Akka.Hosting;
 using Akka.Streams.Dsl;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
@@ -18,8 +19,11 @@ namespace ServiceManager.Server.AppCore.Apps
     public sealed class AppEventDispatcher : AggregateEvent<AppInfo> { }
 
     [UsedImplicitly]
-    public sealed class AppEventDispatcherRef : EventDispatcherRef
+    public sealed class AppEventDispatcherRef : EventDispatcherRef<AppEventDispatcherRef>, IEventDispatcher
     {
+        public AppEventDispatcherRef(IRequiredActor<AppEventDispatcherRef> actor) : base(actor)
+        {
+        }
     }
 
     public sealed class AppEventDispatcherActor : RestartingEventDispatcherActorBase<AppInfo, DeploymentApi>

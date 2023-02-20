@@ -11,8 +11,8 @@ internal static class Program
 
         var resut = ToDateTime(test);
     }
-    
-    public static DateTime ToDateTime(string valueString)
+
+    private static DateTime ToDateTime(string valueString)
     {
         var value = valueString.AsSpan();
         var date = DateTime.Now.Date;

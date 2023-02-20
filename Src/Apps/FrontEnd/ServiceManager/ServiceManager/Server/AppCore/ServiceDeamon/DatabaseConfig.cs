@@ -20,6 +20,7 @@ using Stl.Fusion;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.Reporting;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
+using Tauron.Application.Master.Commands.Administration.Configuration;
 using Tauron.Operations;
 using UnitsNet;
 
@@ -32,14 +33,14 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         private readonly ConfigurationApi _configurationApi;
         private readonly IResource<bool> _isReady;
         private readonly ILogger<DatabaseConfig> _log;
-        private readonly IProcessServiceHost _processServiceHost;
+        private readonly ProcessServiceHostRef _processServiceHost;
         private readonly ActorSystem _system;
         private readonly IClusterConnectionTracker _tracker;
         private readonly IResource<string> _url;
 
         public DatabaseConfig(
             ILocalConfiguration configuration, ConfigurationApi configurationApi, IClusterConnectionTracker tracker, ActorSystem system,
-            ConfigEventDispatcher eventDispatcher, IProcessServiceHost processServiceHost, ILogger<DatabaseConfig> log)
+            ConfigEventDispatcher eventDispatcher, ProcessServiceHostRef processServiceHost, ILogger<DatabaseConfig> log)
         {
             _url = CreateResource(
                 configuration.DatabaseUrl,
@@ -121,7 +122,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
                         var opt = await _configurationApi.Command(
                             new UpdateServerConfigurationCommand(sc with { Database = murl.ToString() }),
-                            new ApiParameter(TimeSpan.FromSeconds(10)));
+                            new ApiParameter(Duration.FromSeconds(10)));
 
                         opt.ThrowOnFail();
                     }
@@ -129,10 +130,12 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
                 await _url.Set(url, token);
 
-                var targetFile = AkkaConfigurationBuilder.Main.FileInAppDirectory();
-                var config = targetFile.ReadTextIfExis();
-
-                config = AkkaConfigurationBuilder.ApplyMongoUrl(config, Resources.BaseConfig, murl.ToString());
+                var targetFile = AkkaConfigurationHelper.Main.FileInAppDirectory();
+                var config = string.Empty;
+                if(File.Exists(targetFile))
+                    config = await File.ReadAllTextAsync(targetFile, token).ConfigureAwait(false);
+                
+                config = AkkaConfigurationHelper.ApplyMongoUrl(config, Resources.BaseConfig, murl.ToString());
                 await File.WriteAllTextAsync(targetFile, config, token);
 
                 _configuration.DatabaseUrl = url;
@@ -167,7 +170,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                 if (token.IsCancellationRequested) return null;
 
                 var (_, _, database) =
-                    (await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(TimeSpan.FromSeconds(10))))
+                    (await _configurationApi.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(Duration.FromSeconds(10))))
                    .GetOrThrow();
 
                 if (token.IsCancellationRequested) return null;

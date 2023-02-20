@@ -23,9 +23,9 @@ namespace ServiceHost.Services.Impl
 {
     public sealed class AppManagerActor : ActorFeatureBase<AppManagerActor.AppManagerState>
     {
-        public static Func<IAppRegistry, IInstaller, InstallChecker, IIpcConnection, IEnumerable<IPreparedFeature>> New()
+        public static Func<AppRegistry, Installation, InstallChecker, IIpcConnection, IEnumerable<IPreparedFeature>> New()
         {
-            static IEnumerable<IPreparedFeature> _(IAppRegistry appRegistry, IInstaller installer, InstallChecker installChecker, IIpcConnection ipc)
+            static IEnumerable<IPreparedFeature> _(AppRegistry appRegistry, Installation installer, InstallChecker installChecker, IIpcConnection ipc)
             {
                 yield return SubscribeFeature.New();
                 yield return Feature.Create(() => new AppManagerActor(), new AppManagerState(appRegistry, installer, installChecker, ipc));
@@ -43,7 +43,7 @@ namespace ServiceHost.Services.Impl
             Receive<InstallerationCompled>(
                 obs =>
                 {
-                    void PipeToSelf(IAppRegistry appRegistry, AppName name)
+                    void PipeToSelf(AppRegistry appRegistry, AppName name)
                     {
                         appRegistry
                            .Ask<InstalledAppRespond>(new InstalledAppQuery(name), TimeSpan.FromSeconds(10))
@@ -222,7 +222,7 @@ namespace ServiceHost.Services.Impl
                .AddTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "AppManagerShutdown", new ContextShutdown(Logger, Context).HostShutdown);
         }
 
-        public sealed record AppManagerState(IAppRegistry AppRegistry, IInstaller Installer, InstallChecker InstallChecker, IIpcConnection Ipc);
+        public sealed record AppManagerState(AppRegistry AppRegistry, Installation Installer, InstallChecker InstallChecker, IIpcConnection Ipc);
 
         private sealed record InternalFilterApp(AppType AppType, AppName Name);
 

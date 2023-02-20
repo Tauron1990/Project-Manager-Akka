@@ -19,6 +19,7 @@ using Stl.Fusion;
 using Tauron;
 using Tauron.Application.AkkaNode.Services.Reporting.Commands;
 using Tauron.Operations;
+using UnitsNet;
 
 namespace ServiceManager.Server.AppCore.ServiceDeamon
 {
@@ -28,16 +29,16 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
         private const string OperationCanceled = "Vorgang Abgebrochen";
 
         private readonly ConfigurationApi _api;
-        private readonly CompositeDisposable _disposable = new();
+        private readonly CompositHolder _disposable = new();
         private readonly ILogger<ServerConfigurationApi> _log;
-        private readonly IProcessServiceHost _processService;
+        private readonly ProcessServiceHostRef _processService;
         private readonly ActorSystem _system;
 
         public ServerConfigurationApi(
             ConfigurationApi api,
             ActorSystem system,
             ConfigEventDispatcher dispatcher,
-            IProcessServiceHost processService,
+            ProcessServiceHostRef processService,
             ILogger<ServerConfigurationApi> log)
         {
             _api = api;
@@ -56,7 +57,6 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                     })
                .AutoSubscribe(e => log.LogError(e, "Error on Process ConfigEvent"))
                .DisposeWith(_disposable);
-
 
             dispatcher.Get().OfType<GlobalConfigEvent>()
                .ToUnit(
@@ -95,7 +95,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             {
                 await EnsureConfigAlive();
 
-                return (await _api.Query<QueryGlobalConfig, GlobalConfig>(new ApiParameter(TimeSpan.FromSeconds(10)))).GetOrThrow();
+                return (await _api.Query<QueryGlobalConfig, GlobalConfig>(new ApiParameter(Duration.FromSeconds(10)))).GetOrThrow();
             }
             catch (Exception e)
             {
@@ -116,7 +116,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             {
                 await EnsureConfigAlive();
 
-                return (await _api.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(TimeSpan.FromSeconds(10)))).GetOrThrow();
+                return (await _api.Query<QueryServerConfiguration, ServerConfigugration>(new ApiParameter(Duration.FromSeconds(10)))).GetOrThrow();
             }
             catch (Exception e)
             {
@@ -134,7 +134,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
             {
                 await EnsureConfigAlive();
 
-                return (await _api.Query<QuerySpecificConfigList, SpecificConfigList>(new ApiParameter(TimeSpan.FromSeconds(10))))
+                return (await _api.Query<QuerySpecificConfigList, SpecificConfigList>(new ApiParameter(Duration.FromSeconds(10))))
                    .GetOrThrow().ConfigList;
             }
             catch (Exception e)
@@ -159,7 +159,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
                 if (token.IsCancellationRequested) return OperationCanceled;
 
-                var result = await _api.Command(new UpdateSpecificConfigCommand(ConfigDataAction.Delete, command.Name, string.Empty, string.Empty, null), new ApiParameter(TimeSpan.FromSeconds(20)));
+                var result = await _api.Command(new UpdateSpecificConfigCommand(ConfigDataAction.Delete, command.Name, string.Empty, string.Empty, null), new ApiParameter(Duration.FromSeconds(20)));
 
                 return result.ErrorToString();
             }
@@ -190,7 +190,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                         data.Content,
                         data.Info,
                         data.Conditions?.Where(i => i.Action != ConfigDataAction.Delete).Select(i => i.Condition).ToArray()),
-                    new ApiParameter(TimeSpan.FromSeconds(20)));
+                    new ApiParameter(Duration.FromSeconds(20)));
 
                 //foreach (var (name, configDataAction, condition) in data.Conditions) 
                 //await _api.Command(new UpdateConditionCommand(name, configDataAction, condition), TimeSpan.FromSeconds(20));
@@ -225,7 +225,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
             try
             {
-                (await _api.Query<QueryGlobalConfig, GlobalConfig>(new ApiParameter(TimeSpan.FromSeconds(10)))).GetOrThrow();
+                (await _api.Query<QueryGlobalConfig, GlobalConfig>(new ApiParameter(Duration.FromSeconds(10)))).GetOrThrow();
                 needUpdate = true;
             }
             catch (Exception e)
@@ -236,7 +236,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
                     throw;
             }
 
-            var res = await _api.Command(new UpdateGlobalConfigCommand(needUpdate ? ConfigDataAction.Update : ConfigDataAction.Create, config), new ApiParameter(TimeSpan.FromSeconds(20)));
+            var res = await _api.Command(new UpdateGlobalConfigCommand(needUpdate ? ConfigDataAction.Update : ConfigDataAction.Create, config), new ApiParameter(Duration.FromSeconds(20)));
 
             return res.ErrorToString();
         }
@@ -257,7 +257,7 @@ namespace ServiceManager.Server.AppCore.ServiceDeamon
 
             if (token.IsCancellationRequested) return OperationCanceled;
 
-            var res = await _api.Command(new UpdateServerConfigurationCommand(serverConfigugration), new ApiParameter(TimeSpan.FromSeconds(20)));
+            var res = await _api.Command(new UpdateServerConfigurationCommand(serverConfigugration), new ApiParameter(Duration.FromSeconds(20)));
 
             return res.ErrorToString();
         }

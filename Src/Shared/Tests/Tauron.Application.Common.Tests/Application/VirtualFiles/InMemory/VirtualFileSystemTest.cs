@@ -13,7 +13,9 @@ namespace Tauron.Application.Common.Tests.Application.VirtualFiles.InMemory;
 public class VirtualFileSystemTest
 {
     [Fact]
+#pragma warning disable MA0051
     public void TestInMemoryVirtualFileSystem()
+#pragma warning restore MA0051
     {
         var fac = new VirtualFileFactory();
         const string testRootPath = "mem::Test/Test2";

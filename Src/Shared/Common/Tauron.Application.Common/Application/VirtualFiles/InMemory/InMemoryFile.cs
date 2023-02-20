@@ -57,7 +57,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
     }
 
 
-    protected override IFile MoveTo(FileContext context, PathInfo location)
+    protected override IFile MoveTo(FileContext context, in PathInfo location)
     {
         string originalName = Name;
 

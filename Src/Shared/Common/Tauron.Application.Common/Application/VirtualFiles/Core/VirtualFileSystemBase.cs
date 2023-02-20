@@ -18,7 +18,7 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
 
     public abstract PathInfo Source { get; }
 
-    public void Reload(PathInfo source)
+    public void Reload(in PathInfo source)
     {
         ValidateFeature(FileSystemFeature.Reloading);
         ReloadImpl(Context, source);
@@ -49,6 +49,6 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
 
     protected virtual void DisposeImpl() { }
 
-    protected virtual void ReloadImpl(TContext context, PathInfo filePath)
+    protected virtual void ReloadImpl(TContext context, in PathInfo filePath)
         => throw new InvalidOperationException("Reloading not Supported");
 }

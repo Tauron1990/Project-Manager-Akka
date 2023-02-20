@@ -14,7 +14,7 @@
         <MudCard >
             <MudCardContent>
                 <MudForm IsValidChanged="IsValidChaned">
-                    <MudTextFieldString DebounceInterval="500" Value="@_model.DatabaseUrl" ValueChanged="EnterUrl"
+                    <MudTextField T="string" DebounceInterval="500" Value="@_model.DatabaseUrl" ValueChanged="EnterUrl"
                                         Validation="_model.ValidateUrl" @ref="_databseFieldString"/>
                 </MudForm>
             </MudCardContent>
@@ -76,7 +76,7 @@
         InvokeAsync(StateHasChanged).Ignore();
     }
 
-    private MudTextFieldString? _databseFieldString;
+    private MudTextField<string>? _databseFieldString;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

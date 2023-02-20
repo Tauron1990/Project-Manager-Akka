@@ -3,7 +3,7 @@
 @using ServiceManager.Shared.ServiceDeamon
 @using ServiceManager.Client.ViewModels.Configuration
 @using ServiceManager.Client.Shared.Configuration.ConditionEditor
-@inherits MixedStateComponent<AppConfigViewData, ServiceManager.Client.ViewModels.Configuration.AppConfigData>
+@inherits MixedStateComponent<AppConfigViewData?, ServiceManager.Client.ViewModels.Configuration.AppConfigData>
 
 @inject IDialogService _service
 @inject IEventAggregator _aggregator
@@ -11,7 +11,7 @@
 
 @{
     // ReSharper disable once ConstantNullCoalescingCondition
-    var (configs, (newModel, toEdit)) = State.LatestNonErrorValue ?? new AppConfigViewData(ImmutableList<AppConfigModel>.Empty, new AppConfigData());
+    var (configs, (newModel, toEdit)) = State.LastNonErrorValue ?? new AppConfigViewData(ImmutableList<AppConfigModel>.Empty, new AppConfigData());
     if (newModel != null)
         configs = configs.Add(newModel);
 }
@@ -35,7 +35,7 @@
     <MudTabs Centered="true">
         <MudTabPanel Text="Konfiguration" Class="d-flex" Style="flex-direction: row">
             <MudContainer MaxWidth="MaxWidth.Medium">
-                <MudTextFieldString Class="flex-row mud-width-full ma-3" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
+                <MudTextField Class="flex-row mud-width-full ma-3" @bind-Value="toEdit.InfoString" Label="Konfiguration Info"/>
                 <div class="flex-row  order-1 ma-3 mud-width-full" style="height: 400px; width: 1000px">
                     <EditForm Model="_model">
                         <InputTextArea style="height: 400px;" class="mud-width-full" @bind-Value="@toEdit.ConfigString" DisplayName="Konfigurations Text"/>
@@ -137,7 +137,7 @@ else
     private void SaveConditions()
     {
     // ReSharper disable once ConstantConditionalAccessQualifier
-        var model = State.LatestNonErrorValue?.ViewState.ToEdit;
+        var model = State.LastNonErrorValue?.ViewState.ToEdit;
         if (model != null)
             _editorState.CommitChanges(model, _aggregator);
     }

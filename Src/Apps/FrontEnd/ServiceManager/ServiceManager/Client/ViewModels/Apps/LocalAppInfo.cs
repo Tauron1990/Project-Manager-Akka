@@ -13,7 +13,7 @@ namespace ServiceManager.Client.ViewModels.Apps
         }
         
         public LocalAppBinary(AppInfo app, AppBinary appBinary)
-            : this(app, appBinary.FileVersion, appBinary.AppName, appBinary.CreationTime, appBinary.Commit, appBinary.Repository)
+            : this(app, appBinary.FileVersion.Value, appBinary.AppName.Value, appBinary.CreationTime, appBinary.Commit.Value, appBinary.Repository.Value)
         {
             
         }
@@ -52,7 +52,7 @@ namespace ServiceManager.Client.ViewModels.Apps
         }
         
         public LocalAppInfo(AppInfo self)
-            : this(self, self.Name, self.LastVersion, self.UpdateDate, self.CreationTime, self.Repository, self.ProjectName)
+            : this(self, self.Name.Value, self.LastVersion.Value, self.UpdateDate, self.CreationTime, self.Repository.Value, self.ProjectName.Value)
         {
             
         }

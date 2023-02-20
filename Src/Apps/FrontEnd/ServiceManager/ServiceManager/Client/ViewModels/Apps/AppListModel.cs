@@ -18,6 +18,9 @@ using ServiceManager.Shared.Api;
 using ServiceManager.Shared.Apps;
 using Stl.Fusion;
 using Tauron.Application;
+using Tauron.Application.Master.Commands;
+using Tauron.Application.Master.Commands.Deployment;
+using Tauron.Application.Master.Commands.Deployment.Build;
 using Tauron.Application.Master.Commands.Deployment.Build.Data;
 
 #pragma warning disable GU0011
@@ -153,7 +156,7 @@ namespace ServiceManager.Client.ViewModels.Apps
                     {
                         var name = (string)keys[0];
 
-                        var app = await _appManagment.QueryApp(name, CancellationToken.None);
+                        var app = await _appManagment.QueryApp(AppName.From(name), CancellationToken.None);
 
                         if (app.Deleted)
                             throw new InvalidOperationException($"Fhler beim abrufen der Anwendung: {app.Name}");
@@ -165,7 +168,12 @@ namespace ServiceManager.Client.ViewModels.Apps
                 => Run(
                     async () =>
                     {
-                        var result = await _appManagment.CreateNewApp(new ApiCreateAppCommand(item.Name, item.ProjectName, item.Repository), CancellationToken.None);
+                        var result = await _appManagment.CreateNewApp(
+                            new ApiCreateAppCommand(
+                                AppName.From(item.Name),
+                                ProjectName.From(item.ProjectName),
+                                RepositoryName.From(item.Repository)),
+                            CancellationToken.None);
 
                         if (string.IsNullOrWhiteSpace(result)) return Unit.Default;
 
@@ -179,7 +187,7 @@ namespace ServiceManager.Client.ViewModels.Apps
                 => Run(
                     async () =>
                     {
-                        var result = await _appManagment.DeleteAppCommand(new ApiDeleteAppCommand((string)keys[0]), CancellationToken.None);
+                        var result = await _appManagment.DeleteAppCommand(new ApiDeleteAppCommand(AppName.From((string)keys[0])), CancellationToken.None);
 
                         if (string.IsNullOrWhiteSpace(result)) return Unit.Default;
 

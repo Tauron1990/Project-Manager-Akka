@@ -5,7 +5,7 @@
             @DatabaseContent
         </DatabaseContent>
         <NoDatabaseContent>
-            @if (NoDatabaseContent == null)
+            @if (DatabaseContent == null)
             {
                 <MudText>@DatabaseRequiredComponentView.DefaultMessage</MudText>
             }

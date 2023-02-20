@@ -4,7 +4,7 @@ namespace Tauron.Features;
 
 public interface IPreparedFeature
 {
-    IEnumerable<IFeature<GenericState>> Materialize();
+    IEnumerable<IFeature<GenericState>?> Materialize();
 
-    KeyValuePair<Type, object> InitialState(IUntypedActorContext context);
+    KeyValuePair<Type, object>? InitialState(IUntypedActorContext context);
 }

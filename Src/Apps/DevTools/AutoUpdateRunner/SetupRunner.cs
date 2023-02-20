@@ -147,11 +147,11 @@ namespace AutoUpdateRunner
                     switch (info)
                     {
                         case FileInfo file:
-                            file.CopyTo(file.FullName.Replace(currentTarget.Base, currentTarget.Target));
+                            file.CopyTo(file.FullName.Replace(currentTarget.Base, currentTarget.Target, StringComparison.Ordinal));
 
                             break;
                         case DirectoryInfo dic:
-                            var newPath = dic.FullName.Replace(currentTarget.Base, currentTarget.Target);
+                            var newPath = dic.FullName.Replace(currentTarget.Base, currentTarget.Target, StringComparison.Ordinal);
                             Directory.CreateDirectory(newPath);
                             elements.Enqueue((dic, dic.FullName, newPath));
 
@@ -162,6 +162,8 @@ namespace AutoUpdateRunner
 
         private static void ClearDictionary(string target)
         {
+            if(string.IsNullOrWhiteSpace(target)) return;
+            
             if (Directory.Exists(target))
                 Directory.Delete(target, recursive: true);
             Directory.CreateDirectory(target);

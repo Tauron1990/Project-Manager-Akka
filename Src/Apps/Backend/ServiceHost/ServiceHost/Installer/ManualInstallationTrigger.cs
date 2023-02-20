@@ -7,10 +7,10 @@ namespace ServiceHost.Installer
 {
     public sealed class ManualInstallationTrigger
     {
-        private readonly IInstaller _installer;
+        private readonly Installation _installer;
         private readonly ManualInstallationConfiguration _trigger = new();
 
-        public ManualInstallationTrigger(IConfiguration config, IInstaller installer)
+        public ManualInstallationTrigger(IConfiguration config, Installation installer)
         {
             _installer = installer;
             config.Bind(_trigger);

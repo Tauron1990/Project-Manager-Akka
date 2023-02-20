@@ -24,7 +24,7 @@ namespace ServiceHost.Installer.Impl
         private static readonly StepId Registration = new(nameof(Registration));
         private static readonly StepId Finalization = new(nameof(Finalization));
 
-        public ActualInstallerActor(IAppRegistry registry, AppNodeInfo configuration, IAutoUpdater autoUpdater)
+        public ActualInstallerActor(AppRegistry registry, AppNodeInfo configuration, AutoUpdater autoUpdater)
         {
             StartMessage<FileInstallationRequest>(HandleFileInstall);
 
