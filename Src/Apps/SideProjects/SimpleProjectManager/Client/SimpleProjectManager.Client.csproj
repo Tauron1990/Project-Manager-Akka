@@ -255,11 +255,14 @@
         <Compile Update="Shared\Devices\SingleButtonDisplay.cs">
             <DependentUpon>SingleButtonDisplay.razor</DependentUpon>
         </Compile>
-        <Compile Update="Shared\Devices\LogsDisplay.cs">
+        <Compile Update="Shared\Devices\DeviceLogsDisplay.cs">
             <DependentUpon>LogsDisplay.razor</DependentUpon>
         </Compile>
         <Compile Update="Pages\LogFiles.cs">
           <DependentUpon>LogFiles.razor</DependentUpon>
+        </Compile>
+        <Compile Update="Shared\LogFiles\LogFileDisplay.cs">
+          <DependentUpon>LogFileDisplay.razor</DependentUpon>
         </Compile>
     </ItemGroup>
 

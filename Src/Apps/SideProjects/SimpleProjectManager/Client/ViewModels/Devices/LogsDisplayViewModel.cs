@@ -22,7 +22,7 @@ public sealed class LogsDisplayViewModel : LogViewModel, IParameterUpdateable
         => _eventAggregator.PublishError(exception);
 
     protected override IState<DeviceId?> GetDevice(IStateFactory stateFactory)
-        => Updater.Register<DeviceId?>(nameof(LogsDisplay.DeviceId), stateFactory);
+        => Updater.Register<DeviceId?>(nameof(DeviceLogsDisplay.DeviceId), stateFactory);
 
     public ParameterUpdater Updater { get; } = new();
 }

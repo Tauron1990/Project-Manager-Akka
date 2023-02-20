@@ -1,3 +1,46 @@
 ﻿@page "/LogFiles"
 
 @inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.LogFiles.LogFilesViewModel>
+
+@if(ViewModel is not null)
+{
+    <MudGrid>
+        <MudItem lg="5">
+            <MudSelect bind-Value="ViewModel.HostToShow">
+                <ObservableCollectionView SourceParameter="ViewModel.Hosts">
+                    <ListRender>
+                        @foreach (string item in context)
+                        {
+                            <MudSelectItem @key="item" Value="item"/>
+                        }
+                    </ListRender>
+                </ObservableCollectionView>
+            </MudSelect>
+        </MudItem>
+        <MudItem lg="5">
+            <MudSelect bind-Value="ViewModel.File">
+                <ObservableCollectionView SourceParameter="ViewModel.Files">
+                    <ListRender>
+                        @foreach (string file in context)
+                        {
+                            <MudSelectItem @key="file" Value="file"/>
+                        }
+                    </ListRender>
+                </ObservableCollectionView>
+            </MudSelect>
+        </MudItem>
+        <MudItem lg="2">
+            <MudCommandIconButton @ref="_refreshButton" Icon="@Icons.Material.Filled.Refresh"/>
+        </MudItem>
+        <MudItem lg="12">
+            <ObservableRenderer Observable="ViewModel.CurrentFile">
+                <Waiting>
+                    <MudText Align="Align.Center">Kein Log File Ausgwählt</MudText>
+                </Waiting>
+                <ValueRenderer>
+                    <LogFileDisplay @key="context" ToDisplay="context"/>
+                </ValueRenderer>
+            </ObservableRenderer>
+        </MudItem>
+    </MudGrid>
+}
