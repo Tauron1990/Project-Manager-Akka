@@ -17,7 +17,7 @@ public class BlazorViewModel : ReactiveObject, IActivatableViewModel, IResourceH
 
     public IStateFactory StateFactory { get; }
 
-    public virtual ViewModelActivator Activator { get; } = new();
+    public ViewModelActivator Activator { get; } = new();
 
     public ParameterUpdater Updater { get; } = new();
 

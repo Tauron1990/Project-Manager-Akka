@@ -90,7 +90,7 @@ public static class SerciveCollectionExtensions
 
     public static IServiceCollection RegisterModules(this IServiceCollection collection, params IModule[] modules)
     {
-        foreach (var module in modules) module.Load(collection);
+        foreach (var module in modules) HandlerRegistry.ModuleHandler.Handle(collection, module);
 
         return collection;
     }

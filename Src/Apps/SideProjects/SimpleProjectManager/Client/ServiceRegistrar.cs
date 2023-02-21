@@ -46,5 +46,6 @@ public static class ServiceRegistrar
         services.AddTransient<LogsDisplayViewModel>();
 
         services.AddTransient<LogFilesViewModel>();
+        services.AddTransient<LogFileDisplayViewModel>();
     }
 }

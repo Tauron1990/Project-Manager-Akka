@@ -83,7 +83,7 @@ public static class LoggingExtensions
                             Name = defaultFile,
                         });
 
-                    b.Configuration.AddRuleForAllLevels(defaultFile);
+                    b.Configuration.AddRule(LogLevel.Info, LogLevel.Fatal, defaultFile);
                     b.Configuration.AddRule(LogLevel.Info, LogLevel.Fatal, defaultConsole);
                 });
 

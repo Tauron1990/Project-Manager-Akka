@@ -30,7 +30,7 @@
         </PackageReference>
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
         <PackageReference Include="MaterialDesignThemes" Version="4.7.1" />
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.14">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.17">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
