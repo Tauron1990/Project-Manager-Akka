@@ -2,4 +2,4 @@
 
 namespace SimpleProjectManager.Client.ViewModels.LogFiles;
 
-public record LogData(string Date, string EventType, string Message, string Type, ImmutableDictionary<string, string> Propertys);
+public record LogData(string Date, string Level, string EventType, string Message, ImmutableDictionary<string, string> Propertys);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -92,8 +93,8 @@ public static class LoggingExtensions
                                 ArchiveAboveSize = 5_242_880,
                                 ConcurrentWrites = false,
                                 MaxArchiveFiles = 5,
-                                FileName = "Logs\\Log.log",
-                                ArchiveFileName = "Logs\\Log.{###}.log",
+                                FileName = Path.GetFullPath(Path.Combine("Logs", "Log.log")),
+                                ArchiveFileName = Path.GetFullPath(Path.Combine("Logs", "Log.{###}.log")),
                                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
                             })
                         {
