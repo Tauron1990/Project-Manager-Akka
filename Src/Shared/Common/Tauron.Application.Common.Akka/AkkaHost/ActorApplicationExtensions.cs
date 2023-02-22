@@ -47,19 +47,19 @@ public static class ActorApplicationExtensions
         => builder.ConfigureServices((_, sc) => config(sc));
 
     public static IActorApplicationBuilder ScanModules(this IActorApplicationBuilder builder, IEnumerable<Assembly> assemblies)
-        => builder.ConfigureServices(s => s.ScanModules(assemblies));
+        => builder.ConfigureHost(s => s.ScanModules(assemblies));
 
     public static IActorApplicationBuilder ScanModules(this IActorApplicationBuilder builder, Predicate<Assembly>? predicate = null)
-        => builder.ConfigureServices(s => s.ScanModules(predicate));
+        => builder.ConfigureHost(s => s.ScanModules(predicate));
 
 
     public static IActorApplicationBuilder RegisterModule<TModule>(this IActorApplicationBuilder builder)
         where TModule : class, IModule, new()
-        => builder.ConfigureServices(s => s.RegisterModule<TModule>());
+        => builder.ConfigureHost(s => s.RegisterModule<TModule>());
 
     public static IActorApplicationBuilder RegisterModule(this IActorApplicationBuilder builder, IModule module)
-        => builder.ConfigureServices(s => s.RegisterModule(module));
+        => builder.ConfigureHost(s => s.RegisterModule(module));
 
     public static IActorApplicationBuilder RegisterModules(this IActorApplicationBuilder builder, params IModule[] modules)
-        => builder.ConfigureServices(s => s.RegisterModules(modules));
+        => builder.ConfigureHost(s => s.RegisterModules(modules));
 }

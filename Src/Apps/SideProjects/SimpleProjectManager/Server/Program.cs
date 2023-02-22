@@ -14,15 +14,14 @@ try
     StartConfigManager.ConfigManager.Init(FilePath.Empty);
 
     IHostBuilder builder = AppNode.StartNode(args, KillRecpientType.Seed, IpcApplicationType.NoIpc, consoleLog: false)
-       .ConfigureServices(
-            sc => sc.RegisterModules(
+       .RegisterModules(
                 new CommonModule(),
                 new DataModule(),
                 new MainModule(),
                 new ProjectionModule(),
                 new ServicesModule(),
                 new TaskModule(),
-                new DeviceModule()))
+                new DeviceModule())
        .ConfigureWebHostDefaults(
             b =>
             {

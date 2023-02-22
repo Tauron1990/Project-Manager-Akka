@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
         <ProjectReference Include="..\..\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
     </ItemGroup>
 
@@ -35,6 +36,8 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="7.0.0" />
       <PackageReference Include="SharpGaming.Akka.Patterns" Version="1.0.4" />
       <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
       <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />

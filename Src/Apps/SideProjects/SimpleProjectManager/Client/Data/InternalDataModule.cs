@@ -9,11 +9,11 @@ namespace SimpleProjectManager.Client.Data;
 
 #pragma warning disable GU0011
 
-public class InternalDataModule : IModule
+public static class InternalDataModule
 {
-    public void Load(IServiceCollection collection)
+    public static void Load(IServiceCollection collection)
     {
-        collection.RegisterModule<DataModule>();
+        DataModule.Load(collection);
 
         collection.AddScoped<ICacheDb, CacheDb>();
         collection.AddScoped<IOnlineMonitor, OnlineMonitor>();

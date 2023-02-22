@@ -1,15 +1,31 @@
 ﻿using System;
 using System.Globalization;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Tauron.Application.Logging;
 
 namespace TestApp;
 
-internal static class Program
+internal class Program
 {
     private static void Main()
     {
-        var test = "12:30:20:10";
+        var fac = new ServiceCollection();
+        fac.AddLogging(b => b.ConfigDefaultLogging("Test App"));
+        using ServiceProvider provider = fac.BuildServiceProvider();
 
-        var resut = ToDateTime(test);
+        var logger = provider.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Start Logging Test");
+        
+        const string test = "12:30:20:10";
+        logger.LogInformation("The Test String is {TestString}", test);
+        
+        DateTime resut = ToDateTime(test);
+        logger.LogInformation("The Result Date is {ResultDate}", resut);
+        
+        logger.LogError(new InvalidOperationException("Test Exception Instance"), "Test Messsage {For}", "Exception Message");
+        
+        logger.LogCritical("Test Messsage {For}", "Fatal Message");
     }
 
     private static DateTime ToDateTime(string valueString)

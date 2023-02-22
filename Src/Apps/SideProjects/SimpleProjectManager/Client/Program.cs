@@ -8,7 +8,6 @@ using SimpleProjectManager.Shared.ServerApi.RestApi;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using Stl.Fusion;
 using Stl.Fusion.Blazor;
-using Tauron;
 using Tauron.Application;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -36,7 +35,7 @@ config.AddBlazorUIServices();
 
 //Services
 ServiceRegistrar.RegisterServices(builder.Services);
-builder.Services.RegisterModule<InternalDataModule>();
+InternalDataModule.Load(builder.Services);
 
 
 WebAssemblyHost host = builder.Build();

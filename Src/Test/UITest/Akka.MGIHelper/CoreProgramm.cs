@@ -12,11 +12,12 @@ namespace Akka.MGIHelper
         public static async Task Main(string[] args)
         {
             await Host.CreateDefaultBuilder(args)
+                .RegisterModule<MainModule>()
                 .ConfigureLogging(
                     lb => lb.AddNLog(
                         sb => sb.ConfigDefaultLogging("MGI_Helper")))
                 .ConfigureAkkaApplication(
-                    ab => ab.ConfigureServices((_, sc) => sc.RegisterModule<MainModule>())
+                    ab => ab
                         .ConfigureAkka((_, c) => c.AddStartup((system, _) => system.RegisterLocalization()))
                         .UseWpf<MainWindow, App>())
                 .Build().RunAsync().ConfigureAwait(false);

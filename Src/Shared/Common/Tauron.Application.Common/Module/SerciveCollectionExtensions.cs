@@ -6,6 +6,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyModel;
+using Microsoft.Extensions.Hosting;
 using Tauron.Module.Internal;
 
 namespace Tauron;
@@ -29,7 +30,7 @@ public static class AutofacExtensions
 [PublicAPI]
 public static class SerciveCollectionExtensions
 {
-    public static IServiceCollection ScanModules(this IServiceCollection collection, IEnumerable<Assembly> assemblies)
+    public static IHostBuilder ScanModules(this IHostBuilder collection, IEnumerable<Assembly> assemblies)
     {
         foreach (IModule? module in from lib in assemblies
                                     from type in lib.ExportedTypes
@@ -42,7 +43,7 @@ public static class SerciveCollectionExtensions
         return collection;
     }
 
-    public static IServiceCollection ScanModules(this IServiceCollection collection, Predicate<Assembly>? predicate = null)
+    public static IHostBuilder ScanModules(this IHostBuilder collection, Predicate<Assembly>? predicate = null)
         => ScanModules(
             collection,
             from lib in DependencyContext.Default.RuntimeLibraries
@@ -77,18 +78,18 @@ public static class SerciveCollectionExtensions
         }
     }
 
-    public static IServiceCollection RegisterModule<TModule>(this IServiceCollection collection)
+    public static IHostBuilder RegisterModule<TModule>(this IHostBuilder collection)
         where TModule : class, IModule, new()
         => RegisterModule(collection, new TModule());
 
-    public static IServiceCollection RegisterModule(this IServiceCollection collection, IModule module)
+    public static IHostBuilder RegisterModule(this IHostBuilder collection, IModule module)
     {
         HandlerRegistry.ModuleHandler.Handle(collection, module);
 
         return collection;
     }
 
-    public static IServiceCollection RegisterModules(this IServiceCollection collection, params IModule[] modules)
+    public static IHostBuilder RegisterModules(this IHostBuilder collection, params IModule[] modules)
     {
         foreach (var module in modules) HandlerRegistry.ModuleHandler.Handle(collection, module);
 

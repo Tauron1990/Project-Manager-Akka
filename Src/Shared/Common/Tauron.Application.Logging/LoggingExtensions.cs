@@ -41,7 +41,25 @@ public static class LoggingExtensions
             loggerConfiguration.LoadConfiguration(
                 b =>
                 {
-                    b.Configuration.AddTarget(new ColoredConsoleTarget(defaultConsole));
+                    b.Configuration.AddTarget(new ColoredConsoleTarget(defaultConsole)
+                    {
+                        UseDefaultRowHighlightingRules = false,
+                        RowHighlightingRules =
+                        {
+                            //LogLevel.Debug
+                            new ConsoleRowHighlightingRule("level == LogLevel.Debug", ConsoleOutputColor.White, ConsoleOutputColor.Black),
+                            //LogLevel.Trace
+                            new ConsoleRowHighlightingRule("level == LogLevel.Trace", ConsoleOutputColor.White, ConsoleOutputColor.Black),
+                            //LogLevel.Info
+                            new ConsoleRowHighlightingRule("level == LogLevel.Info", ConsoleOutputColor.Blue, ConsoleOutputColor.Black),
+                            //LogLevel.Warn
+                            new ConsoleRowHighlightingRule("level == LogLevel.Warn", ConsoleOutputColor.Yellow, ConsoleOutputColor.Black),
+                            //LogLevel.Error
+                            new ConsoleRowHighlightingRule("level == LogLevel.Error", ConsoleOutputColor.Red, ConsoleOutputColor.Black),
+                            //LogLevel.Fatal
+                            new ConsoleRowHighlightingRule("level == LogLevel.Fatal", ConsoleOutputColor.DarkYellow, ConsoleOutputColor.DarkRed),
+                        },
+                    });
                     b.Configuration.AddTarget(
                         new AsyncTargetWrapper(
                             new FileTarget("actual-" + defaultFile)
@@ -77,7 +95,6 @@ public static class LoggingExtensions
                                 FileName = "Logs\\Log.log",
                                 ArchiveFileName = "Logs\\Log.{###}.log",
                                 ArchiveNumbering = ArchiveNumberingMode.Rolling,
-                                EnableArchiveFileCompression = true,
                             })
                         {
                             Name = defaultFile,

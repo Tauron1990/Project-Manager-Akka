@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Tauron.Module.Internal;
 
 namespace Tauron.AkkaHost;
@@ -9,9 +10,9 @@ internal sealed class ActorApplicationHandler : IModuleHandler
 
     internal ActorApplicationHandler(IActorApplicationBuilder builder) => _builder = builder;
 
-    public void Handle(IServiceCollection collection, IModule module)
+    public void Handle(IHostBuilder collection, IModule module)
     {
-        module.Load(collection);
+        collection.ConfigureServices(module.Load);
         
         if(module is AkkaModule akkaModule)
             akkaModule.Load(_builder);

@@ -31,6 +31,6 @@ public class BlazorViewModel : ReactiveObject, IActivatableViewModel, IResourceH
         => _disposable.Remove(res);
 
 
-    public IState<TValue> GetParameter<TValue>(string name)
-        => this.GetParameter<TValue>(name, StateFactory);
+    public IState<TValue?> GetParameter<TValue>(string name)
+        => this.GetParameter<TValue>(name, StateFactory)!;
 }

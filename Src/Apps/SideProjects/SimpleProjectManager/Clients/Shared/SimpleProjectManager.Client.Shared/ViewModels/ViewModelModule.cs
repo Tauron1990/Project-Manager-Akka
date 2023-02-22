@@ -13,7 +13,7 @@ namespace SimpleProjectManager.Client.Shared.ViewModels;
 
 public sealed class ViewModelModule : IModule
 {
-    public void Load(IServiceCollection services)
+    public static void LoadStatic(IServiceCollection services)
     {
         services.AddTransient<PageNavigation>();
         services.AddTransient<UploadTransaction>();
@@ -35,4 +35,6 @@ public sealed class ViewModelModule : IModule
 
         services.AddTransient<DevicesViewModel>();
     }
+
+    public void Load(IServiceCollection collection) => LoadStatic(collection);
 }

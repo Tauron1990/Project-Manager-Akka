@@ -19,6 +19,12 @@ internal sealed class ActorApplicationBluilder : IActorApplicationBuilder
 
     internal bool ConfigurationFinisht { get; set; }
 
+    public IActorApplicationBuilder ConfigureHost(Action<IHostBuilder> configure)
+    {
+        configure(_builder);
+        return this;
+    }
+
     public IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, AkkaConfigurationBuilder> system)
         => ConfigureAkka((h, _, c) => system(h, c));
 

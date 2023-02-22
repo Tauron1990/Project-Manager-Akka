@@ -8,11 +8,11 @@ namespace SimpleProjectManager.Client.Shared.Data;
 
 #pragma warning disable GU0011
 
-public class DataModule : IModule
+public static class DataModule
 {
-    public void Load(IServiceCollection collection)
+    public static void Load(IServiceCollection collection)
     {
-        collection.RegisterModules(new CommonModule());
+        new CommonModule().Load(collection);
 
         collection.AddTransient<UploadTransaction>();
         collection.AddScoped<Func<UploadTransaction>>(s => s.GetRequiredService<UploadTransaction>);

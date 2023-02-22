@@ -11,11 +11,11 @@ namespace TimeTracker
         public static async Task Main(string[] args)
         {
             await Host.CreateDefaultBuilder(args)
-               .ConfigDefaultLogging("Time-Tracker")
-               .ConfigureAkkaApplication(
-                    ab => ab.ConfigureServices((_, sc) => sc.RegisterModule<MainModule>())
-                       .UseWpf<MainWindow, App>())
-               .Build().RunAsync().ConfigureAwait(false);
+                .RegisterModule<MainModule>()
+                .ConfigDefaultLogging("Time-Tracker")
+                .ConfigureAkkaApplication(
+                    ab => ab.UseWpf<MainWindow, App>())
+                .Build().RunAsync().ConfigureAwait(false);
         }
     }
 }

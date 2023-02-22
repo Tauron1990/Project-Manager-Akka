@@ -9,7 +9,6 @@ using SimpleProjectManager.Client.ViewModels.Devices;
 using SimpleProjectManager.Client.ViewModels.LogFiles;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
-using Tauron;
 
 namespace SimpleProjectManager.Client;
 
@@ -24,7 +23,7 @@ public static class ServiceRegistrar
         resolver.InitializeSplat();
         resolver.InitializeReactiveUI();
 
-        services.RegisterModule<ViewModelModule>();
+        ViewModelModule.LoadStatic(services);
 
         services.AddMudServices(c => c.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter);
 

@@ -13,6 +13,8 @@ public interface IActorApplicationBuilder
     //
     // IActorApplicationBuilder ConfigureAkka(Func<HostBuilderContext, Setup> config);
 
+    IActorApplicationBuilder ConfigureHost(Action<IHostBuilder> configure);
+    
     IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, AkkaConfigurationBuilder> system);
 
     IActorApplicationBuilder ConfigureAkka(Action<HostBuilderContext, IServiceProvider, AkkaConfigurationBuilder> system);
