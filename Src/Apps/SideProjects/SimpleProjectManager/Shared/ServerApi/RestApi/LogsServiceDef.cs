@@ -8,9 +8,9 @@ namespace SimpleProjectManager.Shared.ServerApi.RestApi;
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public interface ILogsServiceDef
 {
-    [Get]
+    [Get(nameof(GetFileNames))]
     public Task<LogFilesData> GetFileNames(CancellationToken cancel);
 
-    [Post]
+    [Post(nameof(GetLogFileContent))]
     public Task<LogFileContent> GetLogFileContent([Body] LogFileRequest request, CancellationToken cancel);
 }

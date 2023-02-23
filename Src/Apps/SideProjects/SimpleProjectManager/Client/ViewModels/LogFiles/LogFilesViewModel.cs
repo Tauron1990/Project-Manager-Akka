@@ -70,7 +70,7 @@ public sealed class LogFilesViewModel : ViewModelBase, IDisposable
         Hosts = hosts;
         Files = files;
 
-        CurrentFile = this.WhenAnyValue(m => HostToShow)
+        CurrentFile = this.WhenAnyValue(m => m.HostToShow)
             .CombineLatest(this.WhenAnyValue(m => m.File))
             .Select(
                 d => string.IsNullOrWhiteSpace(d.First) || string.IsNullOrWhiteSpace(d.Second)

@@ -10,7 +10,7 @@ internal sealed class FileTracker
 {
     private sealed record Entry(IActorRef From, ImmutableList<string> Files);
 
-    private readonly ConcurrentDictionary<string, Entry> _entries = new();
+    private readonly ConcurrentDictionary<string, Entry> _entries = new(StringComparer.Ordinal);
 
     internal void Add(string host, IActorRef from, ImmutableList<string> files)
     {

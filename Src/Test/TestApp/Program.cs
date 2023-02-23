@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
+using System.Text.Json;
+using LinqToDB;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Tauron;
 using Tauron.Application.Logging;
 
 namespace TestApp;
@@ -18,7 +22,7 @@ internal class Program
         logger.LogInformation("Start Logging Test");
         
         const string test = "12:30:20:10";
-        logger.LogInformation("The Test String is {TestString}", test);
+        logger.LogInformation("The Test String is {TestString} {TestString2}", test, "hallo");
         
         DateTime resut = ToDateTime(test);
         logger.LogInformation("The Result Date is {ResultDate}", resut);

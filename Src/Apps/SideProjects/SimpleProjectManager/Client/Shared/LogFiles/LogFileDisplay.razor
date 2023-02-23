@@ -1,1 +1,33 @@
-﻿@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.LogFiles.LogFileDisplayViewModel>
+﻿@using SimpleProjectManager.Client.ViewModels.LogFiles
+@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.LogFiles.LogFileDisplayViewModel>
+
+@if(ViewModel?.HasFile == true)
+{
+    <MudDataGrid Groupable="true" Items="ViewModel.Logs" Dense="true" Filterable="true">
+        <Columns>
+            <Column T="LogData" Field="Date" Title="Zeit"/>
+            <Column T="LogData" Field="Level" Title="Schwere"/>
+            <Column T="LogData" Field="Message" Title="Nachricht"/>
+            <Column T="LogData" Field="EventType" Title="Ereignis Type"/>
+        </Columns>
+        <ChildRowContent>
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Eigenschaften</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @foreach (var prop in context.Item.Propertys)
+                            {
+                                <MudText>@(prop.Key): @(prop.Value)</MudText>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+        </ChildRowContent>
+    </MudDataGrid>
+}
+else
+{
+    <MudText Align="Align.Center">Keine Daten</MudText>
+}
