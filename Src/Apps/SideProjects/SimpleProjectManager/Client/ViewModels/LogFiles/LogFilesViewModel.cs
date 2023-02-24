@@ -1,10 +1,14 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Alias;
+using JetBrains.Annotations;
 using ReactiveUI;
 using RestEase;
 using SimpleProjectManager.Client.Shared.ViewModels;
@@ -25,12 +29,16 @@ public sealed class LogFilesViewModel : ViewModelBase, IDisposable
     private string _hostToShow = string.Empty;
     private string _file = string.Empty;
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+    [UsedImplicitly]
     public string HostToShow
     {
         get => _hostToShow;
         set => this.RaiseAndSetIfChanged(ref _hostToShow, value);
     }
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+    [UsedImplicitly]
     public string File
     {
         get => _file;

@@ -25,11 +25,11 @@ public  sealed class LogFileDisplayViewModel : BlazorViewModel
 
     public ReadOnlyObservableCollection<LogData> Logs { get; }
     
-    public LogFileDisplayViewModel(IStateFactory stateFactory, IEventAggregator eventAggregator)
+    public LogFileDisplayViewModel(HttpClient client, IStateFactory stateFactory, IEventAggregator eventAggregator)
         : base(stateFactory)
     {
         _eventAggregator = eventAggregator;
-        _service = RestClient.For<ILogsServiceDef>();
+        _service = RestClient.For<ILogsServiceDef>(client);
         
         var input = GetParameter<TargetFileSelection>(nameof(LogFileDisplay.ToDisplay))
             .ToObservable(eventAggregator.PublishError);
@@ -39,9 +39,12 @@ public  sealed class LogFileDisplayViewModel : BlazorViewModel
             .SelectMany(FetchData)
             .Subscribe(UpdateLogData)
             .DisposeWith(this);
-        
+
         _hasFile = input
-            .Select(s => s?.IsT1 ?? false)
+            .Select(
+                s => s?.Match(
+                    tf => !string.IsNullOrWhiteSpace(tf.Host) && !string.IsNullOrWhiteSpace(tf.Name),
+                    _ => false) ?? false)
             .ToProperty(this, m => m.HasFile)
             .DisposeWith(this);
 

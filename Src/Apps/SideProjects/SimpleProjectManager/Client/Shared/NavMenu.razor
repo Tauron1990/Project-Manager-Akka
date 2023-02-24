@@ -1,7 +1,7 @@
 ﻿@using SimpleProjectManager.Client.Shared.ViewModels
 @inject NavigationManager NavigationManager
 
-<MudDivider Class="mb-4"/>
+<MudDivider DividerType="DividerType.Middle"/>
 <MudNavMenu>
     <MudNavLink Class="ma-1" OnClick="@(() => Navigate(PageNavigation.StartPageUrl))">Übersicht</MudNavLink>
     <MudNavLink Class="ma-1" OnClick="@(() => Navigate(PageNavigation.CurrentJobs))">Aktuelle Aufträge</MudNavLink>

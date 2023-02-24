@@ -28,7 +28,7 @@ public static partial class AppNode
     {
         Config config = GetConfig();
 
-        void ConfigurateAkka(HostBuilderContext _, AkkaConfigurationBuilder configurationBuilder)
+        void ConfigurateAkka(HostBuilderContext context, AkkaConfigurationBuilder configurationBuilder)
         {
             configurationBuilder.ConfigureLoggers(
                 lcb =>
@@ -76,6 +76,8 @@ akka {
     private static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder configuration)
     {
         configuration.ClearProviders();
+        configuration.AddConfiguration(context.Configuration.GetSection("Logging"));
+        
         configuration.ConfigDefaultLogging(context.HostingEnvironment.ApplicationName);
     }
 

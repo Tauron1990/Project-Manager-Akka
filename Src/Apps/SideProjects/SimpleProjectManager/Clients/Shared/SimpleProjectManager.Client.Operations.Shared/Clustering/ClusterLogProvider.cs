@@ -36,8 +36,18 @@ public sealed partial class ClusterLogProvider : ReceiveActor
         {
             string path = Path.GetFullPath("Logs");
             path = Path.Combine(path, query.Name);
-            
-            return new LogFileResponse(await File.ReadAllTextAsync(path).ConfigureAwait(false));
+
+#pragma warning disable MA0004
+            await using Stream file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var data = new MemoryStream();
+#pragma warning restore MA0004
+
+            await file.CopyToAsync(data).ConfigureAwait(false);
+
+            return !data.TryGetBuffer(buffer: out var buffer) 
+                ? new LogFileResponse(string.Empty) 
+                : new LogFileResponse(Convert.ToBase64String(buffer));
+
         }
         catch (Exception e)
         {
@@ -57,7 +67,12 @@ public sealed partial class ClusterLogProvider : ReceiveActor
 
             if(Directory.Exists(path))
             {
-                string[] files = Directory.GetFiles(path, "*.log");
+                IEnumerable<string> files =
+                    from file in Directory.EnumerateFiles(path, "*.log")
+                    let name = Path.GetFileName(file)
+                    where !string.IsNullOrWhiteSpace(name)
+                    select name;
+                
                 Sender.Tell(new LogFilesNamesResponse(_name, ImmutableList<string>.Empty.AddRange(files)));
             }
             else

@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using JetBrains.Annotations;
+using ReactiveUI;
 using Tauron.Application.Blazor.Commands;
 
 namespace SimpleProjectManager.Client.Pages;

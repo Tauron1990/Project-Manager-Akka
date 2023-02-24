@@ -15,7 +15,7 @@ public sealed class LoggerServer : ReceiveActor, IDisposable
     public LoggerServer(ChannelWriter<LogInfo> logSink, int port)
     {
         _logSink = logSink;
-        
+        //Pilot status switching to
         IPAddress iPAddress = IPAddress.Parse("127.0.0.1");
         _endPoint = new IPEndPoint(iPAddress, port);
         _server = new Socket(iPAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);

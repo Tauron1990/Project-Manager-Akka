@@ -10,6 +10,8 @@ using Tauron.Application.Logging;
 
 namespace TestApp;
 
+#pragma warning disable GU0011
+
 internal class Program
 {
     private static void Main()

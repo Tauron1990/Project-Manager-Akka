@@ -1,4 +1,6 @@
-﻿namespace SimpleProjectManager.Operation.Client.Tests;
+﻿#pragma warning disable
+
+namespace SimpleProjectManager.Operation.Client.Tests;
 
 public class LoggerTcpFormat
 {

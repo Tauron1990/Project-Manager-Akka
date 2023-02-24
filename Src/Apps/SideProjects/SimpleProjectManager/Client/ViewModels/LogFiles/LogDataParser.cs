@@ -5,13 +5,24 @@ namespace SimpleProjectManager.Client.ViewModels.LogFiles;
 
 public static class LogDataParser
 {
-    public static IEnumerable<LogData> ParseLogs(string logFile)
+    public static IEnumerable<LogData> ParseLogs(string logFileData)
     {
-        if(string.IsNullOrWhiteSpace(logFile)) yield break;
-        
-        using var reader = new StringReader(logFile);
+        if(string.IsNullOrWhiteSpace(logFileData)) yield break;
+            
+        using var mem = new MemoryStream(Convert.FromBase64String(logFileData));
+        using var reader = new StreamReader(mem);
 
-        foreach (string line in ReadLines())
+        while (true)
+        {
+            string? line = reader.ReadLine();
+            if(string.IsNullOrWhiteSpace(line)) yield break;
+            yield return ParseLogLine(line);
+        }
+    }
+
+    private static LogData ParseLogLine(string line)
+    {
+        try
         {
             using JsonDocument json = JsonDocument.Parse(line);
 
@@ -19,25 +30,25 @@ public static class LogDataParser
             string level = json.RootElement.GetProperty("level").GetString() ?? string.Empty;
             string type = json.RootElement.GetProperty("eventType").GetString() ?? string.Empty;
             string message = json.RootElement.GetProperty("message").GetString() ?? string.Empty;
-            
+
             using JsonDocument propsText = JsonDocument.Parse(json.RootElement.GetProperty("Properties").GetString() ?? string.Empty);
             var propertys = propsText.RootElement.EnumerateObject()
-                .ToImmutableDictionary(p => p.Name, p => p.Value.GetString() ?? string.Empty);
+                .ToImmutableDictionary(p => p.Name, p => p.Value.ToString());
 
-            yield return new LogData(time, level, type, message, propertys);
+            return new LogData(time, level, type, message, propertys);
         }
-        
-        IEnumerable<string> ReadLines()
+        catch (Exception e)
         {
-            while (true)
-            {
-                // ReSharper disable once AccessToDisposedClosure
-                string? line = reader.ReadLine();
-                if(string.IsNullOrWhiteSpace(line))
-                    break;
-
-                yield return line;
-            }
+            Console.WriteLine($"Error Parse Line: {e}");
+            
+            return new LogData(
+                DateTime.Now.ToString("u"),
+                "Critical",
+                "-",
+#pragma warning disable EPC12
+                e.Message,
+#pragma warning restore EPC12
+                ImmutableDictionary<string, string>.Empty.Add("Fehler", e.ToString()));
         }
     }
 }

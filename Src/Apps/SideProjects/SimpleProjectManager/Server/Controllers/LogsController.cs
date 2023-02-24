@@ -18,10 +18,10 @@ public sealed class LogsController : Controller
         => _actor = logManager.ActorRef;
 
     [HttpGet]
-    public async ValueTask<LogFilesData> GetFileNames()
-        => await _actor.Ask<LogFilesData>(new QueryLogFileNames(), TimeSpan.FromSeconds(20), cancellationToken: HttpContext.RequestAborted);
+    public async ValueTask<LogFilesData> GetFileNames(CancellationToken token)
+        => await _actor.Ask<LogFilesData>(new QueryLogFileNames(), TimeSpan.FromSeconds(20), cancellationToken:token);
 
     [HttpPost]
-    public async ValueTask<LogFileContent> GetLogFileContent([FromBody] LogFileRequest request)
-        => await _actor.Ask<LogFileContent>(request, TimeSpan.FromSeconds(20), cancellationToken: HttpContext.RequestAborted);
+    public async ValueTask<LogFileContent> GetLogFileContent([FromBody] LogFileRequest request, CancellationToken token)
+        => await _actor.Ask<LogFileContent>(request, TimeSpan.FromSeconds(20), cancellationToken: token);
 }

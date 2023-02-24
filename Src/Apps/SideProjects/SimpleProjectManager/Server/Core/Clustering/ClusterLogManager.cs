@@ -60,8 +60,8 @@ public sealed partial class ClusterLogManager : ReceiveActor
         
         async Task<(LogFilesNamesResponse, IActorRef)> RunQuery(IActorRef to)
         {
-            LogFilesNamesResponse? result = await to.Ask<LogFilesNamesResponse>(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
-            return (result, to);
+                LogFilesNamesResponse? result = await to.Ask<LogFilesNamesResponse>(new QueryLogFileNames(), TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                return (result, to);
         }
     }
 

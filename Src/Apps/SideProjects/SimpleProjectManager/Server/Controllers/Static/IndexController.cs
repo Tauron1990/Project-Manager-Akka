@@ -20,7 +20,13 @@ public class IndexController : Controller
     {
         string path = HttpContext.Request.Path.Value ?? string.Empty;
 
-        return PageNavigation.All.Any(s => path.StartsWith(s, StringComparison.Ordinal)) ? View("_Host") : View();
+
+        if(PageNavigation.All.Any(s => path.StartsWith(s, StringComparison.Ordinal)))
+            return View("_Host");
+        if(path.Contains("Api", StringComparison.Ordinal))
+            return BadRequest("Invalid Api Call");
+
+        return View();
 
     }
 }
