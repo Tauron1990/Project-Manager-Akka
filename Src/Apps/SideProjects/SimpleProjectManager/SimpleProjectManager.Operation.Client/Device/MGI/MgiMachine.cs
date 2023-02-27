@@ -1,12 +1,16 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading.Channels;
 using Akka.Actor;
+using Akka.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Device.MGI.Logging;
+using SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager;
+using SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager.Old;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
@@ -14,6 +18,7 @@ using Tauron.TAkka;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 public sealed class MgiMachine : IMachine
 {
     private const string MgiId = "CFDD2F56-AD5C-4A7C-A3B5-535A46B21EC5";
@@ -58,7 +63,11 @@ public sealed class MgiMachine : IMachine
             });
         
         _logCollector.CollectLogs(channel.Reader);
-        context.ActorOf(() => new LoggerServer(channel.Writer, Port), "LoggingServer");
+
+        DependencyResolver resolver = DependencyResolver.For(context.System);
+        
+        context.ActorOf(() => new LoggerServer(channel.Writer, Port), "Logging_Server");
+        context.ActorOf(resolver.Props<ProcessManagerActor>(), "Process_Manager");
         
         return Task.CompletedTask;
     }
