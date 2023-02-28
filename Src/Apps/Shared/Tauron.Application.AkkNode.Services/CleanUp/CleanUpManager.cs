@@ -30,7 +30,7 @@ public sealed class CleanUpManager : ActorFeatureBase<CleanUpManager.CleanUpMana
 
     protected override void ConfigImpl()
     {
-        Receive<InitCleanUp>(
+        Observ<InitCleanUp>(
             obs => obs
                .Where(m => !m.State.IsRunning)
                .Select(data => new { Data = data.State.CleanUpRepository.Get(TimeKey), data.State.CleanUpRepository, data.Timers, data.State })
@@ -38,7 +38,7 @@ public sealed class CleanUpManager : ActorFeatureBase<CleanUpManager.CleanUpMana
                .StartPeriodicTimer(d => d.Timers, Initialization, new StartCleanUp(), TimeSpan.FromSeconds(1), TimeSpan.FromHours(1))
                .Select(d => d.State with { IsRunning = true }));
 
-        Receive<StartCleanUp>(
+        Observ<StartCleanUp>(
             obs => obs.Where(m => m.State.IsRunning)
                .Select(data => (Props: CleanUpOperator.New(data.State.CleanUpRepository, data.State.Revisions, data.State.Bucket), data.Event))
                .ForwardToActor(d => Context.ActorOf(d.Props), d => d.Event));

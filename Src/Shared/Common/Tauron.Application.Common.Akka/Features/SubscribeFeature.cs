@@ -19,10 +19,10 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
 
     void IFeature<State>.Init(IFeatureActor<State> actor)
     {
-        actor.Receive<Terminated>(obs => obs.ToUnit());
-        actor.Receive<KeyHint>(obs => obs.Select(data => data.State.Update(data.Event.Key, refs => refs.Remove(data.Event.Target))));
+        actor.Observ<Terminated>(obs => obs.ToUnit());
+        actor.Observ<KeyHint>(obs => obs.Select(data => data.State.Update(data.Event.Key, refs => refs.Remove(data.Event.Target))));
 
-        actor.Receive<EventSubscribe>(
+        actor.Observ<EventSubscribe>(
             obs => obs.Where(_ => !actor.Sender.IsNobody())
                .Do(
                     statePair => statePair.Event.Watch.WhenTrue(
@@ -38,7 +38,7 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
                         return state.Update(subscribe.Event, refs => refs.Add(actor.Sender));
                     }));
 
-        actor.Receive<EventUnSubscribe>(
+        actor.Observ<EventUnSubscribe>(
             obs => obs.Where(_ => !actor.Sender.IsNobody())
                .Select(
                     statePair =>
@@ -49,7 +49,7 @@ public sealed class SubscribeFeature : IFeature<SubscribeFeature.State>
                         return state.Update(eventUnSubscribe.Event, refs => refs.Remove(actor.Sender));
                     }));
 
-        actor.Receive<SendEvent>(
+        actor.Observ<SendEvent>(
             obs => obs.ToUnit(
                 statePair =>
                 {

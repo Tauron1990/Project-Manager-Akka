@@ -7,8 +7,14 @@ internal sealed class FeatureImpl<TState> : ActorBuilder<TState>.ConvertingFeatu
     where TState : notnull
 {
     internal FeatureImpl(IFeature<TState> target)
-        : base(
-            target,
-            state => (TState)state.States[typeof(TState)],
-            (original, state) => original with { States = original.States.SetItem(typeof(TState), state) }) { }
+        : base(target, Convert, ConvertBack) { }
+
+    private static TState Convert(GenericState state) => (TState)state.States[typeof(TState)];
+
+    private static GenericState ConvertBack(GenericState original, TState state)
+    {
+        original.States[typeof(TState)] = state;
+        
+        return original;
+    }
 }

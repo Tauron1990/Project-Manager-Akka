@@ -25,7 +25,7 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
     {
         get
         {
-            if(_currentState == null)
+            if(_currentState is null)
                 throw new InvalidOperationException("The Actor was Not Initialized Propertly");
 
             return _currentState;
@@ -40,12 +40,12 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
 
     TState IFeatureActor<TState>.CurrentState => CurrentState.Value;
 
-    public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
+    public void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
         => Receive<TEvent>(
             obs
                 => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))));
 
-    public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
+    public void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
     {
         IDisposable CreateHandler(IObservable<TEvent> observable)
             => handler(observable.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self)))
@@ -54,14 +54,14 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
         Receive<TEvent>(obs => CreateHandler(obs));
     }
 
-    public void Receive<TEvent>(
+    public void Observ<TEvent>(
         Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
         Func<Exception, bool> errorHandler)
         => Receive<TEvent>(
             obs => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))),
             errorHandler);
 
-    public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
+    public void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
         => Receive<TEvent>(
             obs
                 => handler(obs.Select(evt => new StatePair<TEvent, TState>(evt, CurrentState.Value, Timers, Context, Sender, Parent, Self))));
@@ -73,6 +73,8 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
 
         CurrentState.OnNext(state);
     }
+
+    public IObservable<TEvent> Observ<TEvent>() => Receive<TEvent>();
 
     IUntypedActorContext IFeatureActor<TState>.Context => Context;
     SupervisorStrategy? IFeatureActor<TState>.SupervisorStrategy { get; set; }

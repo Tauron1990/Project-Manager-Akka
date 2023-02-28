@@ -1,30 +1,27 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Reactive.Linq;
-using System.Threading;
 using Akka.Actor;
 using Akka.Event;
-using Akka.MGIHelper.Core.Configuration;
 using IniParser;
 using Microsoft.Extensions.Logging;
+using SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager;
 using Tauron;
-using Tauron.Application.Wpf;
 using Tauron.Features;
-using Tauron.Localization;
 
 namespace Akka.MGIHelper.UI.MgiStarter
 {
-    public sealed class MgiStartingActor : ActorFeatureBase<(IDialogFactory Factory, IActorRef ProcessManager)>
+    public sealed class MgiStartingActor : ActorFeatureBase<IActorRef>
     {
         private MgiStartingActor() { }
 
-        public static IPreparedFeature New(IDialogFactory dialogFactory, IActorRef manager)
-            => Feature.Create(() => new MgiStartingActor(), (dialogFactory, manager));
+        public static IPreparedFeature New()
+            => Feature.Create(() => new MgiStartingActor(), c => c.ActorOf("Process_Manager", ProcessManagerActor.New()));
 
         protected override void ConfigImpl()
         {
-            Observ<TryStart>(obs => obs.Select(p => p.Event).SubscribeWithStatus(TryStartHandler));
+            Observ<TryStart>(obs => obs.Select<StatePair<TryStart, IActorRef>, TryStart>(p => p.Event).SubscribeWithStatus(TryStartHandler));
+
+            Observ<RegisterProcessList>().ToActor(CurrentState);
         }
 
         private void TryStartHandler(TryStart obj)
@@ -34,7 +31,6 @@ namespace Akka.MGIHelper.UI.MgiStarter
                 Logger.LogInformation("Start Mgi Process");
 
                 var config = obj.Config;
-                Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartstartlabel").Value));
                 obj.Kill();
 
                 Thread.Sleep(500);
@@ -66,15 +62,12 @@ namespace Akka.MGIHelper.UI.MgiStarter
                     return;
                 }
 
-                CurrentState.ProcessManager.Tell(kernel);
-                CurrentState.ProcessManager.Tell(Process.Start(config.Client));
-
-                Sender.Tell(new StartStatusUpdate(Context.Loc().RequestString("kernelstartcompledlabel").Value));
+                CurrentState.Tell(kernel);
+                CurrentState.Tell(Process.Start(config.Client));
             }
             catch (Exception e)
             {
                 Logger.LogWarning(e, "Error on Start Mgi process");
-                CurrentState.Factory.FormatException(null, e);
             }
             finally
             {
@@ -82,7 +75,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
             }
         }
 
-        private bool CheckKernelRunning(ProcessConfig config, CancellationToken token, out Process kernel)
+        private bool CheckKernelRunning(ProcessConfiguration config, CancellationToken token, out Process kernel)
         {
             var kernelPath = config.Kernel.Trim();
             var statusPath = Path.Combine(Path.GetDirectoryName(kernelPath) ?? string.Empty, "Status.ini");
@@ -126,10 +119,8 @@ namespace Akka.MGIHelper.UI.MgiStarter
             return false;
         }
 
-        public sealed record TryStart(ProcessConfig Config, CancellationToken Cancel, Action Kill);
+        public sealed record TryStart(ProcessConfiguration Config, CancellationToken Cancel, Action Kill);
 
         public sealed record TryStartResponse;
-
-        public sealed record StartStatusUpdate(string Status);
     }
 }

@@ -19,14 +19,14 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
 
     protected override void Config()
     {
-        _logger = new ReportingActorLog(Logger);
+        _logger = new ReportingActorLog(base.Logger);
         base.Config();
     }
 
     private void PrepareReceive<TMessage, TResult>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TResult?>> factory, Action<TResult?, Reporter> handler)
         where TMessage : IReporterMessage
     {
-        Receive<TMessage>(
+        Observ<TMessage>(
             obs => obs
                .Do(m => _logger.EnterOperation(name, m.Event.Info))
                .SelectMany(
@@ -131,9 +131,9 @@ public abstract class ReportingActor<TState> : ActorFeatureBase<TState>
 
     public void TryContinue<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<TState>> factory)
         where TMessage : IDelegatingMessage
-        => Receive<TMessage>(obs => PrepareContinue(name, obs, factory));
+        => Observ<TMessage>(obs => PrepareContinue(name, obs, factory));
 
     public void TryContinue<TMessage>(string name, Func<IObservable<ReporterEvent<TMessage, TState>>, IObservable<Unit>> factory)
         where TMessage : IDelegatingMessage
-        => Receive<TMessage>(obs => PrepareContinue(name, obs, factory));
+        => Observ<TMessage>(obs => PrepareContinue(name, obs, factory));
 }

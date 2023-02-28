@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Reactive.Linq;
 using Akka.Actor;
-using Akka.Util;
 using Microsoft.Extensions.Logging;
 using Tauron;
 using Tauron.Features;
@@ -16,19 +15,17 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
         public static IPreparedFeature New()
             => Feature.Create(
                 () => new ProcessTrackerActor(),
-                _ => new ProcessTrackerState(Gartherer: null, ImmutableArray<string>.Empty, 0, 0, ImmutableList<string>.Empty));
+                _ => new ProcessTrackerState(Gartherer: null, ImmutableArray<string>.Empty));
 
         protected override void ConfigImpl()
         {
             Stop.Subscribe(_ => CurrentState.Gartherer?.Dispose());
 
-            Receive<ProcessExitMessage>(Handler);
+            Observ<ProcessExitMessage>(Handler);
 
-            Receive<StartProcessTracking>(Handler);
+            Observ<StartProcessTracking>(Handler);
 
-            //Receive<GatherProcess>(Handler);
-
-            Receive<Process>(Handler);
+            Observ<Process>(Handler);
 
             SupervisorStrategy = new OneForOneStrategy(_ => Directive.Stop);
         }
@@ -51,11 +48,9 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
                             if (Context.Child(FormatName(process.Id)).Equals(ActorRefs.Nobody))
                                 ok = true;
 
-                            var processName = process.ProcessName;
+                            string processName = process.ProcessName;
                             ok = ok && state.Tracked.Any(s => s.Contains(processName, StringComparison.Ordinal));
-                            var isPriority = p.State.PriorityProcesses.Any(prio => processName.Contains(prio, StringComparison.Ordinal));
                             
-                            ConfigProcess(process, ok || isPriority);
 
                             if (!ok) 
                                 process.Dispose();
@@ -74,52 +69,6 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
                .ToParent();
         }
 
-        private void ConfigProcess(Process process, bool isCLient)
-        {
-            void SetAffinity(int bits)
-            {
-                if(bits == 0) return;
-                #if DEBUG
-                // ReSharper disable once RedundantJumpStatement
-                return;
-                #else
-                Try<IntPtr>.From(() => process.ProcessorAffinity = (IntPtr)bits);
-                #endif
-            }
-            
-#pragma warning disable GU0017
-            (_, _, int clientAffinity, int operationSystemAffinity, _) = CurrentState;
-#pragma warning restore GU0017
-            
-            if (isCLient)
-            {
-                SetAffinity(clientAffinity);
-                Try<ProcessPriorityClass>.From(() => process.PriorityClass = ProcessPriorityClass.RealTime);
-            }
-            else 
-                SetAffinity(operationSystemAffinity);
-        }
-        
-        /*private IDisposable Handler(IObservable<StatePair<GatherProcess, ProcessTrackerState>> obs)
-        {
-            return obs.Where(pair => Context.GetChildren().Count() != pair.State.Tracked.Length)
-               .Do(_ => Log.Info("Update Processes"))
-               .SelectMany(
-                    _ =>
-                    {
-                        try
-                        {
-                            return Process.GetProcesses();
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(e, "Error While Recieving Processes");
-
-                            return Array.Empty<Process>();
-                        }
-                    })
-               .ToSelf();
-        }*/
 
         private IObservable<ProcessTrackerState> Handler(IObservable<StatePair<StartProcessTracking, ProcessTrackerState>> obs)
         {
@@ -128,17 +77,10 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
                                        Tracked = p.Event.FileNames
                                           .Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim())
                                           .ToImmutableArray(),
-                                       ClientAffinity = p.Event.ClientAffinity,
-                                       OperationSystemAffinity = p.Event.OperatingAffinity,
                                        Gartherer = new ProcessGartherer(p.Self, Logger),
-                                       PriorityProcesses = p.Event.PriorityProcesses
                                    })
                .Do(_ => Process.GetProcesses().Foreach(p => Self.Tell(p)),
-                    ex =>
-                    {
-                        MessageBox.Show($"Fehler beim Starten der Process Überwachung:{Environment.NewLine}{ex}", "Schwerer Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-                        Environment.FailFast(ex.Message, ex);
-                    });
+                    ex => Logger.LogCritical(ex, "Error on Start process tracking"));
         }
 
         private IDisposable Handler(IObservable<StatePair<ProcessExitMessage, ProcessTrackerState>> obs)
@@ -148,8 +90,8 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
                .ForwardToParent();
         }
 
-        private static string FormatName(int id) => $"Process-{id}";
+        private static string FormatName(int id) => $"{nameof(Process)}-{id}";
 
-        public sealed record ProcessTrackerState(ProcessGartherer? Gartherer, ImmutableArray<string> Tracked, int ClientAffinity, int OperationSystemAffinity, ImmutableList<string> PriorityProcesses);
+        public sealed record ProcessTrackerState(ProcessGartherer? Gartherer, ImmutableArray<string> Tracked);
     }
 }

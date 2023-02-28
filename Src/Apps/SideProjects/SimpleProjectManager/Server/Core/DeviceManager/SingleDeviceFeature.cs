@@ -28,22 +28,22 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
 
     protected override void ConfigImpl()
     {
-        Receive<DeviceInformations>(obs => obs.Select(NewInfo));
-        Receive<InitState>(obs => obs.Select(InitDeviceInfo));
-        Receive<UpdateSensor>(obs => obs.Select(UpdateSensor));
-        Receive<QuerySensorValue>(obs => obs.ToUnit(FindSensorValue));
-        Receive<QueryButtonState>(obs => obs.ToUnit(FindButtonState));
-        Receive<QueryUi>(obs => obs.ToUnit(p => p.Sender.Tell(new UiResponse(p.State.Info.RootUi))));
-        Receive<UpdateButtonState>(obs => obs.Select(UpdateButton));
-        Receive<ButtonClick>(obs => obs.Select(ClickButton));
-        Receive<Terminated>(obs => obs.ToUnit(p => p.Context.Stop(p.Self)));
-        Receive<NewUIData>(obs => obs.Select(NewUI));
-        Receive<Status.Success>(obs => obs.Subscribe());
+        Observ<DeviceInformations>(obs => obs.Select(NewInfo));
+        Observ<InitState>(obs => obs.Select(InitDeviceInfo));
+        Observ<UpdateSensor>(obs => obs.Select(UpdateSensor));
+        Observ<QuerySensorValue>(obs => obs.ToUnit(FindSensorValue));
+        Observ<QueryButtonState>(obs => obs.ToUnit(FindButtonState));
+        Observ<QueryUi>(obs => obs.ToUnit(p => p.Sender.Tell(new UiResponse(p.State.Info.RootUi))));
+        Observ<UpdateButtonState>(obs => obs.Select(UpdateButton));
+        Observ<ButtonClick>(obs => obs.Select(ClickButton));
+        Observ<Terminated>(obs => obs.ToUnit(p => p.Context.Stop(p.Self)));
+        Observ<NewUIData>(obs => obs.Select(NewUI));
+        Observ<Status.Success>(obs => obs.Subscribe());
         
         if(!CurrentState.Info.HasLogs) return;
 
         IActorRef? loggerActor = Context.ActorOf(LoggerActor.Create(Context.System, CurrentState.Info.DeviceId), $"Logger--{Guid.NewGuid():N}");
-        Receive<QueryLoggerBatch>(obs => obs.ToUnit(p => loggerActor.Forward(p.Event)));
+        Observ<QueryLoggerBatch>(obs => obs.ToUnit(p => loggerActor.Forward(p.Event)));
     }
 
     private State NewInfo(StatePair<DeviceInformations, State> message)

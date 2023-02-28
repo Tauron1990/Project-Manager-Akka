@@ -82,7 +82,7 @@ public static partial class KillSwitchApi
         protected override void ConfigImpl()
             #pragma warning restore MA0051
         {
-            Receive<ActorDown>(
+            Observ<ActorDown>(
                 obs => obs.Do(ad => KillSwitchFeatureLog.RemoveKillswitch(Logger, ad.Event.Actor.Path))
                    .Select(
                         m =>
@@ -96,7 +96,7 @@ public static partial class KillSwitchApi
                             return state with { Actors = state.Actors.Remove(entry) };
                         }));
 
-            Receive<ActorUp>(
+            Observ<ActorUp>(
                 obs => obs.Do(au => KillSwitchFeatureLog.NewKillSwitch(Logger, au.Event.Actor.Path))
                    .Select(
                         m =>
@@ -107,7 +107,7 @@ public static partial class KillSwitchApi
                             return state with { Actors = state.Actors.Add(ActorElement.New(actorUp.Actor)) };
                         }));
 
-            Receive<RespondRegistration>(
+            Observ<RespondRegistration>(
                 obs => obs
                    .Do(r => KillSwitchFeatureLog.KillSwitchActorType(Logger, r.Event.RecpientType, r.Sender.Path))
                    .Select(
@@ -127,23 +127,23 @@ public static partial class KillSwitchApi
                                    };
                         }));
 
-            Receive<RequestRegistration>(
+            Observ<RequestRegistration>(
                 obs => obs.Select(_ => new RespondRegistration(KillRecpientType.Seed))
                    .ToSender());
 
-            Receive<KillClusterMsg>(obs => obs.SubscribeWithStatus(_ => RunKillCluster()));
+            Observ<KillClusterMsg>(obs => obs.SubscribeWithStatus(_ => RunKillCluster()));
 
-            Receive<KillNode>(
+            Observ<KillNode>(
                 obs => obs.Do(_ => KillSwitchWatchLog.LeavingCluster(Logger))
                    .SubscribeWithStatus(_ => Cluster.Get(Context.System).LeaveAsync()));
 
-            Receive<ActorUp>(
+            Observ<ActorUp>(
                 obs => obs.Where(m => string.Equals(m.Event.Tag, nameof(KillWatcher), StringComparison.Ordinal))
                    .Do(up => KillSwitchFeatureLog.IncommingKillWatcher(Logger, up.Event.Actor.Path))
                    .Select(m => m.Event.Actor)
                    .SubscribeWithStatus(actor => Context.Watch(actor)));
 
-            Receive<Terminated>(
+            Observ<Terminated>(
                 obs => obs.Select(t => new ActorDown(t.Event.ActorRef, nameof(KillWatcher)))
                    .ToSelf());
 

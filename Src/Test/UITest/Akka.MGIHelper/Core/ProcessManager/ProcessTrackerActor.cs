@@ -25,13 +25,13 @@ namespace Akka.MGIHelper.Core.ProcessManager
         {
             Stop.Subscribe(_ => CurrentState.Gartherer?.Dispose());
 
-            Receive<ProcessExitMessage>(Handler);
+            Observ<ProcessExitMessage>(Handler);
 
-            Receive<StartProcessTracking>(Handler);
+            Observ<StartProcessTracking>(Handler);
 
             //Receive<GatherProcess>(Handler);
 
-            Receive<Process>(Handler);
+            Observ<Process>(Handler);
 
             SupervisorStrategy = new OneForOneStrategy(_ => Directive.Stop);
         }

@@ -15,7 +15,7 @@ public abstract class ActionInvokerActorFeature<TClassState> : ActorFeatureBase<
     protected ActionInvokerActorFeature(IActionInvoker actionInvoker)
     {
         ActionInvoker = actionInvoker;
-        Receive<IOperationResult>(obs => obs.Select(d => d.Event).SubscribeWithStatus(InternalOnOperationCompled));
+        Observ<IOperationResult>(obs => obs.Select(d => d.Event).SubscribeWithStatus(InternalOnOperationCompled));
     }
 
     public IActionInvoker ActionInvoker { get; }
@@ -80,18 +80,18 @@ public abstract class ActionInvokerActorFeature<TClassState> : ActorFeatureBase<
         }
 
         public void Receive<TEvent>(Func<IObservable<Group<TEvent, TState>>, IObservable<Unit>> handler)
-            => _actor.Receive<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))));
+            => _actor.Observ<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))));
 
         public void Receive<TEvent>(Func<IObservable<Group<TEvent, TState>>, IObservable<TClassState>> handler)
-            => _actor.Receive<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))));
+            => _actor.Observ<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))));
 
         public void Receive<TEvent>(
             Func<IObservable<Group<TEvent, TState>>, IObservable<Unit>> handler,
             Func<Exception, bool> errorHandler)
-            => _actor.Receive<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))), errorHandler);
+            => _actor.Observ<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))), errorHandler);
 
         public void Receive<TEvent>(Func<IObservable<Group<TEvent, TState>>, IDisposable> handler)
-            => _actor.Receive<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))));
+            => _actor.Observ<TEvent>(obs => handler(obs.Select(p => new Group<TEvent, TState>(p, _state))));
     }
 
     [PublicAPI]

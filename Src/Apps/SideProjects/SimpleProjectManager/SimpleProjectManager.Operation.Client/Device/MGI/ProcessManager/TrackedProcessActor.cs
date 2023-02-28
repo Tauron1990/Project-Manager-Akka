@@ -12,7 +12,7 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
         private TrackedProcessActor() { }
 
         public static IPreparedFeature New(Process toTrack, int id, string name)
-            => Feature.Create(() => new TrackedProcessActor(), c => new TrackedProcessState(new Timer(_ => c.Self.Tell(InternalCheckProcess.Inst), null, 3000, 1000), id, name, toTrack));
+            => Feature.Create(() => new TrackedProcessActor(), c => new TrackedProcessState(new Timer(_ => c.Self.Tell(InternalCheckProcess.Inst), state: null, 3000, 1000), id, name, toTrack));
 
         protected override void ConfigImpl()
         {
@@ -23,12 +23,12 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
                     CurrentState.Target.Dispose();
                 });
 
-            Receive<InternalCheckProcess>(
+            Observ<InternalCheckProcess>(
                 obs => obs.Where(e => e.State.Target.HasExited)
                    .Select(_ => InternalProcessExit.Inst)
                    .ToSelf());
 
-            Receive<InternalProcessExit>(
+            Observ<InternalProcessExit>(
                 obs => obs.Do(p => Logger.LogInformation("Track Process {Name} Exited: {Id}", p.State.ProcessName, p.State.Id))
                    .Do(_ => Context.Stop(Self))
                    .Select(p => new ProcessExitMessage(p.State.Target, p.State.ProcessName, p.State.Id))

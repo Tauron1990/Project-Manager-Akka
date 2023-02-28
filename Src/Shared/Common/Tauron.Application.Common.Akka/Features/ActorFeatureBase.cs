@@ -12,14 +12,14 @@ namespace Tauron.Features;
 public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor<TState>
 {
     private IFeatureActor<TState> _actor = null!;
-    private Lazy<ILogger> _logger;
+    private Lazy<ILogger> _loggerLazy;
 
     protected ActorFeatureBase()
-        => _logger = new Lazy<ILogger>(CreateLoggerImpl);
+        => _loggerLazy = new Lazy<ILogger>(CreateLoggerImpl);
 
     public IActorContext Context { get; private set; } = null!;
 
-    protected ILogger Logger => _logger.Value;
+    protected ILogger Logger => _loggerLazy.Value;
 
     public virtual IEnumerable<string> Identify()
     {
@@ -63,24 +63,45 @@ public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor
     public IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match)
         => _actor.WaitForSignal(timeout, match);
 
-    public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
-        => _actor.Receive(handler);
+    
+    public void Receive<TEvent>(Action<StatePair<TEvent, TState>> handler)
+        => _actor.Observ<TEvent>(obs => obs.ToUnit(handler));
 
-    public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
-        => _actor.Receive(handler);
+    public void Receive<TEvent>(Func<StatePair<TEvent, TState>, TState> handler)
+        => _actor.Observ<TEvent>(obs => obs.Select(handler));
 
     public void Receive<TEvent>(
+        Action<StatePair<TEvent, TState>> handler,
+        Func<Exception, bool> errorHandler) => _actor.Observ<TEvent>(obs => obs.ToUnit(handler), errorHandler);
+
+    public void Receive<TEvent>(Action<TEvent> handler)
+        => _actor.Observ<TEvent>(obs => obs.ToUnit(s => handler(s.Event)));
+
+    public void Receive<TEvent>(Func<TEvent, TState> handler)
+        => _actor.Observ<TEvent>(obs => obs.Select(s => handler(s.Event)));
+
+    public void Receive<TEvent>(
+        Action<TEvent> handler,
+        Func<Exception, bool> errorHandler) => _actor.Observ<TEvent>(obs => obs.ToUnit(s => handler(s.Event)), errorHandler);
+
+    public void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler)
+        => _actor.Observ(handler);
+
+    public void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler)
+        => _actor.Observ(handler);
+
+    public void Observ<TEvent>(
         Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler,
-        Func<Exception, bool> errorHandler) => _actor.Receive(handler, errorHandler);
+        Func<Exception, bool> errorHandler) => _actor.Observ(handler, errorHandler);
 
-    public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
-        => _actor.Receive(handler);
-
+    public void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler)
+        => _actor.Observ(handler);
+    
     public void UpdateState(TState state) => _actor.UpdateState(state);
 
     public void TellSelf(object msg) => _actor.TellSelf(msg);
 
-    public IObservable<TEvent> Receive<TEvent>() => _actor.Receive<TEvent>();
+    public IObservable<TEvent> Observ<TEvent>() => _actor.Observ<TEvent>();
 
     public IActorRef Self => _actor.Self;
 

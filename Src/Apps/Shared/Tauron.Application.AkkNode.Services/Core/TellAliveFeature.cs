@@ -12,7 +12,7 @@ public sealed class TellAliveFeature : ActorFeatureBase<EmptyState>
 
     protected override void ConfigImpl()
     {
-        Receive<QueryIsAlive>(
+        Observ<QueryIsAlive>(
             obs => (from ob in obs
                     from ident in ob.Sender.Ask<ActorIdentity>(new Identify(messageId: null), TimeSpan.FromSeconds(10))
                     select (ob.Sender, Response: new IsAliveResponse(IsAlive: true)))

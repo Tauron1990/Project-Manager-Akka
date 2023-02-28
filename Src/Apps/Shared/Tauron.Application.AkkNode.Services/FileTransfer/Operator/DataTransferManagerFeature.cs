@@ -22,14 +22,14 @@ public sealed class DataTransferManagerFeature : ActorFeatureBase<DataTransferMa
         CallSingleHandler = true;
         SupervisorStrategy = new OneForOneStrategy(_ => Directive.Stop);
 
-        Receive<TransferCompled>().Subscribe(m => Context.Stop(Context.Child(m.OperationId.Value)));
-        Receive<TransmitRequest>(TransmitRequest);
-        Receive<DataTranfer>(ForwardDataTransfer);
-        Receive<DataTransferRequest>(RunRequest);
-        Receive<IncomingDataTransfer>(HandlerIncommingTransfer);
-        Receive<TransferMessage>(TransferMessage);
-        Receive<AwaitRequest>(NewAwaitRequest);
-        Receive<DeleteAwaiter>(obs => obs.Select(m => m.State with { Awaiters = m.State.Awaiters.Delete(m.Event.Id) }));
+        Observ<TransferCompled>().Subscribe(m => Context.Stop(Context.Child(m.OperationId.Value)));
+        Observ<TransmitRequest>(TransmitRequest);
+        Observ<DataTranfer>(ForwardDataTransfer);
+        Observ<DataTransferRequest>(RunRequest);
+        Observ<IncomingDataTransfer>(HandlerIncommingTransfer);
+        Observ<TransferMessage>(TransferMessage);
+        Observ<AwaitRequest>(NewAwaitRequest);
+        Observ<DeleteAwaiter>(obs => obs.Select(m => m.State with { Awaiters = m.State.Awaiters.Delete(m.Event.Id) }));
     }
 
     private IObservable<State> NewAwaitRequest(IObservable<StatePair<AwaitRequest, State>> obs)

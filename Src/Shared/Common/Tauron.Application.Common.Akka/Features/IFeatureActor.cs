@@ -27,13 +27,13 @@ public interface IFeatureActor<TState> : IResourceHolder, IObservable<TState>, I
 
     IObservable<TSignal> WaitForSignal<TSignal>(TimeSpan timeout, Predicate<TSignal> match);
 
-    void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler);
-    void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler);
-    void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
-    void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler);
+    void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler);
+    void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<TState>> handler);
+    void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
+    void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TState>>, IDisposable> handler);
 
     void UpdateState(TState state);
 
     void TellSelf(object msg);
-    IObservable<TEvent> Receive<TEvent>();
+    IObservable<TEvent> Observ<TEvent>();
 }

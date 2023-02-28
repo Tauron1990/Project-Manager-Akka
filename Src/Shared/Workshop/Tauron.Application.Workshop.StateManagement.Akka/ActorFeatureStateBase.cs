@@ -10,7 +10,7 @@ public abstract class ActorFeatureStateBase<TState> : ActorFeatureBase<TState>
 {
     protected override void Config()
     {
-        Receive<StateActorMessage>(obs => obs.Select(m => m.Event).SubscribeWithStatus(m => m.Apply(this)));
+        Observ<StateActorMessage>(obs => obs.Select(m => m.Event).SubscribeWithStatus(m => m.Apply(this)));
 
         base.Config();
     }

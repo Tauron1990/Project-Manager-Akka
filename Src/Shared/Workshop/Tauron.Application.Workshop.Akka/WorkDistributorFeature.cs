@@ -31,22 +31,22 @@ public sealed class WorkDistributorFeature<TInput, TFinishMessage> : ActorFeatur
     {
         SupervisorStrategy = SupervisorStrategy.StoppingStrategy;
 
-        Receive<Terminated>(OnTerminate);
+        Observ<Terminated>(OnTerminate);
 
-        Receive<CheckWorker>(
+        Observ<CheckWorker>(
             obs => obs.Where(s => s.State.Worker.Count < s.State.Configuration.WorkerCount)
                .SelectMany(s => Observable.Repeat(new SetupWorker(), s.State.Configuration.WorkerCount - s.State.Worker.Count))
                .SubscribeWithStatus(m => Self.Tell(m)));
 
-        Receive<SetupWorker>(OnSetupWorker);
+        Observ<SetupWorker>(OnSetupWorker);
 
-        Receive<WorkerTimeout>(
+        Observ<WorkerTimeout>(
             obs => obs.Where(m => m.State.Running.Contains(m.Event.Worker))
                .SubscribeWithStatus(m => Context.Stop(m.Event.Worker)));
 
-        Receive<TFinishMessage>(OnFinish);
+        Observ<TFinishMessage>(OnFinish);
 
-        Receive<TInput>(NewInput);
+        Observ<TInput>(NewInput);
 
         Self.Tell(new CheckWorker());
     }

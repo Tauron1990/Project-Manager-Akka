@@ -20,11 +20,11 @@ public sealed class HostApiManagerFeature : ActorFeatureBase<HostApiManagerFeatu
 
     protected override void ConfigImpl()
     {
-        Receive<SubscribeFeature.InternalEventSubscription>(ProcessEventSubscription);
-        Receive<ActorDown>(OnActorDown);
-        Receive<ActorUp>(OnActorUp);
-        Receive<GetHostNameResult>(TryGetJostName);
-        Receive<IHostApiCommand>(ForwardCommand);
+        Observ<SubscribeFeature.InternalEventSubscription>(ProcessEventSubscription);
+        Observ<ActorDown>(OnActorDown);
+        Observ<ActorUp>(OnActorUp);
+        Observ<GetHostNameResult>(TryGetJostName);
+        Observ<IHostApiCommand>(ForwardCommand);
 
         Start.SubscribeWithStatus(c => ClusterActorDiscovery.Get(c.System).Discovery.Tell(new MonitorActor(HostApi.ApiKey)))
            .DisposeWith(this);

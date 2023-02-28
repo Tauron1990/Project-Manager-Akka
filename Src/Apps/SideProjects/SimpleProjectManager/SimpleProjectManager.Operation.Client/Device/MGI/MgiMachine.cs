@@ -9,8 +9,6 @@ using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Device.MGI.Logging;
-using SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager;
-using SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager.Old;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
@@ -67,7 +65,6 @@ public sealed class MgiMachine : IMachine
         DependencyResolver resolver = DependencyResolver.For(context.System);
         
         context.ActorOf(() => new LoggerServer(channel.Writer, Port), "Logging_Server");
-        context.ActorOf(resolver.Props<ProcessManagerActor>(), "Process_Manager");
         
         return Task.CompletedTask;
     }

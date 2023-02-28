@@ -55,7 +55,7 @@ namespace Akka.MGIHelper.Core.FanControl
 
             Stop.Subscribe(_ => messageBus.Dispose());
 
-            Receive<ClockEvent>(obs => obs.SelectMany(async p => await messageBus.Publish(p).ConfigureAwait(false)));
+            Observ<ClockEvent>(obs => obs.SelectMany(async p => await messageBus.Publish(p).ConfigureAwait(false)));
         }
     }
 }

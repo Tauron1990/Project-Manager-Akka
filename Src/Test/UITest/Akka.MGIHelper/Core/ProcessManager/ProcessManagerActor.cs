@@ -21,9 +21,9 @@ namespace Akka.MGIHelper.Core.ProcessManager
 
         protected override void ConfigImpl()
         {
-            Receive<Process>(o => o.Subscribe(s => s.State.ProcessTracker.Tell(s.Event)));
+            Observ<Process>(o => o.Subscribe(s => s.State.ProcessTracker.Tell(s.Event)));
             
-            Receive<RegisterProcessList>(
+            Observ<RegisterProcessList>(
                 obs => obs.Select(
                     p =>
                     {
@@ -47,7 +47,7 @@ namespace Akka.MGIHelper.Core.ProcessManager
                     }));
 
 
-            Receive<ProcessStateChange>(
+            Observ<ProcessStateChange>(
                 obs => obs.Select(p => (
                         Message: p.Event, 
                         Target: p.State.TargetProcesses.FirstOrDefault(d => d.Key.Contains(p.Event.Name, StringComparison.Ordinal))))

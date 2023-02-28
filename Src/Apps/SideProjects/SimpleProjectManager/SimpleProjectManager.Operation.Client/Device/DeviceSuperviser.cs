@@ -4,6 +4,7 @@ using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Device.Core;
 using Tauron;
+using Tauron.Features;
 using Tauron.TAkka;
 
 namespace SimpleProjectManager.Operation.Client.Device;
@@ -12,7 +13,7 @@ public class DeviceSuperviser : ReceiveActor
 {
     public DeviceSuperviser(IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
     {
-        IActorRef clusterManager = Context.ActorOf<ClusterManagerActor>("ClusterManager");
+        IActorRef clusterManager = Context.ActorOf("ClusterManager", ClusterManagerActor.New());
         IActorRef server = Context.ActorOf(() => new ServerDiviceManagerActor(Self), "ServerDeviceManager");
         Context.ActorOf(() => new MachineManagerActor(server, machine, configuration, loggerFactory), "MachineManager");
 

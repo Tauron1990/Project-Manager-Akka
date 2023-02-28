@@ -18,8 +18,8 @@ public sealed partial class NameRegistryFeature : ActorFeatureBase<NameRegistryF
     {
         _logger = CurrentState.Logger;
 
-        Receive<Terminated>(OnTerminated);
-        Receive<RegisterName>(TryRegisterName);
+        Observ<Terminated>(OnTerminated);
+        Observ<RegisterName>(TryRegisterName);
     }
 
     public sealed record RegisterName(ObjectName Name, IActorRef From);

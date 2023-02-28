@@ -8,7 +8,7 @@ namespace Tauron.Features;
 
 [PublicAPI]
 [DebuggerStepThrough]
-public sealed class ActorBuilder<TState>
+public readonly struct ActorBuilder<TState>
 {
     private readonly Action<IFeature<TState>> _registrar;
 
@@ -87,9 +87,9 @@ public sealed class ActorBuilder<TState>
         }
 
         #pragma warning disable AV1551
-        public IObservable<TEvent> Receive<TEvent>()
+        public IObservable<TEvent> Observ<TEvent>()
             #pragma warning restore AV1551
-            => _original.Receive<TEvent>();
+            => _original.Observ<TEvent>();
 
         public IActorRef Self
             => _original.Self;
@@ -141,22 +141,22 @@ public sealed class ActorBuilder<TState>
         public void RemoveResource(IDisposable res) => _original.RemoveResource(res);
 
         #pragma warning disable AV1551
-        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler)
-            => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
+        public void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler)
+            => _original.Observ<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
 
-        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<TTarget>> handler)
-            => _original.Receive<TEvent>(
+        public void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<TTarget>> handler)
+            => _original.Observ<TEvent>(
                 obs
                     => handler(obs.Select(statePair => statePair.Convert(_convert)))
                        .Select(state => _convertBack(_original.CurrentState, state)));
 
-        public void Receive<TEvent>(
+        public void Observ<TEvent>(
             Func<IObservable<StatePair<TEvent, TTarget>>, IObservable<Unit>> handler,
             Func<Exception, bool> errorHandler)
-            => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))), errorHandler);
+            => _original.Observ<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))), errorHandler);
 
-        public void Receive<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IDisposable> handler)
-            => _original.Receive<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
+        public void Observ<TEvent>(Func<IObservable<StatePair<TEvent, TTarget>>, IDisposable> handler)
+            => _original.Observ<TEvent>(obs => handler(obs.Select(statePair => statePair.Convert(_convert))));
         #pragma warning restore AV1551
     }
 }

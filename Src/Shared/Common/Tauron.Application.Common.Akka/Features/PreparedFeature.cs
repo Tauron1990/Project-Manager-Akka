@@ -16,7 +16,7 @@ internal sealed class PreparedFeature<TState> : IPreparedFeature, ISimpleFeature
         _stateBuilder = stateBuilder;
     }
 
-    public IEnumerable<IFeature<GenericState>?> Materialize()
+    public void Materialize(in ActorBuilder<GenericState> builder)
     {
         yield return new FeatureImpl<TState>(_feature());
     }

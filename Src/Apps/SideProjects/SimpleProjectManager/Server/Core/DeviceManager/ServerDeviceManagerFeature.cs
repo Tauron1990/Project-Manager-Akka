@@ -33,11 +33,11 @@ public sealed partial class ServerDeviceManagerFeature
     {
         Context.ActorOf<DeviceClusterManager>("DeviceclusterManager");
         
-        Receive<DeviceChanged>(HandleNewDevice);
-        Receive<QueryDevices>(obs => obs.ToUnit(p => p.Sender.Tell(new DevicesResponse(p.State.Devices))));
+        Observ<DeviceChanged>(HandleNewDevice);
+        Observ<QueryDevices>(obs => obs.ToUnit(p => p.Sender.Tell(new DevicesResponse(p.State.Devices))));
 
-        Receive<IDeviceCommand>(obs => obs.ToUnit(p => p.Context.Child(p.Event.DeviceName.Value).Forward(p.Event)));
-        Receive<Terminated>(
+        Observ<IDeviceCommand>(obs => obs.ToUnit(p => p.Context.Child(p.Event.DeviceName.Value).Forward(p.Event)));
+        Observ<Terminated>(
             obs => obs.Select(
                 p =>
                 {

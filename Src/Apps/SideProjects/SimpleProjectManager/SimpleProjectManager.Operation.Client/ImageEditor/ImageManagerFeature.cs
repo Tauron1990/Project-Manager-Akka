@@ -33,18 +33,18 @@ public sealed partial class ImageManagerFeature : ActorFeatureBase<ImageManagerF
 
     protected override void ConfigImpl()
     {
-        _logger = Logger;
+        _logger = base.Logger;
 
         CurrentState.Watcher.EnableRaisingEvents = true;
         CurrentState.Watcher.DisposeWith(this);
 
         ClusterActorDiscovery.Get(Context.System).RegisterActor(new ClusterActorDiscoveryMessage.RegisterActor(Self, nameof(ImageManagerFeature)));
 
-        Receive<RegisterServerManager>(
+        Observ<RegisterServerManager>(
             obs => from msg in obs.Do(m => m.Sender.Tell(new ServerManagerResponse(m.State.Self)))
                    select msg.State with { Server = msg.Event.ServerManager });
 
-        Receive<StartProject>(
+        Observ<StartProject>(
             obs => obs.ConditionalSelect()
                .ToResult<State>(
                     b => b

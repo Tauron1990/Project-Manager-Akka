@@ -6,6 +6,10 @@
         <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <Optimize>true</Optimize>
+    </PropertyGroup>
     
 
     <ItemGroup>
@@ -15,11 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Shared\Common\Tauron.Application.Logging\Tauron.Application.Logging.csproj" />
-        <ProjectReference Include="..\..\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
+      <PackageReference Include="BenchmarkDotNet" Version="0.13.5" />
       <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

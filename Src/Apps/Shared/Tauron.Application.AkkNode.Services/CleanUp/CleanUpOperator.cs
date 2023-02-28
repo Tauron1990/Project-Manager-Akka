@@ -20,9 +20,9 @@ public sealed partial class CleanUpOperator : ActorFeatureBase<CleanUpOperator.S
 
     protected override void ConfigImpl()
     {
-        _logger = Logger;
+        _logger = base.Logger;
 
-        Receive<StartCleanUp>(
+        Observ<StartCleanUp>(
             obs => obs.Take(1)
                .Select(s => new { s.State, Data = s.State.CleanUp.Get(CleanUpManager.TimeKey) })
                .Where(d => d.Data.Last + d.Data.Interval < DateTime.Now)

@@ -19,13 +19,13 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
 
         protected override void ConfigImpl()
         {
-            Receive<Process>(o => o.Subscribe(s => s.State.ProcessTracker.Tell(s.Event)));
+            Observ<Process>(o => o.Subscribe(s => s.State.ProcessTracker.Tell(s.Event)));
             
-            Receive<RegisterProcessList>(
+            Observ<RegisterProcessList>(
                 obs => obs.Select(
                     p =>
                     {
-                        var (script, (processTracker, targetProcesses)) = p;
+                        (RegisterProcessList script, (IActorRef processTracker, var targetProcesses)) = p;
 
                         targetProcesses = script.TrackingData.FileNames
                            .Where(fileName => !string.IsNullOrWhiteSpace(fileName))
@@ -45,7 +45,7 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
                     }));
 
 
-            Receive<ProcessStateChange>(
+            Observ<ProcessStateChange>(
                 obs => obs.Select(p => (
                         Message: p.Event, 
                         Target: p.State.TargetProcesses.FirstOrDefault(d => d.Key.Contains(p.Event.Name, StringComparison.Ordinal))))

@@ -50,7 +50,14 @@ public sealed partial class GenericCollector : ICollector
 
                 foreach (var process in processes)
                 {
-                    
+                    var data = new ProcessData(process.Id, process);
+                    if(original.ContainsKey(data.Id))
+                        data.Dispose();
+                    else
+                    {
+                        original = original.Add(data.Id, data);
+                        _owner.Tell(process);
+                    }
                 }
             }
             catch (Exception exception)
@@ -71,7 +78,7 @@ public sealed partial class GenericCollector : ICollector
 
     private readonly record struct ProcessData(int Id, Process Process) : IDisposable
     {
-        public bool HasExited
+        internal bool HasExited
         {
             get
             {
