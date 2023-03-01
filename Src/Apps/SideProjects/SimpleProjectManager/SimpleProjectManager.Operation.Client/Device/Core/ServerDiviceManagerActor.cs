@@ -1,39 +1,55 @@
+using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Cluster.Utility;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using Tauron;
+using Tauron.Features;
+
 
 namespace SimpleProjectManager.Operation.Client.Device.Core;
 
-public sealed class ServerDiviceManagerActor : ReceiveActor
+public sealed class ServerDiviceManagerActor : ActorFeatureBase<ServerDiviceManagerActor.State>
 {
-    private readonly IActorRef _supervisor;
-    private readonly List<IActorRef> _manager = new();
-    private int _actorCount;
+    public readonly record struct State(IActorRef Supervisor, ImmutableList<IActorRef> Manager, int ActorCount);
 
-    public ServerDiviceManagerActor(IActorRef supervisor)
+    public static IPreparedFeature New(IActorRef supervisor)
+        => Feature.Create(() => new ServerDiviceManagerActor(), _ => new State(supervisor, ImmutableList<IActorRef>.Empty, 0));
+    
+    private ServerDiviceManagerActor()
     {
-        _supervisor = supervisor;
-        Receive<ClusterActorDiscoveryMessage.ActorUp>(ActorUp);
 
-        Receive<ClusterActorDiscoveryMessage.ActorDown>(ActorDown);
+    }
+
+    protected override void ConfigImpl()
+    {
+        CallSingleHandler = true;
+        
+        ReceiveState<ClusterActorDiscoveryMessage.ActorUp>(ActorUp);
+        ReceiveState<ClusterActorDiscoveryMessage.ActorDown>(ActorDown);
         
         Receive<DeviceServerOffline>(_ => {});
         Receive<DeviceServerOnline>(_ => { });
 
-        ReceiveAny(msg => _manager.Foreach(actor => actor.Forward(msg)));
+        Receive<object>(msg => CurrentState.Manager.Foreach(actor => actor.Forward(msg)));
     }
-
-    private void ActorDown(ClusterActorDiscoveryMessage.ActorDown down)
+    
+    private State ActorDown(StatePair<ClusterActorDiscoveryMessage.ActorDown, State> evt)
     {
-        if(_actorCount == 0)
-            return;
+        (ClusterActorDiscoveryMessage.ActorDown down, State state) = evt;
+        
+        if(state.ActorCount == 0)
+            return state;
 
-        _actorCount--;
-        _manager.Remove(down.Actor);
+        State newData = state with
+        {
+            ActorCount = state.ActorCount - 1,
+            Manager = state.Manager.Remove(down.Actor),
+        };
 
-        if(_actorCount == 0)
-            _supervisor.Tell(new DeviceServerOffline());
+        if(newData.ActorCount == 0)
+            newData.Supervisor.Tell(new DeviceServerOffline());
+        
+        return newData;
     }
 
     private void ActorUp(ClusterActorDiscoveryMessage.ActorUp up)
@@ -50,7 +66,9 @@ public sealed class ServerDiviceManagerActor : ReceiveActor
         _supervisor.Tell(new DeviceServerOffline());
         ClusterActorDiscovery.Get(Context.System).MonitorActor(new ClusterActorDiscoveryMessage.MonitorActor(DeviceManagerMessages.DeviceDataId));
     }
+    
 
     protected override void PostStop()
         => ClusterActorDiscovery.Get(Context.System).UnMonitorActor(new ClusterActorDiscoveryMessage.UnmonitorActor(DeviceManagerMessages.DeviceDataId));
+    
 }

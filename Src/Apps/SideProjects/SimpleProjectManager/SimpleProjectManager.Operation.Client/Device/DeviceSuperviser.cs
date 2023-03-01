@@ -14,7 +14,7 @@ public class DeviceSuperviser : ReceiveActor
     public DeviceSuperviser(IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
     {
         IActorRef clusterManager = Context.ActorOf("ClusterManager", ClusterManagerActor.New());
-        IActorRef server = Context.ActorOf(() => new ServerDiviceManagerActor(Self), "ServerDeviceManager");
+        IActorRef server = Context.ActorOf("ServerDeviceManager", ServerDiviceManagerActor.New(Self));
         Context.ActorOf(() => new MachineManagerActor(server, machine, configuration, loggerFactory), "MachineManager");
 
         Receive<DeviceInformations>(info => clusterManager.Forward(info));

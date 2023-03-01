@@ -64,10 +64,10 @@ public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor
         => _actor.WaitForSignal(timeout, match);
 
     
-    public void Receive<TEvent>(Action<StatePair<TEvent, TState>> handler)
+    public void ReceiveState<TEvent>(Action<StatePair<TEvent, TState>> handler)
         => _actor.Observ<TEvent>(obs => obs.ToUnit(handler));
 
-    public void Receive<TEvent>(Func<StatePair<TEvent, TState>, TState> handler)
+    public void ReceiveState<TEvent>(Func<StatePair<TEvent, TState>, TState> handler)
         => _actor.Observ<TEvent>(obs => obs.Select(handler));
 
     public void Receive<TEvent>(

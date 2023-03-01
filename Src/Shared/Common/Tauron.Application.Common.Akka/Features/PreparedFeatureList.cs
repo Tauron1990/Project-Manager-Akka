@@ -20,5 +20,8 @@ internal sealed class PreparedFeatureList<TState> : IPreparedFeature
         => new(typeof(TState), _builder(context));
 
     public void Materialize(in ActorBuilder<GenericState> builder)
-        => _target.SelectMany(preparedFeature => preparedFeature.Materialize(in builder));
+    {
+        foreach (var feature in _target)
+            feature.Materialize(builder);
+    }
 }
