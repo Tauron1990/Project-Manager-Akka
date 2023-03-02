@@ -1,16 +1,8 @@
-﻿using System;
-using BenchmarkDotNet.Running;
-using LanguageExt;
+﻿using LanguageExt;
 using LanguageExt.Pipes;
-
-using LanguageExt;
-using static LanguageExt.Prelude;
-using static LanguageExt.List;
-using LanguageExt.ClassInstances;
-using LanguageExt.ClassInstances.Const;
-using LanguageExt.ClassInstances.Pred;
-using LanguageExt.SomeHelp;
-using LanguageExt.TypeClasses;
+using LanguageExt.Sys;
+using LanguageExt.Sys.IO;
+using LanguageExt.Sys.Live;
 
 namespace TestApp;
 
@@ -21,17 +13,17 @@ internal class Program
     private static void Main()
     {
         //BenchmarkRunner.Run<Benchmarks>();
-        
-        var result =
-            from initial in Some(10)
-            from add1 in Add(initial, 10)
-            let add2 = add1 + initial
-            from add3 in Add(add2, 10)
-            select add3 + add2 + add1 + initial;
 
-        result.Iter(Console.WriteLine);
+        var open = File<Runtime>.openRead("Test.txt");
+        var pipe = Stream<Runtime>.read(1000);
+
+        var consumer =
+            from data in Consumer.awaiting<Runtime, SeqLoan<byte>>()
+            from ebc in Enc<Runtime>.encoding
+            select ebc.GetString(data.ToSpan());
+
+
+        var combine = open | pipe;
+
     }
-
-    public static Option<int> Add(int value, int value2)
-        => Some(value + value2);
 }
