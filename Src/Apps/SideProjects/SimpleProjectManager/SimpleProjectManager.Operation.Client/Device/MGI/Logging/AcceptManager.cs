@@ -2,24 +2,21 @@
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
 using Tauron;
-using Tauron.Application;
+using Tauron.Features;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 
-public sealed partial class AcceptManager : ReceiveActor
+public sealed partial class AcceptManager : ActorFeatureBase<Socket>
 {
-    private readonly Socket _server;
-    private readonly ILogger<AcceptManager> _logger;
-
-    public AcceptManager(Socket server)
+    public static IPreparedFeature New(Socket server)
+        => Feature.Create(() => new AcceptManager(), server);
+    
+    
+    private readonly ILogger _logger;
+    
+    private AcceptManager()
     {
-        _server = server;
-        _logger = TauronEnviroment.LoggerFactory.CreateLogger<AcceptManager>();
-        
-        Receive<Status.Failure>(AcceptFailed);
-        Receive<Socket>(AcceptOk);
-        
-        OnAccept();
+        _logger = Logger;
     }
 
     private void AcceptOk(Socket newClint)
@@ -49,9 +46,9 @@ public sealed partial class AcceptManager : ReceiveActor
     {
         try
         {
-            if(!_server.IsBound) return;
+            if(!CurrentState.IsBound) return;
 
-            _server.AcceptAsync()
+            CurrentState.AcceptAsync()
                .PipeTo(Self)
                .Ignore();
         }
@@ -61,4 +58,11 @@ public sealed partial class AcceptManager : ReceiveActor
         }
     }
 
+    protected override void ConfigImpl()
+    {
+        Receive<Status.Failure>(AcceptFailed);
+        Receive<Socket>(AcceptOk);
+        
+        OnAccept();
+    }
 }

@@ -31,6 +31,9 @@ public sealed class ServerDiviceManagerActor : ActorFeatureBase<ServerDiviceMana
         Receive<DeviceServerOnline>(_ => { });
 
         Receive<object>(msg => CurrentState.Manager.Foreach(actor => actor.Forward(msg)));
+
+        Start.Subscribe(PreStart);
+        Stop.Subscribe(PostStop);
     }
     
     private State ActorDown(StatePair<ClusterActorDiscoveryMessage.ActorDown, State> evt)
@@ -52,23 +55,28 @@ public sealed class ServerDiviceManagerActor : ActorFeatureBase<ServerDiviceMana
         return newData;
     }
 
-    private void ActorUp(ClusterActorDiscoveryMessage.ActorUp up)
+    private State ActorUp(StatePair<ClusterActorDiscoveryMessage.ActorUp, State> up)
     {
-        _actorCount++;
-        _manager.Add(up.Actor);
+        State newState = up.State with
+        {
+            ActorCount = up.State.ActorCount + 1,
+            Manager = up.State.Manager.Add(up.Event.Actor),
+        };
+        
+        if(newState.ActorCount == 1)
+            newState.Supervisor.Tell(new DeviceServerOnline());
 
-        if(_actorCount == 1)
-            _supervisor.Tell(new DeviceServerOnline());
+        return newState;
     }
 
-    protected override void PreStart()
+    private void PreStart(IActorContext context)
     {
-        _supervisor.Tell(new DeviceServerOffline());
+        CurrentState.Supervisor.Tell(new DeviceServerOffline());
         ClusterActorDiscovery.Get(Context.System).MonitorActor(new ClusterActorDiscoveryMessage.MonitorActor(DeviceManagerMessages.DeviceDataId));
     }
     
 
-    protected override void PostStop()
+    private void PostStop(IActorContext context)
         => ClusterActorDiscovery.Get(Context.System).UnMonitorActor(new ClusterActorDiscoveryMessage.UnmonitorActor(DeviceManagerMessages.DeviceDataId));
     
 }
