@@ -16,8 +16,9 @@ public interface IObservableActor : IResourceHolder
     IActorRef Self { get; }
     IActorRef Parent { get; }
     IActorRef? Sender { get; }
+    
     void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler);
-    IObservable<TEvent> Receive<TEvent>();
+    
     void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler);
     void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler);
 
@@ -26,4 +27,10 @@ public interface IObservableActor : IResourceHolder
         Func<Exception, bool> errorHandler);
 
     void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler);
+
+    void Become(Action configure);
+
+    void BecomeStacked(Action configure);
+    
+    void UnbecomeStacked();
 }

@@ -13,6 +13,8 @@ namespace Tauron.TAkka;
 [PublicAPI]
 public class ObservableActor : ActorBase, IObservableActor
 {
+    
+    
     private readonly List<ISignal> _currentWaiting = new();
     private readonly Subject<object> _receiver = new();
     private readonly CompositeDisposable _resources = new();
@@ -55,8 +57,6 @@ public class ObservableActor : ActorBase, IObservableActor
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler)
         => AddResource(new ObservableInvoker<TEvent, Unit>(handler, ThrowError, GetSelector<TEvent>()).Construct());
-
-    public IObservable<TEvent> Receive<TEvent>() => GetSelector<TEvent>();
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler)
         => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, ThrowError, GetSelector<TEvent>()).Construct());

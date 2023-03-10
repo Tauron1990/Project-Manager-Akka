@@ -2,66 +2,70 @@
 using System.Net.Sockets;
 using System.Threading.Channels;
 using Akka.Actor;
+using Tauron;
+using Tauron.Features;
 using Tauron.Servicemnager.Networking.Data;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 
-public sealed class LoggerServer : ReceiveActor, IDisposable
+public sealed class LoggerServer : ActorFeatureBase<(ChannelWriter<LogInfo> LogSink, Socket Server, IPEndPoint EndPoint)>
 {
-    private readonly ChannelWriter<LogInfo> _logSink;
-    private readonly Socket _server;
-    private readonly IPEndPoint _endPoint;
+    public static Func<MgiLoggingConfiguration, IPreparedFeature> New(ChannelWriter<LogInfo> logSink)
+        => config =>
+        {
+            IPAddress iPAddress = IPAddress.Parse(config.Ip);
+            var endPoint = new IPEndPoint(iPAddress, config.Port);
+            var server = new Socket(iPAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            
+            return Feature.Create(
+                () => new LoggerServer(),
+                (logSink, server, endPoint)
+            );
+        };
 
-    public LoggerServer(ChannelWriter<LogInfo> logSink, int port)
+    private LoggerServer() { }
+    
+    protected override void ConfigImpl()
     {
-        _logSink = logSink;
-        //Pilot status switching to
-        IPAddress iPAddress = IPAddress.Parse("127.0.0.1");
-        _endPoint = new IPEndPoint(iPAddress, port);
-        _server = new Socket(iPAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-    }
-
-    private void Running()
-    {
-        Context.ActorOf(Props.Create(() => new AcceptManager(_server)));
-
-        Receive<Socket>(
-            newSocked => Context.ActorOf(Props.Create(() => new SingleClientManager(new SocketMessageStream(newSocked), _logSink))));
+        Start.Subscribe(OnStart);
+        Stop.Subscribe(OnStop);
+        
+        ReceiveState<Socket>(NewClient);
     }
 
     private void OnFailure(Exception error)
     {
-        _logSink.TryComplete(error);
+        CurrentState.LogSink.TryComplete(error);
         
         Self.Tell(PoisonPill.Instance);
     }
-
-    protected override void PreStart()
+    
+    private void OnStart(IActorContext context)
     {
+        CurrentState.Server.DisposeWith(this);
+        
         try
         {
-            _server.Bind(_endPoint);
-            _server.Listen(100);
+            Socket server = CurrentState.Server;
+            IPEndPoint endPoint = CurrentState.EndPoint;
             
-            Become(Running);
+            server.Bind(endPoint);
+            server.Listen(100);
+
+            context.ActorOf(AcceptManager.New(server));
         }
         catch (Exception e)
         {
             OnFailure(e);
         }
-
-        base.PreStart();
     }
 
-    protected override void PostStop()
+    private void OnStop(IActorContext _)
     {
-        _server.Close();
-        _logSink.TryComplete();
-        base.PostStop();
+        CurrentState.Server.Close();
+        CurrentState.LogSink.TryComplete();
     }
-
-    public void Dispose()
-    {
-        _server.Dispose();
-    }
+    
+    private static void NewClient(StatePair<Socket, (ChannelWriter<LogInfo> LogSink, Socket Server, IPEndPoint EndPoint)> evt) => 
+        evt.Context.ActorOf(SingleClientManager.New(new SocketMessageStream(evt.Event), evt.State.LogSink));
 }

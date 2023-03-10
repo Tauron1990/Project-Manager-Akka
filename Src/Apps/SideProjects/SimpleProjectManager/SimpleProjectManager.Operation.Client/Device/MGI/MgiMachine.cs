@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading.Channels;
 using Akka.Actor;
-using Akka.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
@@ -12,7 +11,7 @@ using SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
-using Tauron.TAkka;
+using Tauron.Features;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI;
 
@@ -62,9 +61,7 @@ public sealed class MgiMachine : IMachine
         
         _logCollector.CollectLogs(channel.Reader);
 
-        DependencyResolver resolver = DependencyResolver.For(context.System);
-        
-        context.ActorOf(() => new LoggerServer(channel.Writer, Port), "Logging_Server");
+        context.ActorOf("Logging_Server", LoggerServer.New(channel.Writer));
         
         return Task.CompletedTask;
     }

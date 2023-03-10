@@ -98,6 +98,17 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
         _self = Self;
         _parent = Parent;
         _currentState = new BehaviorSubject<TState>(initial);
+
+
+        System.Reactive.Disposables.Disposable.Create(
+            _currentState,
+                currentState =>
+            {
+                if(currentState.Value is IDisposable disposable)
+                    disposable.Dispose();
+            })
+            .DisposeWith(this);
+        _currentState.DisposeWith(this);
     }
 
     private void RegisterFeature(IFeature<TState> feature)
@@ -124,7 +135,7 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
     {
         foreach (IFeature feature in _features)
             feature.PostStop();
-
+        
         base.PostStop();
     }
 

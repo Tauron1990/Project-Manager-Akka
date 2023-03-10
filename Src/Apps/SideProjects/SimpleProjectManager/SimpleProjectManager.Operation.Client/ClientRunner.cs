@@ -7,6 +7,7 @@ using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Core;
 using SimpleProjectManager.Operation.Client.Device;
+using SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 using SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager;
 using SimpleProjectManager.Operation.Client.Device.MGI.UVLamp;
 using SimpleProjectManager.Operation.Client.ImageEditor;
@@ -57,6 +58,7 @@ public sealed class ClientRunner
                 (host, sc) =>
                 {
                     sc.Configure<ProcessConfiguration>(host.Configuration.GetSection("MGI"));
+                    sc.Configure<MgiLoggingConfiguration>(host.Configuration.GetSection("MGI"));
                 })
            .ConfigureAkka(
                 (_, b) =>

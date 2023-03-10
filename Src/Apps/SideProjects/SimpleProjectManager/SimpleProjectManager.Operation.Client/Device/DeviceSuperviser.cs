@@ -9,9 +9,10 @@ using Tauron.TAkka;
 
 namespace SimpleProjectManager.Operation.Client.Device;
 
-public class DeviceSuperviser : ReceiveActor
+public class DeviceSuperviser : ActorFeatureBase<EmptyState>
 {
-    public DeviceSuperviser(IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
+
+    private DeviceSuperviser(IMachine machine,  OperationConfiguration configuration, ILoggerFactory loggerFactory)
     {
         IActorRef clusterManager = Context.ActorOf("ClusterManager", ClusterManagerActor.New());
         IActorRef server = Context.ActorOf("ServerDeviceManager", ServerDiviceManagerActor.New(Self));
@@ -21,5 +22,10 @@ public class DeviceSuperviser : ReceiveActor
         Receive<DeviceServerOffline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
         Receive<DeviceServerOnline>(msg => Context.GetChildren()
                                        .Foreach(actor => actor.Forward(msg)));
+    }
+
+    protected override void ConfigImpl()
+    {
+        
     }
 }

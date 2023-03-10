@@ -3,6 +3,7 @@ using System.Management;
 using System.Runtime.Versioning;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
+using Tauron;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager.Platforms;
 
@@ -22,6 +23,9 @@ public sealed partial class Win32Collector : ICollector
     {
         _owner = owner;
         _logger = logger;
+        
+        Process.GetProcesses().Foreach(owner.Tell);
+        
         _watcher.EventArrived += WatcherOnEventArrived;
         _watcher.Start();
     }

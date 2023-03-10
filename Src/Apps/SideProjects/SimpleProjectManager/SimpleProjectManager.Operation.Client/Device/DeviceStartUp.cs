@@ -4,7 +4,6 @@ using Akka.Logger.NLog;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Operation.Client.Config;
-using SimpleProjectManager.Operation.Client.Core;
 using SimpleProjectManager.Operation.Client.Setup.Devices;
 
 namespace SimpleProjectManager.Operation.Client.Device;
@@ -13,16 +12,14 @@ public partial class DeviceStartUp
 {
     private readonly ActorSystem _actorSystem;
     private readonly OperationConfiguration _configuration;
-    private readonly HostStarter _hostStarter;
     private readonly IHostApplicationLifetime _lifetime;
     private readonly ILogger<DeviceStartUp> _logger;
     private readonly IServiceProvider _serviceProvider;
 
     public DeviceStartUp(
-        HostStarter hostStarter, OperationConfiguration configuration, ILogger<DeviceStartUp> logger,
+        OperationConfiguration configuration, ILogger<DeviceStartUp> logger,
         IHostApplicationLifetime lifetime, IServiceProvider serviceProvider, ActorSystem actorSystem)
     {
-        _hostStarter = hostStarter;
         _configuration = configuration;
         _logger = logger;
         _lifetime = lifetime;

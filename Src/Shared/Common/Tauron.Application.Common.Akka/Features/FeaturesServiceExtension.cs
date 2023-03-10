@@ -69,9 +69,9 @@ public static class FeaturesServiceExtension
     }
 
     public static IActorRef ActorOf(this IActorRefFactory factory, Delegate actorFactory)
-        => ActorOf(factory, actorFactory, name: null);
+        => ActorOf(factory, name: null, actorFactory);
 
-    public static IActorRef ActorOf(this IActorRefFactory factory, Delegate actorFactory, string? name)
+    public static IActorRef ActorOf(this IActorRefFactory factory, string? name ,Delegate actorFactory)
     {
         IDependencyResolver resolver = factory switch
         {

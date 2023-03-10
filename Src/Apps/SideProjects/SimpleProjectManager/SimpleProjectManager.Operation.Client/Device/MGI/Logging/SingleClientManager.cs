@@ -2,29 +2,39 @@
 using System.Threading.Channels;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
-using Tauron.Application;
+using Tauron;
+using Tauron.Features;
 using Tauron.Servicemnager.Networking.Data;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 
-public sealed partial class SingleClientManager : ReceiveActor, IDisposable
+public sealed partial class SingleClientManager : ActorFeatureBase<SingleClientManager.State>
 {
-    private readonly ILogger<SingleClientManager> _logger = TauronEnviroment.LoggerFactory.CreateLogger<SingleClientManager>();
-    private readonly IMessageStream _client;
-    private readonly ChannelWriter<LogInfo> _writer;
-    private readonly LogParser _logParser;
-
-    private string _app = "Unkowen";
-
-    public SingleClientManager(IMessageStream client, ChannelWriter<LogInfo> writer)
+    public readonly record struct State(IMessageStream Client, ChannelWriter<LogInfo> Writer, LogParser LogParser, string App) : IDisposable
     {
-        _client = client;
-        _writer = writer;
-        _logParser = new LogParser(client);
+        public void Dispose() => LogParser.Dispose();
+    }
+
+    public static IPreparedFeature New(IMessageStream client, ChannelWriter<LogInfo> writer)
+        => Feature.Create(
+            () => new SingleClientManager(),
+            _ => new State(client, writer, new LogParser(client), App: "Unkowen"));
+    
+    private readonly ILogger _logger;
+
+    private SingleClientManager()
+    {
+        _logger = Logger;
+    }
+
+    protected override void ConfigImpl()
+    {
+        Stop.ToUnit(CurrentState.LogParser.Dispose).Subscribe();
+        CurrentState.Client.DisposeWith(this);
         
         Receive<ClientError>(OnFailure);
         
-        Run(Self).PipeTo(Self,
+        Run(CurrentState, Self).PipeTo(Self,
             success:() => PoisonPill.Instance,
             failure: e => ClientError.CreateError("Error on Process Socket Receive Data", e));
     }
@@ -39,12 +49,16 @@ public sealed partial class SingleClientManager : ReceiveActor, IDisposable
     private partial void ReceiveError(Exception? ex, string message);
 
     [SuppressMessage("ReSharper", "MethodSupportsCancellation")]
-    private async Task Run(IActorRef self)
+    private async Task Run(State state, IActorRef self)
     {
+        LogParser logParser = state.LogParser;
+        string app = state.App;
+        var writer = state.Writer;
+        
         using var source = new CancellationTokenSource(); 
         
         var logs = Channel.CreateBounded<LogInfo>(1000);
-        Task runner = _logParser.Run(logs.Writer, source.Token);
+        Task runner = logParser.Run(logs.Writer, source.Token);
 
         try
         {
@@ -53,22 +67,22 @@ public sealed partial class SingleClientManager : ReceiveActor, IDisposable
                 LogInfo info = infoItem;
 
                 if(string.IsNullOrWhiteSpace(info.Application))
-                    info = info with { Application = _app };
+                    info = info with { Application = app };
 
                 // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
                 switch (info.Command)
                 {
                     case Command.Disconnect:
-                        await _writer.WriteAsync(info).ConfigureAwait(false);
+                        await writer.WriteAsync(info, source.Token).ConfigureAwait(false);
 
                         return;
                     case Command.SetApp:
-                        _app = info.Content;
+                        app = info.Content;
 
                         break;
                 }
 
-                await _writer.WriteAsync(info).ConfigureAwait(false);
+                await writer.WriteAsync(info, source.Token).ConfigureAwait(false);
             }
         }
         catch (ObjectDisposedException) { }
@@ -78,21 +92,12 @@ public sealed partial class SingleClientManager : ReceiveActor, IDisposable
         }
         finally
         {
-            _writer.TryComplete();
+            writer.TryComplete();
             source.Cancel();
         }
         
         await runner.ConfigureAwait(false);
     }
-    
-    protected override void PostStop()
-    {
-        _logParser.Dispose();
-        base.PostStop();
-    }
-
-    public void Dispose()
-        => _client.Dispose();
 
 
     private record ClientError(Exception? Error, string Message)
