@@ -35,5 +35,10 @@ public interface IFeatureActor<TState> : IResourceHolder, IObservable<TState>, I
     void UpdateState(TState state);
 
     void TellSelf(object msg);
-    IObservable<TEvent> Observ<TEvent>();
+    
+    void Become(Action configure);
+
+    void BecomeStacked(Action configure);
+    
+    void UnbecomeStacked();
 }

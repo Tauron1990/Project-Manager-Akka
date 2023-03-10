@@ -5,24 +5,31 @@ using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Device.Core;
 using SimpleProjectManager.Shared.Services.Devices;
 using Tauron;
+using Tauron.Features;
+using Tauron.TAkka;
 
 namespace SimpleProjectManager.Operation.Client.Device;
 
-public sealed partial class UIManagerActor : ReceiveActor
+public sealed partial class UiManagerActor : ActorFeatureBase<UiManagerActor.State>
 {
-    private readonly IActorRef _serverManager;
-    private readonly IMachine _machine;
-    private readonly ILogger<UIManagerActor> _logger;
-    private readonly DeviceId _deviceId;
-    private IDisposable _subscription = Disposable.Empty;
-    
-    public UIManagerActor(IActorRef serverManager, IMachine machine, ILogger<UIManagerActor> logger, DeviceId deviceId)
+    public sealed record State(IActorRef ServerManager, IMachine Machine, DeviceId DeviceId, IDisposable Subscription) : IDisposable
     {
-        _serverManager = serverManager;
-        _machine = machine;
-        _logger = logger;
-        _deviceId = deviceId;
+        public void Dispose() => Subscription.Dispose();
+    }
 
+    public static IPreparedFeature New(IActorRef serverManager, IMachine machine, DeviceId deviceId)
+        => Feature.Create(() => new UiManagerActor(), _ => new State(serverManager, machine, deviceId, Disposable.Empty));
+    
+    private readonly ILogger _logger;
+    
+    private UiManagerActor() => _logger = Logger;
+
+    protected override void ConfigImpl()
+    {
+        Start.Subscribe(TryStart);
+
+        ReceiveState<IDisposable>(sub => sub.State with { Subscription = sub.Event });
+        
         Receive<Status.Failure>(OnFailure);
         Receive<DeviceUiGroup>(OnNewUiGroup);
         
@@ -30,31 +37,30 @@ public sealed partial class UIManagerActor : ReceiveActor
         Receive<DeviceServerOnline>(_ => { });
     }
 
+    private void TryStart(IActorContext context)
+    {
+        var state = CurrentState.Machine.UIUpdates();
+        if(state is null)
+        {
+            context.Stop(Self);
+            return;
+        }
+
+        IActorRef self = Self;
+        
+        IDisposable subscription = state
+            .ToObservable(ErrorOnComputeUIState)
+            .Subscribe(u => self.Tell(u), ex => self.Tell(new Status.Failure(ex)));
+        
+        self.Tell(subscription);
+    }
+    
     private void OnNewUiGroup(DeviceUiGroup uiGroup)
-        => _serverManager.Tell(new DeviceManagerMessages.NewUIData(_deviceId, uiGroup));
+        => CurrentState.ServerManager.Tell(new DeviceManagerMessages.NewUIData(CurrentState.DeviceId, uiGroup));
 
     [LoggerMessage(68, LogLevel.Error, "Error on Compute UI State", EventName = "ComputeUIState")]
     private partial void ErrorOnComputeUIState(Exception cause);
     
     private void OnFailure(Status.Failure obj)
         => throw obj.Cause;
-
-    protected override void PostStop()
-        => _subscription.Dispose();
-
-    protected override void PreStart()
-    {
-        var state = _machine.UIUpdates();
-        if(state is null)
-        {
-            Context.Stop(Self);
-            return;
-        }
-
-        IActorRef? self = Self;
-        
-        _subscription = state
-           .ToObservable(ErrorOnComputeUIState)
-           .Subscribe(u => self.Tell(u), ex => self.Tell(new Status.Failure(ex)));
-    }
 }

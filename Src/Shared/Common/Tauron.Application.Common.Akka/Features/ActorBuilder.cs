@@ -87,9 +87,6 @@ public readonly struct ActorBuilder<TState>
         }
 
         #pragma warning disable AV1551
-        public IObservable<TEvent> Observ<TEvent>()
-            #pragma warning restore AV1551
-            => _original.Observ<TEvent>();
 
         public IActorRef Self
             => _original.Self;
@@ -119,6 +116,11 @@ public readonly struct ActorBuilder<TState>
             => _original.UpdateState(_convertBack(_original.CurrentState, state));
 
         public void TellSelf(object msg) => _original.TellSelf(msg);
+        public void Become(Action configure) => _original.Become(configure);
+
+        public void BecomeStacked(Action configure) => _original.BecomeStacked(configure);
+
+        public void UnbecomeStacked() => _original.UnbecomeStacked();
 
         public IDisposable Subscribe(IObserver<TTarget> observer) => _original.Select(_convert).Subscribe(observer);
 

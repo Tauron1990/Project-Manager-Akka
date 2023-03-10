@@ -13,31 +13,121 @@ namespace Tauron.TAkka;
 [PublicAPI]
 public class ObservableActor : ActorBase, IObservableActor
 {
+    private readonly record struct StackFrame(Subject<object> Receiver, CompositeDisposable Subscriptions, Dictionary<Type, object> Selectors) : IDisposable
+    {
+        public void Dispose()
+        {
+            Subscriptions.Dispose();
+            Receiver.Dispose();
+        }
+    }
     
-    
-    private readonly List<ISignal> _currentWaiting = new();
-    private readonly Subject<object> _receiver = new();
-    private readonly CompositeDisposable _resources = new();
+    private sealed class FrameStack : IDisposable
+    {
+        private readonly Stack<StackFrame> _frames = new();
+        private bool _isReceived;
+        
+        internal bool CallSingleHandler { get; set; }
 
-    private readonly Dictionary<Type, object> _selectors = new();
+        internal FrameStack() => _frames.Push(new StackFrame(new Subject<object>(), new CompositeDisposable(), new Dictionary<Type, object>()));
+
+        internal void AddSubscription(IDisposable subscription) => _frames.Peek().Subscriptions.Add(subscription);
+
+        internal bool Dispatch(object msg)
+        {
+            _isReceived = false;
+            
+            _frames.Peek().Receiver.OnNext(msg);
+            
+            return _isReceived;
+        }
+        
+        internal void DispatchSelf(object msg) => _frames.Peek().Receiver.OnNext(msg);
+
+        internal IObservable<TEvent> GetSelector<TEvent>()
+        {
+            var (receiver, _, selectors) = _frames.Peek();
+            
+            if(selectors.TryGetValue(typeof(TEvent), out object? selector)) return (IObservable<TEvent>)selector;
+
+            selector = receiver
+                .Where(msg => msg is TEvent && (!CallSingleHandler || !_isReceived))
+                .Select(
+                    msg =>
+                    {
+                        _isReceived = true;
+
+                        return (TEvent)msg;
+                    })
+                .Isonlate();
+
+            selectors[typeof(TEvent)] = selector;
+
+            return (IObservable<TEvent>)selector;
+        }
+
+        internal bool HasSelector<TEvent>()
+            => _frames.Peek().Selectors.ContainsKey(typeof(TEvent));
+        
+        internal void ReplaceFrame()
+        {
+            SendCompled();
+            _frames.Pop().Dispose();
+            _frames.Push(new StackFrame(new Subject<object>(), new CompositeDisposable(), new Dictionary<Type, object>()));
+        }
+
+        internal void PushNewFrame()
+            => _frames.Push(new StackFrame(new Subject<object>(), new CompositeDisposable(), new Dictionary<Type, object>()));
+
+        internal void PopFrame()
+        {
+            if(_frames.Count == 1)
+                ReplaceFrame();
+            else
+            {
+                SendCompled();
+                _frames.Pop();
+            }
+        }
+
+        internal void SendCompled() => _frames.Peek().Receiver.OnCompleted();
+
+        public void Dispose()
+        {
+            foreach (StackFrame frame in _frames)
+            {
+                frame.Dispose();
+            }
+            
+            _frames.Clear();
+        }
+    }
+
+    private readonly List<ISignal> _currentWaiting = new();
+    private readonly CompositeDisposable _resources = new();
+    private readonly FrameStack _frameStack = new();
+    
     private readonly BehaviorSubject<IActorContext?> _start = new(value: null);
     private readonly BehaviorSubject<IActorContext?> _stop = new(value: null);
-
-    private bool _isReceived;
+    
 
     public ObservableActor()
     {
         Self = base.Self;
         Parent = ActorBase.Context.Parent;
 
-        _resources.Add(_receiver);
+        _resources.Add(_frameStack);
         _resources.Add(_start);
         _resources.Add(_stop);
 
         Log = TauronEnviroment.GetLogger(GetType());
     }
 
-    public bool CallSingleHandler { get; set; }
+    public bool CallSingleHandler
+    {
+        get => _frameStack.CallSingleHandler;
+        set => _frameStack.CallSingleHandler = value;
+    }
 
     public static IActorContext ExposedContext => ActorBase.Context;
 
@@ -56,20 +146,34 @@ public class ObservableActor : ActorBase, IObservableActor
     public void RemoveResource(IDisposable res) => _resources.Remove(res);
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler)
-        => AddResource(new ObservableInvoker<TEvent, Unit>(handler, ThrowError, GetSelector<TEvent>()).Construct());
+        => _frameStack.AddSubscription(new ObservableInvoker<TEvent, Unit>(handler, ThrowError, _frameStack.GetSelector<TEvent>()).Construct());
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler)
-        => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, ThrowError, GetSelector<TEvent>()).Construct());
+        => _frameStack.AddSubscription(new ObservableInvoker<TEvent, TEvent>(handler, ThrowError, _frameStack.GetSelector<TEvent>()).Construct());
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<Unit>> handler, Func<Exception, bool> errorHandler)
-        => AddResource(new ObservableInvoker<TEvent, Unit>(handler, errorHandler, GetSelector<TEvent>()).Construct());
+        => _frameStack.AddSubscription(new ObservableInvoker<TEvent, Unit>(handler, errorHandler, _frameStack.GetSelector<TEvent>()).Construct());
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IObservable<TEvent>> handler, Func<Exception, bool> errorHandler)
-        => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, errorHandler, GetSelector<TEvent>()).Construct());
+        => _frameStack.AddSubscription(new ObservableInvoker<TEvent, TEvent>(handler, errorHandler, _frameStack.GetSelector<TEvent>()).Construct());
 
 
     public void Receive<TEvent>(Func<IObservable<TEvent>, IDisposable> handler)
-        => AddResource(new ObservableInvoker<TEvent, TEvent>(handler, GetSelector<TEvent>(), isSafe: true).Construct());
+        => _frameStack.AddSubscription(new ObservableInvoker<TEvent, TEvent>(handler, _frameStack.GetSelector<TEvent>(), isSafe: true).Construct());
+
+    public void Become(Action configure)
+    {
+        _frameStack.ReplaceFrame();
+        configure();
+    }
+
+    public void BecomeStacked(Action configure)
+    {
+        _frameStack.PushNewFrame();
+        configure();
+    }
+
+    public void UnbecomeStacked() => _frameStack.PopFrame();
 
     protected IObservable<TType> SyncActor<TType>(TType element)
         => Observable.Return(element, ActorScheduler.From(Self));
@@ -95,14 +199,14 @@ public class ObservableActor : ActorBase, IObservableActor
         {
             case TransmitAction act:
                 return act.Runner();
-            case Status.Failure when _selectors.ContainsKey(typeof(Status.Failure)) || _currentWaiting.Any(signal => signal.Match(message)):
+            case Status.Failure when _frameStack.HasSelector<Status.Failure>() || _currentWaiting.Any(signal => signal.Match(message)):
                 return RunDefault();
             case Status.Failure failure:
                 if(OnError(failure))
                     throw failure.Cause;
 
                 return true;
-            case Status.Success when _selectors.ContainsKey(typeof(Status.Success)) || _currentWaiting.Any(signal => signal.Match(message)):
+            case Status.Success when _frameStack.HasSelector<Status.Success>() || _currentWaiting.Any(signal => signal.Match(message)):
                 return RunDefault();
             case AddSignal add:
                 _currentWaiting.Add(add.Signal);
@@ -128,7 +232,7 @@ public class ObservableActor : ActorBase, IObservableActor
     {
         _stop.OnNext(Context);
         _start.OnCompleted();
-        _receiver.OnCompleted();
+        _frameStack.SendCompled();
         base.AroundPostStop();
         _stop.OnCompleted();
     }
@@ -146,16 +250,10 @@ public class ObservableActor : ActorBase, IObservableActor
         }
     }
 
-    protected override bool Receive(object message)
-    {
-        _isReceived = false;
+    protected override bool Receive(object message) 
+        => _frameStack.Dispatch(message);
 
-        _receiver.OnNext(message);
-
-        return _isReceived;
-    }
-
-    public void TellSelf(object msg) => _receiver.OnNext(msg);
+    public void TellSelf(object msg) => _frameStack.DispatchSelf(msg);
 
     protected virtual bool OnError(Status.Failure failure) => ThrowError(failure.Cause);
 
@@ -167,26 +265,6 @@ public class ObservableActor : ActorBase, IObservableActor
         Task.Delay(timeout).PipeTo(Self, success: () => new SignalTimeOut(signal));
 
         return source.Task.ToObservable();
-    }
-
-    protected IObservable<TEvent> GetSelector<TEvent>()
-    {
-        if(_selectors.TryGetValue(typeof(TEvent), out object? selector)) return (IObservable<TEvent>)selector;
-
-        selector = _receiver
-           .Where(msg => msg is TEvent && (!CallSingleHandler || !_isReceived))
-           .Select(
-                msg =>
-                {
-                    _isReceived = true;
-
-                    return (TEvent)msg;
-                })
-           .Isonlate();
-
-        _selectors[typeof(TEvent)] = selector;
-
-        return (IObservable<TEvent>)selector;
     }
 
     public bool ThrowError(Exception exception)

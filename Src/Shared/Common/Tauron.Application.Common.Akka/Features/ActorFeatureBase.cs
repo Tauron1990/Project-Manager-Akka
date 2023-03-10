@@ -100,8 +100,11 @@ public abstract class ActorFeatureBase<TState> : IFeature<TState>, IFeatureActor
     public void UpdateState(TState state) => _actor.UpdateState(state);
 
     public void TellSelf(object msg) => _actor.TellSelf(msg);
+    public void Become(Action configure) => _actor.Become(configure);
 
-    public IObservable<TEvent> Observ<TEvent>() => _actor.Observ<TEvent>();
+    public void BecomeStacked(Action configure) => _actor.BecomeStacked(configure);
+
+    public void UnbecomeStacked() => _actor.UnbecomeStacked();
 
     public IActorRef Self => _actor.Self;
 

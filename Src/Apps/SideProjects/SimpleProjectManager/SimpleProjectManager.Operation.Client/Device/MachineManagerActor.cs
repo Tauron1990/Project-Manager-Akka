@@ -65,7 +65,7 @@ public sealed partial class MachineManagerActor : ReceiveActor, IWithStash
                 () => new MachineSensorActor(_device.DeviceId, _machine, sen, _serverManager, _loggerFactory.CreateLogger<MachineSensorActor>()),
                 sen.Identifer.Value));
 
-        Context.ActorOf(() => new UIManagerActor(_serverManager, _machine, _loggerFactory.CreateLogger<UIManagerActor>(), _device.DeviceId), "UIManager");
+        Context.ActorOf(() => new UiManagerActor(_serverManager, _machine, _loggerFactory.CreateLogger<UiManagerActor>(), _device.DeviceId), "UIManager");
         
         if(_device.HasLogs)
             Context.ActorOf(() => new LoggerActor(_machine, _device.DeviceId));

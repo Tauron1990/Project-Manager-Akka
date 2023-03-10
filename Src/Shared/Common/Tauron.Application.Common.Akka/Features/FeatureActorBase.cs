@@ -74,8 +74,6 @@ public abstract class FeatureActorBase<TFeatured, TState> : ObservableActor, IFe
         CurrentState.OnNext(state);
     }
 
-    public IObservable<TEvent> Observ<TEvent>() => Receive<TEvent>();
-
     IUntypedActorContext IFeatureActor<TState>.Context => Context;
     SupervisorStrategy? IFeatureActor<TState>.SupervisorStrategy { get; set; }
 

@@ -4,11 +4,10 @@ using Akka.Actor;
 using Akka.Event;
 using IniParser;
 using Microsoft.Extensions.Logging;
-using SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager;
 using Tauron;
 using Tauron.Features;
 
-namespace Akka.MGIHelper.UI.MgiStarter
+namespace SimpleProjectManager.Operation.Client.Device.MGI.ProcessManager
 {
     public sealed class MgiStartingActor : ActorFeatureBase<IActorRef>
     {
@@ -21,7 +20,7 @@ namespace Akka.MGIHelper.UI.MgiStarter
         {
             Observ<TryStart>(obs => obs.Select<StatePair<TryStart, IActorRef>, TryStart>(p => p.Event).SubscribeWithStatus(TryStartHandler));
 
-            Observ<RegisterProcessList>().ToActor(CurrentState);
+            Observ<RegisterProcessList>(obs => obs.Select(p => p.Event).ToActor(CurrentState));
         }
 
         private void TryStartHandler(TryStart obj)
