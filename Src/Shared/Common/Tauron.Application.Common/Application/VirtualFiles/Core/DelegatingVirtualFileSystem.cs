@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Stl;
+using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
@@ -21,19 +23,19 @@ public abstract class DelegatingVirtualFileSystem<TContext> : VirtualFileSystemB
 
     public override string Name => Context.Name;
 
-    public override IEnumerable<IDirectory> Directories => Context.Directories;
+    public override Result<IEnumerable<IDirectory>> Directories() => Context.Directories();
 
-    public override IEnumerable<IFile> Files => Context.Files;
+    public override Result<IEnumerable<IFile>> Files() => Context.Files();
 
-    protected override IDirectory GetDirectory(TContext context, in PathInfo name)
+    protected override Result<IDirectory> GetDirectory(TContext context, in PathInfo name)
         => context.GetDirectory(name);
 
-    protected override IFile GetFile(TContext context, in PathInfo name)
+    protected override Result<IFile> GetFile(TContext context, in PathInfo name)
         => context.GetFile(name);
 
-    protected override void Delete(TContext context)
+    protected override SimpleResult Delete(TContext context)
         => context.Delete();
 
-    protected override IDirectory MovetTo(TContext context, in PathInfo location)
+    protected override Result<IDirectory> MovetTo(TContext context, in PathInfo location)
         => context.MoveTo(location);
 }

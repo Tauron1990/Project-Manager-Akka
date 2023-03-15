@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using Tauron.AkkaHost;
 using Tauron.Localization;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.Avalonia.UI;
 
@@ -25,18 +26,20 @@ public sealed class Loc : UpdatableMarkupExtension
                     return result!;
             }
 
-            ActorApplication.ActorSystem.Loc().Request(
-                EntryName,
-                o =>
-                {
-                    object? res = o.GetOrElse(EntryName);
-                    lock (Cache)
+            ActorApplication.ActorSystem.Loc().Run(
+                loc => loc.Request(
+                    EntryName,
+                    o =>
                     {
-                        Cache[EntryName] = res;
-                    }
+                        object res = o.GetOrElse(EntryName);
+                        lock (Cache)
+                        {
+                            Cache[EntryName] = res;
+                        }
 
-                    UpdateValue(res);
-                });
+                        UpdateValue(res);
+                    }),
+                () => UpdateValue("Error on Loading"));
 
             return "Loading";
         }

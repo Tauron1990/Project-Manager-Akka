@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles;
 
@@ -20,5 +21,5 @@ public interface IFileSystemNode
 
     string Name { get; }
 
-    void Delete();
+    SimpleResult Delete();
 }

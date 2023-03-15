@@ -72,7 +72,7 @@ public static class OptionExtensions
                select resultSelector(sourceInst, opt.Value);
     }
 
-    public static void Run<TType>(this ref Option<TType> option, Action<TType> onSuccess, Action onEmpty)
+    public static void Run<TType>(this in Option<TType> option, Action<TType> onSuccess, Action onEmpty)
     {
         if(option.HasValue)
             onSuccess(option.Value);

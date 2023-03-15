@@ -32,13 +32,8 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="LanguageExt.Core" Version="4.4.2" />
-      <PackageReference Include="LanguageExt.Rx" Version="4.4.2" />
-      <PackageReference Include="LanguageExt.Sys" Version="4.4.2" />
-      <PackageReference Include="LanguageExt.SysX" Version="4.4.2" />
-      <PackageReference Include="LanguageExt.Transformers" Version="4.4.2" />
-      <PackageReference Include="linq2db" Version="4.4.1" />
-      <PackageReference Include="Meziantou.Analyzer" Version="2.0.18">
+      <PackageReference Include="linq2db" Version="5.0.0" />
+      <PackageReference Include="Meziantou.Analyzer" Version="2.0.19">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>

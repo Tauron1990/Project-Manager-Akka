@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Stl;
 using Tauron.Application.Workshop.Analyser.Analyser;
 using Tauron.Application.Workshop.Analyzing;
 using Tauron.Application.Workshop.Mutation;
@@ -37,6 +38,6 @@ public sealed class TaskDriverFactory : IDriverFactory, IDisposable
         _processes.Add(processInst);
     }
 
-    public Action<IOperationResult>? GetResultSender()
-        => null;
+    public Option<Action<IOperationResult>> GetResultSender()
+        => Option<Action<IOperationResult>>.None;
 }

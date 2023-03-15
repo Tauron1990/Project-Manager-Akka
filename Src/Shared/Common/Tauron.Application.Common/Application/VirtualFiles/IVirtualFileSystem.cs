@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles;
 
@@ -12,7 +13,7 @@ public interface IVirtualFileSystem : IDirectory, IDisposable
 
     PathInfo Source { get; }
 
-    void Reload(in PathInfo source);
+    SimpleResult Reload(in PathInfo source);
 
-    void Save();
+    SimpleResult Save();
 }

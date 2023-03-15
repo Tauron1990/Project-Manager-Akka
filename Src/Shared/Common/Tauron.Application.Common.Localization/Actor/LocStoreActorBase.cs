@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 using Akka.Actor;
-using Akka.Util;
+using Tauron.Operations;
 
 namespace Tauron.Localization.Actor;
 
@@ -14,9 +14,9 @@ public abstract class LocStoreActorBase : UntypedActor
             base.Unhandled(message);
     }
 
-    protected abstract Option<object> TryQuery(string name, CultureInfo target);
+    protected abstract TriOption<object> TryQuery(string name, CultureInfo target);
 
     public sealed record QueryRequest(string Key, string Id, CultureInfo CultureInfo);
 
-    public sealed record QueryResponse(Option<object> Value, string Id);
+    public sealed record QueryResponse(TriOption<object> Value, string Id);
 }

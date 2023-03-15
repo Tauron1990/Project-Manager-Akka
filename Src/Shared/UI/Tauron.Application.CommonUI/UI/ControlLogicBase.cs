@@ -73,7 +73,7 @@ public abstract class ControlLogicBase<TControl> : IView
             var parentOption = ControlBindLogic.FindParentDatacontext(UserControl);
             parentOption.Run(
                 parent => parent.Actor.Tell(new InitParentViewModel(Model)),
-                () => ViewModelSuperviser.Get(ActorApplication.ActorSystem)
+                () => ViewModelSuperviser.Get(ActorApplication.ActorSystem.Value)
                    .Create(Model));
         }
 

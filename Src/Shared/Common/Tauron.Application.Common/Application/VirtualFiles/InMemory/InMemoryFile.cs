@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
+using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles.InMemory;
 
@@ -38,26 +40,37 @@ public sealed class InMemoryFile : FileBase<FileContext>
 
     protected override bool CanCreate => Exist && base.CanCreate;
 
-    protected override Stream CreateStream(FileContext context, FileAccess access, bool createNew)
-    {
-        if(createNew)
-            Context.Root.ReInit(Context.ActualData, Context.Clock);
+    protected override Result<Stream> CreateStream(FileContext context, FileAccess access, bool createNew) =>
+        Result.FromFunc(
+            (self: this, context, access, createNew),
+            static state =>
+            {
+                if(state.createNew)
+                    state.context.Root.ReInit(state.context.ActualData, state.context.Clock);
 
-        return StreamWrapper.Create(Context.ActualData.ActualData, access, _ => Context.ActualData.ModifyDate = Context.Clock.UtcNow.LocalDateTime);
+                return StreamWrapper.Create(
+                    state.context.ActualData.ActualData,
+                    state.access,
+                    _ => state.context.ActualData.ModifyDate = state.context.Clock.UtcNow.LocalDateTime);
+            });
+
+    protected override SimpleResult Delete(FileContext context)
+    {
+        if(context.Parent is null) return SimpleResult.Failure("File Has no Parent");
+
+        return SimpleResult.FromAction(
+            (self:this, context),
+            static state =>
+            {
+                state.self._exist = !state.context.Parent!.ActualData.Remove(state.context.ActualData.Name);
+
+                state.context.Root.ReturnFile(state.context.ActualData);
+                state.self.Context = state.context with { Parent = null, Data = null };
+            });
     }
 
-    protected override void Delete(FileContext context)
-    {
-        if(context.Parent is null) return;
 
-        _exist = !context.Parent.ActualData.Remove(context.ActualData.Name);
-
-        context.Root.ReturnFile(context.ActualData);
-        Context = context with { Parent = null, Data = null };
-    }
-
-
-    protected override IFile MoveTo(FileContext context, in PathInfo location)
+    protected override Result<IFile> MoveTo(FileContext context, in PathInfo location)
     {
         string originalName = Name;
 
@@ -79,7 +92,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
         }
 
 
-        IFile? file = null;
+        Result<IFile> file;
 
         if(path.Kind == PathType.Absolute)
         {
@@ -88,21 +101,34 @@ public sealed class InMemoryFile : FileBase<FileContext>
                 path,
                 context.ActualData,
                 (directoryContext, newPath, fileEntry) =>
-                    new InMemoryFile(directoryContext.GetFileContext(directoryContext, fileEntry, newPath), Features));
+                    (IFile)new InMemoryFile(directoryContext.GetFileContext(directoryContext, fileEntry, newPath), Features));
         }
         else
         {
-            if(ParentDirectory?.GetDirectory(path) is InMemoryDirectory parent)
-                if(parent.TryAddElement(name, context.ActualData))
-                    file = parent.GetFile(name);
+            if(ParentDirectory is null)
+                file = Result.Error<IFile>(new InvalidOperationException("No Parent Directory"));
+            else
+            {
+                file = ParentDirectory.GetDirectory(path)
+                    .FlatSelect(
+                        dic =>
+                        {
+                            var memdic = (InMemoryDirectory)dic;
+                            
+                            return memdic.TryAddElement(name, context.ActualData) 
+                                ? memdic.GetFile(name) 
+                                : Result.Error<IFile>(new InvalidOperationException("Adding new File Data Failed"));
+
+                        });
+            }
         }
 
-        if(file is null)
-            throw new InvalidOperationException("Movement Has failed (Possible Duplicate?)");
-
-        context.Parent?.ActualData.Remove(originalName);
-        Context = context with { Data = null, Parent = null };
-        _exist = false;
+        if(file.HasValue)
+        {
+            context.Parent?.ActualData.Remove(originalName);
+            Context = context with { Data = null, Parent = null };
+            _exist = false;
+        }
 
         return file;
     }

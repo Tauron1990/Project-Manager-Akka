@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters;
+using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.Resolvers;
+using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
 
@@ -28,11 +31,17 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
     public override bool Exist => Context.Data.Exists;
     public override string Name => Context.Data.Name;
 
-    public override IEnumerable<IDirectory> Directories
-        => Context.Data.EnumerateDirectories().Select(d => new LocalDirectory(Context with { Data = d, NoParent = false }, Features));
+    public override Result<IEnumerable<IDirectory>> Directories() =>
+        Result.FromFunc(
+            this,
+            static self => self.Context.Data.GetDirectories()
+                .Select(d => (IDirectory)new LocalDirectory(self.Context with { Data = d, NoParent = false }, self.Features)));
 
-    public override IEnumerable<IFile> Files
-        => Context.Data.EnumerateFiles().Select(f => new LocalFile(new FileContext(Context.Root, Context.NoParent, f), Features));
+    public override Result<IEnumerable<IFile>> Files() =>
+        Result.FromFunc(
+            this,
+            static self => self.Context.Data.GetFiles()
+                .Select(f => (IFile)new LocalFile(new FileContext(self.Context.Root, self.Context.NoParent, f), self.Features)));
 
     public FileAttributes Attributes
     {
@@ -40,16 +49,16 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         set => Context.Data.Attributes = value;
     }
 
-    protected override IDirectory GetDirectory(DirectoryContext context, in PathInfo name)
-        => throw new NotSupportedException("Never called Method");
+    protected override Result<IDirectory> GetDirectory(DirectoryContext context, in PathInfo name)
+        => Result.Error<IDirectory>(new NotSupportedException("Never called Method"));
 
-    protected override IFile GetFile(DirectoryContext context, in PathInfo name)
-        => throw new NotSupportedException("Never called Method");
+    protected override Result<IFile> GetFile(DirectoryContext context, in PathInfo name)
+        => Result.Error<IFile>(new NotSupportedException("Never called Method"));
 
-    protected override void Delete(DirectoryContext context)
-        => context.Data.Delete(true);
+    protected override SimpleResult Delete(DirectoryContext context)
+        => SimpleResult.FromAction(context, static state => state.Data.Delete(recursive: true));
 
-    protected override IDirectory MovetTo(DirectoryContext context, in PathInfo location)
+    protected override Result<IDirectory> MovetTo(DirectoryContext context, in PathInfo location)
     {
         ValidateSheme(location, LocalFileSystemResolver.SchemeName);
 
@@ -61,7 +70,7 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         return new LocalDirectory(context with { Data = new DirectoryInfo(target) }, Features);
     }
 
-    protected override IFile SplitFilePath(in PathInfo name)
+    protected override Result<IFile> SplitFilePath(in PathInfo name)
     {
         string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 

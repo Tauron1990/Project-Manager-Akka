@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.PlatformServices;
+using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
 
@@ -18,32 +19,27 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
 
     public override PathInfo Source => Context.OriginalPath;
 
-    internal TResult? MoveElement<TResult, TElement>(string name, in PathInfo path, TElement element, Func<DirectoryContext, PathInfo, TElement, TResult> factory)
+    internal Result<TResult> MoveElement<TResult, TElement>(string name, in PathInfo path, TElement element, Func<DirectoryContext, PathInfo, TElement, TResult> factory)
         where TElement : IDataElement
-        where TResult : class
-    {
-        PathInfo relative = GenericPathHelper.ToRelativePath(path);
-        IDirectory tempdic = GetDirectory(relative);
-        InMemoryDirectory dic;
+        where TResult : class =>
+        GetDirectory(GenericPathHelper.ToRelativePath(path))
+            .Select(dic => dic == this ? Context : (InMemoryDirectory)dic)
+            .FlatSelect(
+                dic =>
+                {
+                    element.Name = name;
 
-        if(tempdic == this)
-            dic = Context;
-        else
-            dic = (InMemoryDirectory)tempdic;
-
-        element.Name = name;
-
-        return dic.TryAddElement(name, element)
-            ? factory(dic.DirectoryContext, GenericPathHelper.Combine(dic.OriginalPath, name), element)
-            : null;
-    }
+                    return dic.TryAddElement(name, element)
+                        ? Result.Value(factory(dic.DirectoryContext, GenericPathHelper.Combine(dic.OriginalPath, name), element))
+                        : Result.Error<TResult>(new InvalidOperationException($"Duplicate Elment {name} found in {dic.Name}"));
+                });
 
     private static InMemoryDirectory CreateContext(IFileSystemNode system, in PathInfo startPath, ISystemClock clock)
     {
         var root = new InMemoryRoot();
         var dicContext = new DirectoryContext(
             root,
-            null,
+            Parent: null,
             root.GetDirectoryEntry(startPath, clock),
             startPath,
             clock,

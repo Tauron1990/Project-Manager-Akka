@@ -1,4 +1,5 @@
 ﻿using System;
+using Stl;
 using Tauron.Application.Workshop.Analyzing;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Operations;
@@ -15,5 +16,5 @@ public interface IDriverFactory
 
     void CreateProcessor(Type processor, string name);
 
-    Action<IOperationResult>? GetResultSender();
+    Option<Action<IOperationResult>> GetResultSender();
 }

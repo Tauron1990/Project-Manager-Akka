@@ -22,7 +22,7 @@ public sealed class DataTransferManagerFeature : ActorFeatureBase<DataTransferMa
         CallSingleHandler = true;
         SupervisorStrategy = new OneForOneStrategy(_ => Directive.Stop);
 
-        Observ<TransferCompled>().Subscribe(m => Context.Stop(Context.Child(m.OperationId.Value)));
+        Observ<TransferCompled>(obs => obs.Subscribe(m => Context.Stop(Context.Child(m.Event.OperationId.Value))));
         Observ<TransmitRequest>(TransmitRequest);
         Observ<DataTranfer>(ForwardDataTransfer);
         Observ<DataTransferRequest>(RunRequest);

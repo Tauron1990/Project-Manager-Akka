@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reactive;
 using JetBrains.Annotations;
+using Stl;
 using Tauron.Application.Workshop.Driver;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Builder;
@@ -121,14 +122,14 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
         private readonly MutatingEngine _mutatingEngine;
         private readonly ConcurrentBag<IReducerResult> _results = new();
         private readonly bool _sendBack;
-        private readonly Action<IOperationResult>? _sender;
+        private readonly Option<Action<IOperationResult>> _sender;
         private int _pending;
 
         private IObserver<IReducerResult>? _result;
         private IObserver<Unit>? _workCompled;
 
         internal ResultInvoker(
-            EffectInvoker effectInvoker, MutatingEngine mutatingEngine, Action<IOperationResult>? sender,
+            EffectInvoker effectInvoker, MutatingEngine mutatingEngine, Option<Action<IOperationResult>> sender,
             bool sendBack, IStateAction action)
         {
             _effectInvoker = effectInvoker;
@@ -143,7 +144,9 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
 
         private void Runner()
         {
-            if(!_sendBack || _sender is null) return;
+            #pragma warning disable EPS06
+            
+            if(!_sendBack || !_sender.HasValue) return;
 
             var errors = new List<string>();
             var fail = false;
@@ -156,7 +159,7 @@ public sealed class RootManager : DisposeableBase, IActionInvoker
                 errors.AddRange(result.Errors ?? Array.Empty<string>());
             }
 
-            _sender(
+            _sender.Value(
                 fail
                     ? OperationResult.Failure(errors.Select(s => new Error(s, s)), _action)
                     : OperationResult.Success(_action));

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using JetBrains.Annotations;
+using Stl;
 
 namespace Tauron.Application.VirtualFiles;
 
@@ -10,11 +11,11 @@ public interface IFile : IFileSystemNode
 
     long Size { get; }
 
-    Stream Open(FileAccess access);
+    Result<Stream> Open(FileAccess access);
 
-    Stream Open();
+    Result<Stream> Open();
 
-    Stream CreateNew();
-
-    IFile MoveTo(in PathInfo location);
+    Result<Stream> CreateNew();
+    
+    Result<IFile> MoveTo(in PathInfo location);
 }

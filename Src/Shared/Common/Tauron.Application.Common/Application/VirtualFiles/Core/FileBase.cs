@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using JetBrains.Annotations;
+using Stl;
+using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
@@ -20,54 +23,58 @@ public abstract class FileBase<TContext> : SystemNodeBase<TContext>, IFile
         get => ExtensionImpl;
         set
         {
-            ValidateFeature(FileSystemFeature.Extension);
-            ExtensionImpl = value;
+            ValidateFeature(
+                FileSystemFeature.Extension,
+                (self:this, value),
+                state => Result.Value(state.self.ExtensionImpl = state.value))
+#pragma warning disable EPS06
+                .ThrowIfError();
+#pragma warning restore EPS06
         }
     }
 
     public abstract long Size { get; }
 
-    public virtual Stream Open(FileAccess access)
-    {
-        ValidateFileAcess(access);
+    public virtual Result<Stream> Open(FileAccess access) =>
+        ValidateFileAcess(
+            access,
+            (self: this, access),
+            state => state.self.CreateStream(state.self.Context, state.access, createNew: false));
 
-        return CreateStream(Context, access, false);
+    public virtual Result<Stream> Open() =>
+        ValidateFileAcess(
+            FileAccess.ReadWrite,
+            this,
+            s => s.CreateStream(s.Context, FileAccess.ReadWrite, createNew: false));
+
+    public virtual Result<Stream> CreateNew() =>
+        ValidateFileAcess(
+            FileAccess.ReadWrite,
+            this,
+            s => s.CanCreate
+                ? CreateStream(s.Context, FileAccess.ReadWrite, createNew: true)
+                : Result.Error<Stream>(new IOException("File can not Created")));
+
+    public Result<IFile> MoveTo(in PathInfo location)
+    {
+        return ValidateFeature(
+            FileSystemFeature.Moveable,
+            (self:this, location), 
+            state => state.self.MoveTo(state.self.Context, state.location));
     }
 
-    public virtual Stream Open()
-    {
-        ValidateFileAcess(FileAccess.ReadWrite);
-
-        return CreateStream(Context, FileAccess.ReadWrite, false);
-    }
-
-    public virtual Stream CreateNew()
-    {
-        ValidateFileAcess(FileAccess.ReadWrite);
-
-        if(!CanCreate)
-            throw new IOException("File can not Created");
-
-        return CreateStream(Context, FileAccess.ReadWrite, true);
-    }
-
-    public IFile MoveTo(in PathInfo location)
-    {
-        ValidateFeature(FileSystemFeature.Moveable);
-
-        return MoveTo(Context, GenericPathHelper.NormalizePath(location));
-    }
-
-    private void ValidateFileAcess(FileAccess access)
+    private Result<TData> ValidateFileAcess<TData, TState>(FileAccess access, TState state, Func<TState, Result<TData>> isOk)
     {
         if(access.HasFlag(FileAccess.Read) && !CanRead)
-            throw new IOException("File canot be Read");
+            return Result.Error<TData>(new IOException("File canot be Read"));
         if(access.HasFlag(FileAccess.Write) && !CanWrite)
-            throw new IOException("File can not be Write");
+            return Result.Error<TData>(new IOException("File can not be Write"));
+
+        return isOk(state);
     }
 
-    protected abstract Stream CreateStream(TContext context, FileAccess access, bool createNew);
+    protected abstract Result<Stream> CreateStream(TContext context, FileAccess access, bool createNew);
 
-    protected virtual IFile MoveTo(TContext context, in PathInfo location)
+    protected virtual Result<IFile> MoveTo(TContext context, in PathInfo location)
         => throw new IOException("Move is not Implemented");
 }

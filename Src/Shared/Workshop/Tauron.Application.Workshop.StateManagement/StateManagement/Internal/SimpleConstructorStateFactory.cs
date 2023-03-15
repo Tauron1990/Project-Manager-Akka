@@ -1,4 +1,5 @@
-﻿using Tauron.Application.Workshop.Mutating;
+﻿using Stl;
+using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Builder;
 
@@ -11,7 +12,8 @@ public class SimpleConstructorStateFactory : IStateInstanceFactory
     public bool CanCreate(Type state)
         => true;
 
-    public IStateInstance? Create<TData>(Type state, IServiceProvider? serviceProvider, ExtendedMutatingEngine<MutatingContext<TData>> dataEngine, IActionInvoker invoker)
+    public Option<IStateInstance> Create<TData>(
+        Type state, IServiceProvider? serviceProvider, ExtendedMutatingEngine<MutatingContext<TData>> dataEngine, IActionInvoker invoker)
     {
         return (from constructorInfo in state.GetConstructors()
                 let param = constructorInfo.GetParameters()

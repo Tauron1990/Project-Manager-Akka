@@ -24,7 +24,7 @@ public static class ObjectExtension
         }
     }
 
-    public static Option<TData> AsOption<TData>(this TData data) => new(true, data);
+    public static Option<TData> AsOption<TData>(this TData data) => new(hasValue: true, data);
 
     public static Option<TData> OptionNotNull<TData>(this TData? data)
         where TData : class
@@ -37,8 +37,11 @@ public static class ObjectExtension
     }
 
     public static TData GetOrElse<TData>(this in Option<TData> option, TData els)
-        => option.HasValue ? option.Value : els;
+         => option.HasValue ? option.Value : els;
 
+    public static TData GetOrElse<TData>(this in Option<TData> option, Func<TData> els)
+        => option.HasValue ? option.Value : els();
+    
     public static Option<TNew> Select<TOld, TNew>(this in Option<TOld> old, Func<TOld, TNew> onValue)
         => old.HasValue ? Option.Some(onValue(old.Value)) : Option.None<TNew>();
 
@@ -47,6 +50,51 @@ public static class ObjectExtension
 
     public static Option<TNew> FlatSelect<TOld, TNew>(this in Option<TOld> old, Func<TOld, Option<TNew>> onValue)
         => old.HasValue ? onValue(old.Value) : Option.None<TNew>();
+
+    #pragma warning disable EPS06
+    public static Result<TNew> Select<TOld, TNew>(this in Result<TOld> old, Func<TOld, TNew> onValue)
+    {
+        try
+        {
+            return old.HasValue ? Result.Value(onValue(old.Value)) : Result.Error<TNew>(old.Error!);
+        }
+        catch (Exception ex)
+        {
+            return Result.Error<TNew>(ex);
+        }
+    }
+
+    public static Result<TNew> Select<TOld, TNew>(this in Result<TOld> old, Func<TOld, TNew> onValue, Func<TNew> defaultValue)
+    {
+        try
+        {
+            return old.HasValue ? old.Select(onValue) : defaultValue();
+        }
+        catch (Exception ex)
+        {
+            return Result.Error<TNew>(ex);
+        }
+    }
+
+    public static Result<TNew> FlatSelect<TOld, TNew>(this in Result<TOld> old, Func<TOld, Result<TNew>> onValue)
+    {
+        try
+        {
+            return old.HasValue ? onValue(old.Value) : Result.Error<TNew>(old.Error!);
+        }
+        catch (Exception e)
+        {
+            return Result.Error<TNew>(e);
+        }
+    }
+
+    public static void Run<TData>(this in Result<TData> result, Action<TData> onValue, Action<Exception> onError)
+    {
+        if(result.HasValue)
+            onValue(result.Value);
+        else
+            onError(result.Error!);
+    }
 
     public static bool WhenTrue(this bool input, Action run)
     {

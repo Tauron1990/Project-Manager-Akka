@@ -1,5 +1,5 @@
 ﻿using Akka.Actor;
-using Akka.Util;
+using Stl;
 using Tauron.AkkaHost;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
@@ -13,12 +13,16 @@ public sealed class ActorStateFactory : IStateInstanceFactory
     public int Order => int.MaxValue - 2;
 
     public bool CanCreate(Type state)
-        => state.Implements<ActorStateBase>();
+        => state.IsAssignableTo(typeof(ActorStateBase));
 
-    public IStateInstance Create<TData>(Type state, IServiceProvider? serviceProvider, ExtendedMutatingEngine<MutatingContext<TData>> dataEngine, IActionInvoker invoker)
+    public Option<IStateInstance> Create<TData>(
+        Type state, IServiceProvider? serviceProvider,
+        ExtendedMutatingEngine<MutatingContext<TData>> dataEngine, IActionInvoker invoker)
     {
-        WorkspaceSuperviser superviser = WorkspaceSuperviser.Get(ActorApplication.ActorSystem);
+        var superviser = WorkspaceSuperviser.Get(ActorApplication.ActorSystem);
 
-        return new ActorRefInstance(superviser.CreateCustom(FeatureBasedStateFactory.MakeName<TData>(), _ => Props.Create(state)), state);
+        return new ActorRefInstance(
+            superviser.Select(s => s.CreateCustom(FeatureBasedStateFactory.MakeName<TData>(), _ => Props.Create(state))), 
+            state);
     }
 }

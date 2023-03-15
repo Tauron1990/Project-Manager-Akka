@@ -71,7 +71,7 @@ public static class IoExtensions
         if(dic is IHasFileAttributes dicAttr)
             dicAttr.Attributes = FileAttributes.Normal;
 
-        foreach (IFile file in dic.Files)
+        foreach (IFile file in () => dic.Files())
         {
             if(file is IHasFileAttributes fileAttributes)
                 fileAttributes.Attributes = FileAttributes.Normal;

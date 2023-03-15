@@ -1,6 +1,7 @@
 ﻿using System.Reactive.Threading.Tasks;
 using Akka.Actor;
-using Akka.Util;
+using Stl;
+using Tauron.AkkaHost;
 using Tauron.Application.Workshop.Mutating;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.Application.Workshop.StateManagement.Internal;
@@ -13,9 +14,9 @@ public sealed class ActorRefInstance : IStateInstance
     private readonly Type _targetType;
     private bool _initCalled;
 
-    public ActorRefInstance(Task<IActorRef> actorRef, Type targetType)
+    public ActorRefInstance(Option<Task<IActorRef>> actorRef, Type targetType)
     {
-        ActorRef = actorRef;
+        ActorRef = actorRef.GetOrElse(() => Task.FromResult(ActorApplication.Deadletter));
         _targetType = targetType;
     }
 
@@ -25,13 +26,13 @@ public sealed class ActorRefInstance : IStateInstance
 
     public void InitState<TData>(ExtendedMutatingEngine<MutatingContext<TData>> engine)
     {
-        if(_targetType.Implements<IInitState<TData>>())
+        if(_targetType.IsAssignableTo(typeof(IInitState<TData>)))
             ActorRef.ToObservable().Subscribe(a => a.Tell(StateActorMessage.Create(engine)));
     }
 
     public void ApplyQuery<TData>(IExtendedDataSource<MutatingContext<TData>> engine) where TData : class, IStateEntity
     {
-        if(_targetType.Implements<IGetSource<TData>>())
+        if(_targetType.IsAssignableTo(typeof(IGetSource<TData>)))
             ActorRef.ToObservable().Subscribe(m => m.Tell(StateActorMessage.Create(engine)));
     }
 
@@ -41,7 +42,7 @@ public sealed class ActorRefInstance : IStateInstance
 
         _initCalled = true;
 
-        if(_targetType.Implements<IPostInit>())
+        if(_targetType.IsAssignableTo(typeof(IPostInit)))
             ActorRef.ToObservable().Subscribe(m => m.Tell(StateActorMessage.Create(actionInvoker)));
     }
 }

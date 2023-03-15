@@ -105,12 +105,12 @@ public sealed class StateBuilder<TData> : StateBuilderBase, IStateBuilder<TData>
         return
         (
             from factory in instanceFactories
-            orderby factory.Order
             where factory.CanCreate(State)
+            orderby factory.Order
             select factory.Create(State, serviceProvider, dataEngine, invoker)
-            into inst
-            where inst is not null
-            select inst
+            into instOption
+            where instOption.HasValue
+            select instOption.Value
         ).First();
 
     }

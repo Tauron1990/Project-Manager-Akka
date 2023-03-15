@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.Event;
 using JetBrains.Annotations;
+using Stl;
 using Tauron.Application.Workflow;
 
 namespace Tauron.Application.ActorWorkflow;
@@ -41,7 +42,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
         return Initializing(message);
     }
 
-    protected virtual bool Singnaling(object msg)
+    protected virtual Result<bool> Singnaling(object msg)
     {
         try
         {
@@ -58,7 +59,7 @@ public abstract class WorkflowActorBase<TStep, TContext> : ActorBase, IWithTimer
             Timers.Cancel(_timeout);
 
             if(del.DynamicInvoke(RunContext, msg) is not StepId id)
-                throw new InvalidOperationException("Invalid Call of Signal Delegate");
+                return Result.Error<bool>(new InvalidOperationException("Invalid Call of Signal Delegate"));
 
             Self.Tell(new ChainCall(id).WithBase(_lastCall), _starterSender);
 

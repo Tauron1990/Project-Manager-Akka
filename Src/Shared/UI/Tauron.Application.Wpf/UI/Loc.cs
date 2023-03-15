@@ -4,6 +4,7 @@ using System.Windows.Markup;
 using JetBrains.Annotations;
 using Tauron.AkkaHost;
 using Tauron.Localization;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.Wpf.UI;
 
@@ -37,18 +38,20 @@ public sealed class Loc : UpdatableMarkupExtension
 
             if(string.IsNullOrWhiteSpace(EntryName)) return "Kein antrag angegeben";
 
-            ActorApplication.ActorSystem.Loc().Request(
-                EntryName,
-                o =>
-                {
-                    object? res = o.GetOrElse(EntryName);
-                    lock (Cache)
+            ActorApplication.ActorSystem.Loc().Run(
+                loc => loc.Request(
+                    EntryName,
+                    o =>
                     {
-                        Cache[EntryName] = res;
-                    }
+                        object res = o.GetOrElse(EntryName);
+                        lock (Cache)
+                        {
+                            Cache[EntryName] = res;
+                        }
 
-                    UpdateValue(res);
-                });
+                        UpdateValue(res);
+                    }),
+                () => UpdateValue("Error on Loading"));
 
             return "Loading";
         }

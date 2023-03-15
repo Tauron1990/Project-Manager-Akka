@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Akka.Actor;
+using Stl;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.Workshop.Core;
 
@@ -11,6 +13,12 @@ public class DeferredActor
     public DeferredActor(Task<IActorRef> actor)
     {
         actor.ContinueWith(OnCompleded);
+        _stash = ImmutableList<object>.Empty;
+    }
+
+    public DeferredActor(Option<Task<IActorRef>> actor)
+    {
+        actor.Run(t => t.ContinueWith(OnCompleded), () => OnCompleded(Task.FromResult<IActorRef>(Nobody.Instance)));
         _stash = ImmutableList<object>.Empty;
     }
 

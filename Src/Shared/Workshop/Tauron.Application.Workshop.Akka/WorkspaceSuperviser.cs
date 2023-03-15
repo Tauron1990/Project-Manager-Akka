@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using JetBrains.Annotations;
+using Stl;
 using Tauron.Application.Workshop.Core;
 using Tauron.Application.Workshop.Mutation;
 
@@ -23,6 +24,9 @@ public sealed class WorkspaceSuperviser
 
         return actorSystem.WithExtension<SuprvisorExt>(typeof(SupervisorExtProv)).GetOrInit(name);
     }
+
+    public static Option<WorkspaceSuperviser> Get(Option<ActorSystem> actorSystem, string? name = null)
+        => actorSystem.Select(sys => Get(sys, name));
 
     public async Task<IActorRef> Create(Props props, string name)
     {

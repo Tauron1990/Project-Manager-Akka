@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Tauron.Application.VirtualFiles;
+using Tauron.Operations;
 
 namespace Tauron.Localization.Actor;
 
@@ -32,7 +33,7 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
         }
     }
 
-    protected override Option<object> TryQuery(string name, CultureInfo target)
+    protected override TriOption<object> TryQuery(string name, CultureInfo target)
     {
         if(_configuration is null)
             return Option<object>.None;
@@ -41,20 +42,20 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
 
         do
         {
-            object? obj = LookUp(name, target);
+            var obj = LookUp(name, target);
 
-            if(obj != null)
+            if(!obj.IsNone)
                 return obj;
 
             target = target.Parent;
         } while (!Equals(target, CultureInfo.InvariantCulture));
 
-        return LookUp(name, CultureInfo.GetCultureInfo(_configuration.Fallback)).OptionNotNull();
+        return LookUp(name, CultureInfo.GetCultureInfo(_configuration.Fallback));
     }
 
-    private object? LookUp(string name, CultureInfo target)
+    private TriOption<object> LookUp(string name, CultureInfo target)
     {
-        if(_configuration == null) return null;
+        if(_configuration is null) return TriOption<object>.None;
 
         string language = _configuration.NameMode switch
         {
@@ -64,24 +65,32 @@ public sealed class JsonLocLocStoreActor : LocStoreActorBase
             JsonFileNameMode.ThreeLetterWindowsLanguageName => target.ThreeLetterWindowsLanguageName,
             JsonFileNameMode.DisplayName => target.DisplayName,
             JsonFileNameMode.EnglishName => target.EnglishName,
-            _ => throw new InvalidOperationException("No Valid Json File Name Mode"),
+            _ => "err",
         };
 
+        if(string.Equals(language, "err", StringComparison.Ordinal))
+            return new InvalidOperationException("No Valid Json File Name Mode");
+        
         if(!_files.TryGetValue(language, out var entrys) || !entrys.TryGetValue(name, out JToken? entry) ||
-           entry is not JValue value) return null;
+           entry is not JValue value) return TriOption<object>.None;
 
-        return value.Type == JTokenType.String ? EscapeHelper.Decode(value.Value<string>()) : value.Value;
+        object? result =  value.Type == JTokenType.String ? EscapeHelper.Decode(value.Value<string>()) : value.Value;
+        
+        if(result is null)
+            return TriOption<object>.None;
+
+        return result;
     }
 
     private void EnsureInitialized()
     {
         if(_isInitialized) return;
-        if(_configuration == null) return;
+        if(_configuration is null) return;
 
         _files.Clear();
 
 
-        foreach (IFile? file in from f in _configuration.RootDic.Files
+        foreach (IFile? file in from f in () => _configuration.RootDic.Files()
                                 where string.Equals(f.Extension, ".json", StringComparison.Ordinal)
                                 select f)
         {

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
+using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles.InMemory;
 
@@ -27,17 +29,17 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
 
     internal DirectoryContext DirectoryContext => Context;
 
-    public override IEnumerable<IDirectory> Directories
-        => Context.ActualData.Directorys.Select(
-            d => new InMemoryDirectory(
+    public override Result<IEnumerable<IDirectory>> Directories()
+        => Result.Value(Context.ActualData.Directorys.Select(
+            d => (IDirectory)new InMemoryDirectory(
                 Context with { Parent = Context, Path = OriginalPath, Data = d },
-                Features));
+                Features)));
 
-    public override IEnumerable<IFile> Files
-        => Context.ActualData.Files.Select(
-            f => new InMemoryFile(
+    public override Result<IEnumerable<IFile>> Files() =>
+        Result.Value(Context.ActualData.Files.Select(
+            f => (IFile)new InMemoryFile(
                 Context.GetFileContext(Context, f, OriginalPath),
-                Features));
+                Features)));
 
     public static InMemoryDirectory? Create([NotNullIfNotNull("context")] DirectoryContext? context, FileSystemFeature features)
         => context is null ? null : new InMemoryDirectory(context, features);
@@ -45,7 +47,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
     internal bool TryAddElement(string name, IDataElement element)
         => Context.ActualData.TryAddElement(name, element);
 
-    protected override IDirectory GetDirectory(DirectoryContext context, in PathInfo name)
+    protected override Result<IDirectory> GetDirectory(DirectoryContext context, in PathInfo name)
         => new InMemoryDirectory(
             context with
             {
@@ -55,59 +57,74 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
             },
             Features);
 
-    protected override IFile GetFile(DirectoryContext context, in PathInfo name)
+    protected override Result<IFile> GetFile(DirectoryContext context, in PathInfo name)
         => new InMemoryFile(
             Context.GetFileContext(Context, name, OriginalPath),
             Features);
 
-    protected override void Delete(DirectoryContext context)
+    protected override SimpleResult Delete(DirectoryContext context)
     {
         context.Root.ReturnDirectory(context.ActualData);
         context.Parent?.ActualData.Remove(Name);
         Context = context with { Parent = null, Data = null };
 
         _exist = false;
+        
+        return SimpleResult.Success();
     }
 
-    private IDirectory? AddTo(in PathInfo path, string name, DirectoryContext context)
-        => GetDirectory(path) is InMemoryDirectory newDic
-        && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData)
-            ? new InMemoryDirectory(context with { Parent = newDic.DirectoryContext, Path = GenericPathHelper.Combine(newDic.OriginalPath, name) }, Features)
-            : null;
+    private Result<IDirectory> AddTo(in PathInfo path, string name, DirectoryContext context)
+        => GetDirectory(path).FlatSelect(
+            dic => dic is InMemoryDirectory newDic
+                   && newDic.DirectoryContext.ActualData.TryAddElement(name, context.ActualData)
+                ? Result.Value<IDirectory>(
+                    new InMemoryDirectory(
+                        context with
+                        {
+                            Parent = newDic.DirectoryContext, Path = GenericPathHelper.Combine(newDic.OriginalPath, name),
+                        },
+                        Features))
+                : Result.Error<IDirectory>(new InvalidOperationException($"Dictionary {name} added to {dic.OriginalPath}")));
 
-    protected override IDirectory MovetTo(DirectoryContext context, in PathInfo location)
+    protected override Result<IDirectory> MovetTo(DirectoryContext context, in PathInfo location)
     {
-        ValidateSheme(location, "mem");
+        return ValidateSheme(
+            location,
+            "mem",
+            (context, location, self: this),
+            static state =>
+            {
 
-        IDirectory? newDic = null;
+                Result<IDirectory> newDic = default;
 
-        if(location.Kind == PathType.Absolute)
-        {
-            newDic = Context.RootSystem.MoveElement(
-                Name,
-                location,
-                context.ActualData,
-                (newContext, newPath, dic) => new InMemoryDirectory(
-                    context with
-                    {
-                        Parent = newContext,
-                        Path = newPath,
-                        Data = dic,
-                    },
-                    Features));
-        }
-        else
-        {
-            if(ParentDirectory is InMemoryDirectory parent)
-                newDic = parent.AddTo(location, Name, context);
-        }
+                if(state.location.Kind == PathType.Absolute)
+                {
+                    newDic = state.context.RootSystem.MoveElement(
+                        state.self.Name,
+                        state.location,
+                        state.context.ActualData,
+                        (newContext, newPath, dic) => (IDirectory)new InMemoryDirectory(
+                            state.context with
+                            {
+                                Parent = newContext,
+                                Path = newPath,
+                                Data = dic,
+                            },
+                            state.self.Features));
+                }
+                else
+                {
+                    if(state.self.ParentDirectory is InMemoryDirectory parent)
+                        newDic = parent.AddTo(state.location, state.self.Name, state.context);
+                }
 
-        if(newDic is null)
-            throw new InvalidOperationException("Directory moving Failed");
+                if(newDic.HasValue)
+                {
+                    state.self._exist = false;
+                    state.self.Context = state.context with { Parent = null, Data = null };
+                }
 
-        _exist = false;
-        Context = context with { Parent = null, Data = null };
-
-        return newDic;
+                return newDic;
+            });
     }
 }

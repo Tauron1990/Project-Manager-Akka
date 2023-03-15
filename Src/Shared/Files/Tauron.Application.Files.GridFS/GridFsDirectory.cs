@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
+using Stl;
 using Tauron.Application.Files.GridFS.Core;
 using Tauron.Application.VirtualFiles;
 using Tauron.Application.VirtualFiles.Core;
@@ -19,7 +20,7 @@ public sealed class GridFsDirectory : DirectoryBase<GridFsContext>
     public override bool Exist => true;
     public override string Name => GenericPathHelper.GetName(Context.OriginalPath);
     public override IEnumerable<IDirectory> Directories => FindDirectorys();
-    public override IEnumerable<IFile> Files => FindFiles();
+    public override Result<IEnumerable<IFile>> GetFiles() => FindFiles();
 
     private IEnumerable<IDirectory> FindDirectorys()
     {
@@ -76,7 +77,7 @@ public sealed class GridFsDirectory : DirectoryBase<GridFsContext>
         return curser.ToEnumerable();
     }
 
-    protected override IDirectory GetDirectory(GridFsContext context, in PathInfo name) 
+    protected override Result<IDirectory> GetDirectory(GridFsContext context, in PathInfo name) 
         => new GridFsDirectory(
             context with
             {
@@ -85,7 +86,7 @@ public sealed class GridFsDirectory : DirectoryBase<GridFsContext>
             },
             NodeType.Directory);
 
-    protected override IFile GetFile(GridFsContext context, in PathInfo name)
+    protected override Result<IFile> GetFile(GridFsContext context, in PathInfo name)
     {
         PathInfo newPath = GenericPathHelper.Combine(OriginalPath, name);
         GridFSFileInfo? entry = context.FindEntry(newPath.Path);

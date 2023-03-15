@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using JetBrains.Annotations;
+using Stl;
 using Tauron.Application.Workshop.Analyzing;
 using Tauron.Application.Workshop.Driver;
 using Tauron.Operations;
@@ -82,8 +83,8 @@ public sealed class MutatingEngine<TData> : MutatingEngine, IEventSourceable<TDa
 
         public void CreateProcessor(Type processor, string name) { }
 
-        public Action<IOperationResult> GetResultSender()
-            => _ => { };
+        public Option<Action<IOperationResult>> GetResultSender()
+            => Option<Action<IOperationResult>>.None;
     }
 }
 

@@ -3,6 +3,7 @@ using Akka.Actor;
 using Akka.DependencyInjection;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
+using Stl;
 using Tauron.AkkaHost;
 
 namespace Tauron.Features;
@@ -68,42 +69,53 @@ public static class FeaturesServiceExtension
         }
     }
 
-    public static IActorRef ActorOf(this IActorRefFactory factory, Delegate actorFactory)
+    public static Result<IActorRef> ActorOf(this IActorRefFactory factory, Delegate actorFactory)
         => ActorOf(factory, name: null, actorFactory);
 
-    public static IActorRef ActorOf(this IActorRefFactory factory, string? name ,Delegate actorFactory)
+    public static Result<IActorRef> ActorOf(this IActorRefFactory factory, string? name ,Delegate actorFactory)
     {
-        IDependencyResolver resolver = factory switch
+        IDependencyResolver? resolver = factory switch
         {
             IActorContext context => DependencyResolver.For(context.System).Resolver,
             ActorSystem actorSystem => DependencyResolver.For(actorSystem).Resolver,
-            _ => throw new InvalidOperationException("Only Actor Context or ActorSysten compatible. ActorSystem needed"),
+            _ => null,
         };
 
-        return ActorOf(factory, resolver, actorFactory, name);
+        return resolver is null 
+            ? Result.Error<IActorRef>(new InvalidOperationException("Only Actor Context or ActorSysten compatible. ActorSystem needed")) 
+            : ActorOf(factory, resolver, actorFactory, name);
+
     }
 
-    public static IActorRef ActorOf(this IActorRefFactory factory, IDependencyResolver resolver, Delegate actorDelegate, string? name)
-        => factory.ActorOf(CreateProps(resolver, actorDelegate, actorDelegate.Method.GetParameters().Select(info => info.ParameterType)), name);
+    public static Result<IActorRef> ActorOf(this IActorRefFactory factory, IDependencyResolver resolver, Delegate actorDelegate, string? name)
+        => Result.FromFunc(
+            (factory, resolver, actorDelegate, name),
+            static parms =>
+                parms.factory.ActorOf(
+                    CreateProps(
+                        parms.resolver,
+                        parms.actorDelegate,
+                        parms.actorDelegate.Method.GetParameters().Select(info => info.ParameterType)),
+                    parms.name));
     
-    private static Props CreateProps(IDependencyResolver reslover, Delegate del, IEnumerable<Type> param)
+    private static Result<Props> CreateProps(IDependencyResolver reslover, Delegate del, IEnumerable<Type> param)
     {
         object GetActorService(Type t)
         {
-            var service = reslover.GetService(t);
+            object? service = reslover.GetService(t);
 
             if(service is null)
-                throw new InvalidOperationException($"Server Type: {t} not found");
+                throw new InvalidOperationException($"Service Type: {t} not found");
             
             return service;
         }
 
         return del.DynamicInvoke(param.Select(GetActorService).ToArray()) switch
         {
-            IPreparedFeature feature => Feature.Props(feature),
-            IPreparedFeature[] features => Feature.Props(features),
-            IEnumerable<IPreparedFeature> features => Feature.Props(features.ToArray()),
-            _ => throw new InvalidOperationException("Invalid Feature Construction Method"),
+            IPreparedFeature feature => Result.Value(Feature.Props(feature)),
+            IPreparedFeature[] features => Result.Value(Feature.Props(features)),
+            IEnumerable<IPreparedFeature> features => Result.Value(Feature.Props(features.ToArray())),
+            _ => Result.Error<Props>(new InvalidOperationException("Invalid Feature Construction Method")),
         };
     }
 

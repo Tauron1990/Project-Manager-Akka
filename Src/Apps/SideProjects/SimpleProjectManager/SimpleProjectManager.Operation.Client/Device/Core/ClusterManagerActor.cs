@@ -38,8 +38,8 @@ public sealed partial class ClusterManagerActor
         Receive<DeviceInformations>(NewDeviceData);
         Receive<Status.Failure>(OnError);
         
-        Observ<DeviceServerOffline>().Subscribe();
-        Observ<DeviceServerOnline>().Subscribe();
+        Observ<DeviceServerOffline>(o => o.Subscribe());
+        Observ<DeviceServerOnline>(o => o.Subscribe());
     }
 
     private void OnError(Status.Failure fail)

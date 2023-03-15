@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
@@ -18,18 +19,17 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
 
     public abstract PathInfo Source { get; }
 
-    public void Reload(in PathInfo source)
-    {
-        ValidateFeature(FileSystemFeature.Reloading);
-        ReloadImpl(Context, source);
-    }
+    public SimpleResult Reload(in PathInfo source) =>
+        ValidateFeature(
+            FileSystemFeature.Reloading,
+            (self:this, Context, source), 
+            state => state.self.ReloadImpl(state.Context, state.source));
 
-    public void Save()
-    {
-        ValidateFeature(FileSystemFeature.Save);
-
-        SaveImpl(Context);
-    }
+    public SimpleResult Save() =>
+        ValidateFeature(
+            FileSystemFeature.Save,
+            (self:this, Context),
+            state => state.self.SaveImpl(state.Context));
 
     public void Dispose()
     {
@@ -42,13 +42,15 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
         {
             DisposeImpl();
         }
+        
+        GC.SuppressFinalize(this);
     }
 
-    protected virtual void SaveImpl(TContext context)
-        => throw new InvalidOperationException("Save not Implemented");
+    protected virtual SimpleResult SaveImpl(TContext context)
+        => SimpleResult.Failure("Save not Implemented");
 
     protected virtual void DisposeImpl() { }
 
-    protected virtual void ReloadImpl(TContext context, in PathInfo filePath)
-        => throw new InvalidOperationException("Reloading not Supported");
+    protected virtual SimpleResult ReloadImpl(TContext context, in PathInfo filePath)
+        => SimpleResult.Failure("Reloading not Supported");
 }

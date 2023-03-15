@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using JetBrains.Annotations;
+using Stl;
 using Tauron.AkkaHost;
 using Tauron.Application.Workshop.Mutation;
 using Tauron.TAkka;
@@ -28,28 +29,38 @@ public static class EventSourceExtensions
         actor.Receive<TData>(obs => obs.SubscribeWithStatus(action));
     }
 
-    public static IDisposable RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef actorRef, WorkspaceSuperviser superviser)
+    public static Option<IDisposable> RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef actorRef, Option<WorkspaceSuperviser> superviser)
+    {
+        return superviser.Select(RunSubscribe);
+        
+        IDisposable RunSubscribe(WorkspaceSuperviser workspaceSuperviser)
     {
         IDisposable dispo = eventSource.Subscribe(n => actorRef.Tell(n));
-        superviser.WatchIntrest(new WatchIntrest(dispo.Dispose, actorRef));
+        workspaceSuperviser.WatchIntrest(new WatchIntrest(dispo.Dispose, actorRef));
 
         return dispo;
     }
+    
+    }
 
-    public static IDisposable RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef? source, Action<TRespond> action, WorkspaceSuperviser superviser)
+    public static Option<IDisposable> RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef? source, Action<TRespond> action, Option<WorkspaceSuperviser> superviser)
     {
-        if(source.IsNobody())
-            return eventSource.Subscribe(action);
+        return source.IsNobody() 
+            ? Option.Some(eventSource.Subscribe(action)) 
+            : superviser.Select(RunSubscribe);
 
-        IDisposable dispo = eventSource.Subscribe(t => source.Tell(new ObservableActor.TransmitAction(() => action(t))));
-        superviser.WatchIntrest(new WatchIntrest(dispo.Dispose, source!));
+        IDisposable RunSubscribe(WorkspaceSuperviser workspaceSuperviser)
+        {
+            IDisposable dispo = eventSource.Subscribe(t => source.Tell(new ObservableActor.TransmitAction(() => action(t))));
+            workspaceSuperviser.WatchIntrest(new WatchIntrest(dispo.Dispose, source!));
 
-        return dispo;
+            return dispo;
+        }
     }
 
-    public static IDisposable RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef? source, Action<TRespond> action)
+    public static Option<IDisposable> RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef? source, Action<TRespond> action)
         => RespondOn(eventSource, source, action, WorkspaceSuperviser.Get(ActorApplication.ActorSystem));
 
-    public static IDisposable RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef actorRef)
+    public static Option<IDisposable> RespondOn<TRespond>(this IEventSource<TRespond> eventSource, IActorRef actorRef)
         => RespondOn(eventSource, actorRef, WorkspaceSuperviser.Get(ActorApplication.ActorSystem));
 }

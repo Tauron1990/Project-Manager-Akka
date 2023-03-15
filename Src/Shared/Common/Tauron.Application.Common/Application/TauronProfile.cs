@@ -45,9 +45,9 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
 
     public Option<string> Name { get; private set; }
 
-    protected Option<IDirectory> Dictionary { get; private set; }
+    protected Result<IDirectory> Dictionary { get; private set; }
 
-    protected Option<IFile> File { get; private set; }
+    protected Result<IFile> File { get; private set; }
 
     public IEnumerator<string> GetEnumerator()
         => _settings.Select(pair => pair.Key).GetEnumerator();
@@ -61,9 +61,9 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
         _logger.LogInformation(
             "{Application} -- Delete Profile infos... {Path}",
             Application,
-            Dictionary.Select(d => d.OriginalPath.Path).GetOrElse(string.Empty).PathShorten(20));
+            Dictionary.Select(d => d.OriginalPath.Path).Value.PathShorten(20));
 
-        Dictionary.OnSuccess(dic => dic.Delete());
+        Dictionary.Run(dic => dic.Delete(), ex => _logger.LogError(ex, "Error on Delete Profile"));
     }
 
     public virtual void Load(string name)
@@ -71,7 +71,7 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
         IlligalCharCheck(name);
 
         Name = name;
-        Dictionary = _defaultPath.GetDirectory(Path.Combine(Application, name)).OptionNotNull();
+        Dictionary = _defaultPath.GetDirectory(Path.Combine(Application, name));
         File = Dictionary.Select(dic => dic.GetFile("Settings.db"));
 
         _logger.LogInformation(

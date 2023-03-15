@@ -21,26 +21,25 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
     protected DirectoryBase(Func<IFileSystemNode, TContext> context, FileSystemFeature feature)
         : base(context, feature, NodeType.Directory) { }
 
-    public abstract IEnumerable<IDirectory> Directories { get; }
+    public abstract Result<IEnumerable<IDirectory>> Directories();
 
-    public abstract IEnumerable<IFile> Files { get; }
+    public abstract Result<IEnumerable<IFile>> Files();
 
-    public IFile GetFile(in PathInfo name)
-        => SplitFilePath(name);
+    public Result<IFile> GetFile(in PathInfo name)
+        => Result.FromFunc((name, Self:this), static parms =>  parms.Self.SplitFilePath(parms.name));
 
-    public IDirectory GetDirectory(in PathInfo name)
+    public Result<IDirectory> GetDirectory(in PathInfo name)
         => SplitDirectoryPath(name);
 
-    public IDirectory MoveTo(in PathInfo location)
-    {
-        ValidateFeature(FileSystemFeature.Moveable);
+    public Result<IDirectory> MoveTo(in PathInfo location) =>
+        ValidateFeature(
+            FileSystemFeature.Moveable,
+            (Context, location, Self:this), 
+            state => state.Self.MovetTo(state.Context, state.location));
 
-        return MovetTo(Context, GenericPathHelper.NormalizePath(location));
-    }
+    protected abstract Result<IDirectory> GetDirectory(TContext context, in PathInfo name);
 
-    protected abstract IDirectory GetDirectory(TContext context, in PathInfo name);
-
-    protected abstract IFile GetFile(TContext context, in PathInfo name);
+    protected abstract Result<IFile> GetFile(TContext context, in PathInfo name);
 
     private TResult SplitPath<TResult>(in PathInfo pathInfo, Func<TContext, PathInfo, TResult> getDirect, Func<TContext, string, string, TResult> getFromSubpath)
     {
@@ -53,23 +52,29 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
         return getFromSubpath(Context, elements[0], elements[1]);
     }
 
-    protected virtual IDirectory SplitDirectoryPath(in PathInfo name)
+    protected virtual Result<IDirectory> SplitDirectoryPath(in PathInfo name)
     {
         string nameData = name.Path;
 
         return nameData.IsNullOrEmpty()
             ? this
-            : SplitPath(nameData, (context, name1) => GetDirectory(context, name1), (context, path, actualName) => GetDirectory(context, path).GetDirectory(actualName));
+            : SplitPath<Result<IDirectory>>(
+                nameData,
+                (context, name1) => GetDirectory(context, name1),
+                (context, path, actualName) => GetDirectory(context, path).Select(dic => dic.GetDirectory(actualName)));
     }
 
-    protected virtual IFile SplitFilePath(in PathInfo name)
+    protected virtual Result<IFile> SplitFilePath(in PathInfo name)
     {
         if(name.Path.IsNullOrEmpty())
-            throw new InvalidOperationException("No File Name Provided");
+            return Result.Error<IFile>(new InvalidOperationException("No File Name Provided"));
 
-        return SplitPath(name, (context, name1) => GetFile(context, name1), (context, path, actualName) => GetDirectory(context, path).GetFile(actualName));
+        return SplitPath<Result<IFile>>(
+                name,
+                (context, name1) => GetFile(context, name1),
+                (context, path, actualName) => GetDirectory(context, path).Select(dic => dic.GetFile(actualName)));
     }
 
-    protected virtual IDirectory MovetTo(TContext context, in PathInfo location)
-        => throw new IOException("Move is not Implemented");
+    protected virtual Result<IDirectory> MovetTo(TContext context, in PathInfo location)
+        => Result.Error<IDirectory>(new IOException("Move is not Implemented"));
 }
