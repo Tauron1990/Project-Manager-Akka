@@ -1,11 +1,10 @@
 ﻿using System;
-using JetBrains.Annotations;
-using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles;
 
 [PublicAPI]
-public interface IFileSystemNode
+public interface IFileSystemNode<TSelf>
+    where TSelf : IFileSystemNode<TSelf>
 {
     FileSystemFeature Features { get; }
 
@@ -21,5 +20,6 @@ public interface IFileSystemNode
 
     string Name { get; }
 
-    SimpleResult Delete();
+    [Pure]
+    Result<TSelf> Delete();
 }

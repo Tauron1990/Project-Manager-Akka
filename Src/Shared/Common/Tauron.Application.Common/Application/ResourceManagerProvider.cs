@@ -3,8 +3,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
-using JetBrains.Annotations;
-using Stl;
 
 namespace Tauron.Application;
 

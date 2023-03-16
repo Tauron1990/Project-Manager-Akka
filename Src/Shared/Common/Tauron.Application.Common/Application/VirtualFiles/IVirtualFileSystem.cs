@@ -1,6 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
-using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles;
 
@@ -9,11 +7,16 @@ public interface IVirtualFileSystem : IDirectory, IDisposable
 {
     bool IsRealTime { get; }
 
-    bool SaveAfterDispose { get; set; }
+    bool SaveAfterDispose { get; }
+
+    [Pure]
+    IVirtualFileSystem SetSaveAfterDispose(bool value);
 
     PathInfo Source { get; }
 
-    SimpleResult Reload(in PathInfo source);
+    [Pure]
+    Result<IVirtualFileSystem> Reload(in PathInfo source);
 
-    SimpleResult Save();
+    [Pure]
+    Result<IVirtualFileSystem> Save();
 }

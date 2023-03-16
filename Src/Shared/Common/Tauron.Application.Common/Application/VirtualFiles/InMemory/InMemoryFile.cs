@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
 using Tauron.Operations;

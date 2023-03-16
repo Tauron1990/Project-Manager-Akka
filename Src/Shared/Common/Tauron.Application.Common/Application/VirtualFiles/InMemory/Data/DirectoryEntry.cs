@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.PlatformServices;
+using Stl.Fusion.Bridge.Internal;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
 public class DirectoryEntry : DataElementBase
 {
-    private readonly ConcurrentDictionary<string, IDataElement> _elements = new(StringComparer.Ordinal);
+    private readonly ImmutableDictionary<string, IDataElement> _elements;
 
     public IEnumerable<IDataElement> Elements => _elements.Values;
 
@@ -16,23 +18,24 @@ public class DirectoryEntry : DataElementBase
 
     public IEnumerable<DirectoryEntry> Directorys => _elements.Values.OfType<DirectoryEntry>();
 
-    public bool Remove(string name)
-        => _elements.TryRemove(name, out _);
+    public DirectoryEntry() => _elements = ImmutableDictionary<string, IDataElement>.Empty;
+
+    private DirectoryEntry(ImmutableDictionary<string, IDataElement> elements)
+    {
+        _elements = elements;
+    }
+    
+    [Pure]
+    public (bool Removed, DirectoryEntry NewEntry) Remove(string name)
+    {
+        
+    }
 
     public TResult GetOrAdd<TResult>(string name, Func<TResult> factory)
         where TResult : IDataElement
         => _elements.GetOrAdd(name, static (_, fac) => fac(), factory) is TResult res
             ? res
             : throw new InvalidCastException("Factory Created Wrong Type (Should Be Impossible)");
-
-    public void Init(string name, ISystemClock clock)
-    {
-        if(string.IsNullOrWhiteSpace(name))
-            throw new InvalidOperationException("Name should not be Empty or null");
-
-        Name = name;
-        ModifyDate = clock.UtcNow.LocalDateTime;
-    }
 
     public override void Dispose()
     {

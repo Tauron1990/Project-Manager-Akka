@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using JetBrains.Annotations;
 using Tauron.Application.VirtualFiles;
 using Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
 

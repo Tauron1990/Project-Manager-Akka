@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reactive.PlatformServices;
-using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
 

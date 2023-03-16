@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Tauron.Module.Internal;
+﻿namespace Tauron.Module.Internal;
 
 public static class HandlerRegistry
 {

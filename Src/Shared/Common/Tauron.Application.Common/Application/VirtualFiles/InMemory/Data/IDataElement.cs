@@ -2,7 +2,8 @@
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
+[PublicAPI]
 public interface IDataElement : IDisposable
 {
-    string Name { get; set; }
+    string Name { get; init; }
 }

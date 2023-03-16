@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace Tauron.Application;
 

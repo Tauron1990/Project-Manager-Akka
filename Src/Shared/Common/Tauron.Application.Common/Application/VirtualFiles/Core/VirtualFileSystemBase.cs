@@ -1,5 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
+using System.IO;
 using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles.Core;
@@ -10,22 +10,33 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
     protected VirtualFileSystemBase(TContext context, FileSystemFeature feature)
         : base(context, feature, NodeType.Root) { }
 
-    protected VirtualFileSystemBase(Func<IFileSystemNode, TContext> context, FileSystemFeature feature)
+    protected VirtualFileSystemBase(Func<IFileSystemNode<IDirectory>, TContext> context, FileSystemFeature feature)
         : base(context, feature, NodeType.Root) { }
 
     public bool IsRealTime => Features.HasFlag(FileSystemFeature.RealTime);
 
     public bool SaveAfterDispose { get; set; }
 
+    [Pure]
+    public IVirtualFileSystem SetSaveAfterDispose(bool value)
+    {
+        var newSystem = Clone();
+        newSystem.SaveAfterDispose = value;
+        
+        return newSystem;
+    }
+
     public abstract PathInfo Source { get; }
 
-    public SimpleResult Reload(in PathInfo source) =>
+    [Pure]
+    public Result<IVirtualFileSystem> Reload(in PathInfo source) =>
         ValidateFeature(
             FileSystemFeature.Reloading,
             (self:this, Context, source), 
             state => state.self.ReloadImpl(state.Context, state.source));
 
-    public SimpleResult Save() =>
+    [Pure]
+    public Result<IVirtualFileSystem> Save() =>
         ValidateFeature(
             FileSystemFeature.Save,
             (self:this, Context),
@@ -36,7 +47,10 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
         try
         {
             if(Features.HasFlag(FileSystemFeature.Save) && SaveAfterDispose)
-                Save();
+#pragma warning disable EPC13
+                // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+                Save(); //Dispose
+#pragma warning restore EPC13
         }
         finally
         {
@@ -46,11 +60,16 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
         GC.SuppressFinalize(this);
     }
 
-    protected virtual SimpleResult SaveImpl(TContext context)
-        => SimpleResult.Failure("Save not Implemented");
+    [Pure]
+    protected virtual Result<IVirtualFileSystem> SaveImpl(TContext context)
+        => Result.Error<IVirtualFileSystem>(new IOException("Save not Implemented"));
 
     protected virtual void DisposeImpl() { }
 
-    protected virtual SimpleResult ReloadImpl(TContext context, in PathInfo filePath)
-        => SimpleResult.Failure("Reloading not Supported");
+    [Pure]
+    protected virtual Result<IVirtualFileSystem> ReloadImpl(TContext context, in PathInfo filePath)
+        => Result.Error<IVirtualFileSystem>(new IOException("Reloading not Supported"));
+
+    [Pure]
+    protected abstract VirtualFileSystemBase<TContext> Clone();
 }

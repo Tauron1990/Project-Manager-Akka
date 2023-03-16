@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Tauron;
+﻿namespace Tauron;
 
 [PublicAPI]
 public interface IWeakReference

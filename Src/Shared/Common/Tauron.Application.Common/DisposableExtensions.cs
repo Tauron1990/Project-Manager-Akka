@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reactive.Disposables;
-using JetBrains.Annotations;
 
 namespace Tauron;
 

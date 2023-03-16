@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Tauron.Application;
 

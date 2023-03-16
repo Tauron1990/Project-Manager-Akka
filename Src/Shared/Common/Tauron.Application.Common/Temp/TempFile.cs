@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using Stl;
 using Tauron.Application.VirtualFiles;
 using Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
 

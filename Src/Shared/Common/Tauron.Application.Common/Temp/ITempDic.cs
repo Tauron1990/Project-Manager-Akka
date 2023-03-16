@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Tauron.Temp;
+﻿namespace Tauron.Temp;
 
 [PublicAPI]
 public interface ITempDic : ITempInfo

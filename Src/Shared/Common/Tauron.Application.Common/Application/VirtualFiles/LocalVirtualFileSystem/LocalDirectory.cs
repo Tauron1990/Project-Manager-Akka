@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters;
-using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.Resolvers;
 using Tauron.Operations;
@@ -58,17 +55,22 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
     protected override SimpleResult Delete(DirectoryContext context)
         => SimpleResult.FromAction(context, static state => state.Data.Delete(recursive: true));
 
-    protected override Result<IDirectory> MovetTo(DirectoryContext context, in PathInfo location)
-    {
-        ValidateSheme(location, LocalFileSystemResolver.SchemeName);
+    protected override Result<IDirectory> MovetTo(DirectoryContext context, in PathInfo location) =>
+        ValidateSheme(
+            location,
+            LocalFileSystemResolver.SchemeName,
+            (self: this, context, location),
+            static state =>
+            {
 
-        string target = location.Kind == PathType.Absolute
-            ? Path.GetFullPath(location.Path)
-            : Path.GetFullPath(context.Root, location.Path);
-        Directory.Move(OriginalPath, target);
+                string target = state.location.Kind == PathType.Absolute
+                    ? Path.GetFullPath(state.location.Path)
+                    : Path.GetFullPath(state.context.Root, state.location.Path);
+                Directory.Move(state.self.OriginalPath, target);
 
-        return new LocalDirectory(context with { Data = new DirectoryInfo(target) }, Features);
-    }
+                return Result.Value<IDirectory>(
+                    new LocalDirectory(state.context with { Data = new DirectoryInfo(target) }, state.self.Features));
+            });
 
     protected override Result<IFile> SplitFilePath(in PathInfo name)
     {
@@ -77,7 +79,7 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         return new LocalFile(new FileContext(Context.Root, Context.NoParent, new FileInfo(target)), Features);
     }
 
-    protected override IDirectory SplitDirectoryPath(in PathInfo name)
+    protected override Result<IDirectory> SplitDirectoryPath(in PathInfo name)
     {
         string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 

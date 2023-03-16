@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace Tauron;
 #pragma warning disable CA1822 // Member als statisch markieren

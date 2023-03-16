@@ -42,8 +42,8 @@ public sealed class LocalFile : FileBase<FileContext>, IHasFileAttributes, IFull
 
     public override long Size => Context.Data.Length;
 
-    public Stream Open(FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options)
-        => new FileStream(Context.Data.FullName, mode, access, share, bufferSize, options);
+    public Result<Stream> Open(FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options)
+        => Result.FromFunc<Stream>(() => new FileStream(Context.Data.FullName, mode, access, share, bufferSize, options));
 
     public FileAttributes Attributes
     {

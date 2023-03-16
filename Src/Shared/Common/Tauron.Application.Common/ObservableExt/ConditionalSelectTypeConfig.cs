@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Reactive.Linq;
-using JetBrains.Annotations;
 
 namespace Tauron.ObservableExt;
 

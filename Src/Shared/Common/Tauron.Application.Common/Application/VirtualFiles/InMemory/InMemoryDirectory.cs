@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
 using Tauron.Operations;
@@ -62,7 +61,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
             Context.GetFileContext(Context, name, OriginalPath),
             Features);
 
-    protected override SimpleResult Delete(DirectoryContext context)
+    protected override Result<IDirectory> Delete(DirectoryContext context)
     {
         context.Root.ReturnDirectory(context.ActualData);
         context.Parent?.ActualData.Remove(Name);

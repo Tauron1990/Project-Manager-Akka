@@ -1,7 +1,6 @@
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Stl;
 using Stl.Fusion;
 
 namespace Tauron;

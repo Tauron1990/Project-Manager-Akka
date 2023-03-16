@@ -2,7 +2,11 @@
 
 namespace Tauron.Application.VirtualFiles;
 
+[PublicAPI]
 public interface IHasFileAttributes
 {
-    FileAttributes Attributes { get; set; }
+    FileAttributes Attributes { get; }
+
+    [Pure]
+    IFile SetAttributes(FileAttributes attributes);
 }

@@ -5,9 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using Stl;
 using Tauron.Application.VirtualFiles;
 
 namespace Tauron.Application;

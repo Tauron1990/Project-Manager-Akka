@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using JetBrains.Annotations;
 using Tauron.Application.VirtualFiles.Core;
 
 namespace Tauron.Application.VirtualFiles.Resolvers;

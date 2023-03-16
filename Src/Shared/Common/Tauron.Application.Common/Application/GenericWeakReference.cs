@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.Serialization;
-using JetBrains.Annotations;
 
 namespace Tauron.Application;
 

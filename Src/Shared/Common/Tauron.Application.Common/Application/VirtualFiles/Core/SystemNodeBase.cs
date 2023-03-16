@@ -1,13 +1,12 @@
 ﻿using System;
 using System.IO;
-using JetBrains.Annotations;
-using Stl;
 using Tauron.Operations;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
 [PublicAPI]
-public abstract class SystemNodeBase<TContext> : IFileSystemNode
+public abstract class SystemNodeBase<TSelf, TContext> : IFileSystemNode<TSelf> 
+    where TSelf : IFileSystemNode<TSelf>
 {
     protected SystemNodeBase(TContext context, FileSystemFeature feature, NodeType nodeType)
     {
@@ -16,14 +15,14 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
         Type = nodeType;
     }
 
-    protected SystemNodeBase(Func<IFileSystemNode, TContext> context, FileSystemFeature feature, NodeType nodeType)
+    protected SystemNodeBase(Func<IFileSystemNode<TSelf>, TContext> context, FileSystemFeature feature, NodeType nodeType)
     {
         Context = context(this);
         Features = feature;
         Type = nodeType;
     }
-
-    protected TContext Context { get; set; }
+    
+    protected TContext Context { get; }
 
     public FileSystemFeature Features { get; }
 
@@ -39,14 +38,17 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
 
     public abstract string Name { get; }
 
-    public SimpleResult Delete() => 
+    [Pure]
+    public Result<TSelf> Delete() => 
         !Features.HasFlag(FileSystemFeature.Delete) 
-            ? SimpleResult.Failure("Delete not Supported") 
+            ? Result.Error<TSelf>(new IOException("Delete not Supported")) 
             : Delete(Context);
 
-    protected virtual SimpleResult Delete(TContext context)
-        => SimpleResult.Failure("Delete not Implemented");
+    [Pure]
+    protected virtual Result<TSelf> Delete(TContext context)
+        => Result.Error<TSelf>(new InvalidOperationException("Delete not Implemented"));
 
+    [Pure]
     protected virtual Result<TResult> ValidateFeature<TResult, TState>(
         FileSystemFeature feature, 
         TState state,  
@@ -55,6 +57,7 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
             ? isOk(state)
             : Result.Error<TResult>(new IOException($"Requested Flag {feature} is not set for {GetType().Name}"));
     
+    [Pure]
     protected virtual SimpleResult ValidateFeature<TState>(
         FileSystemFeature feature, 
         TState state,  
@@ -63,6 +66,7 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
             ? isOk(state)
             : SimpleResult.Failure($"Requested Flag {feature} is not set for {GetType().Name}");
 
+    [Pure]
     protected SimpleResult ValidateSheme(in PathInfo info, string scheme, Func<SimpleResult> isOk)
     {
         return info.Kind == PathType.Relative || GenericPathHelper.HasScheme(info, scheme)
@@ -71,6 +75,7 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
 
     }
     
+    [Pure]
     protected Result<TResult> ValidateSheme<TResult, TState>(in PathInfo info, string scheme, TState state, Func<TState, Result<TResult>> isOk)
     {
         return info.Kind == PathType.Relative || GenericPathHelper.HasScheme(info, scheme)
