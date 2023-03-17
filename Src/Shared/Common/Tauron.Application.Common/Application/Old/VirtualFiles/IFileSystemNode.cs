@@ -6,6 +6,8 @@ namespace Tauron.Application.VirtualFiles;
 public interface IFileSystemNode<TSelf>
     where TSelf : IFileSystemNode<TSelf>
 {
+    IVirtualFileSystem Root { get; }
+    
     FileSystemFeature Features { get; }
 
     NodeType Type { get; }

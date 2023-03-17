@@ -40,6 +40,84 @@
         <None Include="SerializationExtensions.cs" />
         <Compile Remove="ActorFlowBuilder.cs" />
         <None Include="ObservableExt\Branch.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\IFileSystemNode.cs" />
+        <None Include="Application\Old\VirtualFiles\IFileSystemNode.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Core\VirtualFileSystemBase.cs" />
+        <None Include="Application\Old\VirtualFiles\Core\VirtualFileSystemBase.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\NodeType.cs" />
+        <None Include="Application\Old\VirtualFiles\NodeType.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\Data\FileEntry.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\Data\FileEntry.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\Data\IDataElement.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\Data\IDataElement.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\LocalVirtualFileSystem\ContextBase.cs" />
+        <None Include="Application\Old\VirtualFiles\LocalVirtualFileSystem\ContextBase.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Core\DelegatingVirtualFileSystem.cs" />
+        <None Include="Application\Old\VirtualFiles\Core\DelegatingVirtualFileSystem.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\Data\DirectoryContext.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\Data\DirectoryContext.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\LocalVirtualFileSystem\FileContext.cs" />
+        <None Include="Application\Old\VirtualFiles\LocalVirtualFileSystem\FileContext.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\LocalVirtualFileSystem\LocalDirectory.cs" />
+        <None Include="Application\Old\VirtualFiles\LocalVirtualFileSystem\LocalDirectory.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\LocalVirtualFileSystem\DirectoryContext.cs" />
+        <None Include="Application\Old\VirtualFiles\LocalVirtualFileSystem\DirectoryContext.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\VirtualFileFactory.cs" />
+        <None Include="Application\Old\VirtualFiles\VirtualFileFactory.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\InMemoryFileSystem.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\InMemoryFileSystem.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\IFile.cs" />
+        <None Include="Application\Old\VirtualFiles\IFile.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\LocalVirtualFileSystem\LocalFile.cs" />
+        <None Include="Application\Old\VirtualFiles\LocalVirtualFileSystem\LocalFile.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\Data\InMemoryRoot.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\Data\InMemoryRoot.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\FileSystemFeature.cs" />
+        <None Include="Application\Old\VirtualFiles\FileSystemFeature.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\Data\DirectoryEntry.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\Data\DirectoryEntry.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\LocalVirtualFileSystem\LocalSystem.cs" />
+        <None Include="Application\Old\VirtualFiles\LocalVirtualFileSystem\LocalSystem.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Resolvers\ResolverRegistry.cs" />
+        <None Include="Application\Old\VirtualFiles\Resolvers\ResolverRegistry.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Core\FileBase.cs" />
+        <None Include="Application\Old\VirtualFiles\Core\FileBase.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\IVirtualFileSystem.cs" />
+        <None Include="Application\Old\VirtualFiles\IVirtualFileSystem.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Core\GenericPathHelper.cs" />
+        <None Include="Application\Old\VirtualFiles\Core\GenericPathHelper.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\LocalVirtualFileSystem\IFullFileStreamSupport.cs" />
+        <None Include="Application\Old\VirtualFiles\LocalVirtualFileSystem\IFullFileStreamSupport.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Core\DirectoryBase.cs" />
+        <None Include="Application\Old\VirtualFiles\Core\DirectoryBase.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Core\SystemNodeBase.cs" />
+        <None Include="Application\Old\VirtualFiles\Core\SystemNodeBase.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\PathType.cs" />
+        <None Include="Application\Old\VirtualFiles\PathType.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\Data\FileSystemContextBase.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\Data\FileSystemContextBase.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\InMemoryDirectory.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\InMemoryDirectory.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\Data\StreamWrapper.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\Data\StreamWrapper.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Resolvers\LocalFileSystemResolver.cs" />
+        <None Include="Application\Old\VirtualFiles\Resolvers\LocalFileSystemResolver.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\IHasFileAttributes.cs" />
+        <None Include="Application\Old\VirtualFiles\IHasFileAttributes.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\Data\FileContext.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\Data\FileContext.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\IDirectory.cs" />
+        <None Include="Application\Old\VirtualFiles\IDirectory.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Resolvers\IFileSystemResolver.cs" />
+        <None Include="Application\Old\VirtualFiles\Resolvers\IFileSystemResolver.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\InMemoryFile.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\InMemoryFile.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\Resolvers\InMemoryResolver.cs" />
+        <None Include="Application\Old\VirtualFiles\Resolvers\InMemoryResolver.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\PathInfo.cs" />
+        <None Include="Application\Old\VirtualFiles\PathInfo.cs" />
+        <Compile Remove="Application\Old\VirtualFiles\InMemory\Data\DataElementBase.cs" />
+        <None Include="Application\Old\VirtualFiles\InMemory\Data\DataElementBase.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -71,6 +149,10 @@
         <PackageReference Include="Stl.Fusion" Version="4.3.11" />
         <PackageReference Include="System.Reactive" Version="5.0.0" />
         <PackageReference Include="UnitsNet" Version="5.9.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Application\Old" />
     </ItemGroup>
 
 </Project>

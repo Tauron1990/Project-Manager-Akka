@@ -52,4 +52,7 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
         Context.Delete();
         Context.DirectoryContext.Root.Dispose();
     }
+
+    public InMemoryDirectory GetSelfDictionary()
+        => Context;
 }

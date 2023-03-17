@@ -126,4 +126,6 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
                 return newDic;
             });
     }
+
+    internal (InMemoryFileSystem FileSystem, DirectoryContext NewParent) UpdateFile(FileContext newFile, FileContext oldFile);
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Reactive.PlatformServices;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
@@ -17,5 +16,12 @@ public sealed class FileEntry : DataElementBase
         Data = data;
     }
 
+    public FileEntry NewName(string name, ISystemClock clock)
+        => new(Data)
+        {
+            Name = name,
+            ModifyDate = clock.UtcNow.DateTime,
+        };
+    
     public override void Dispose() => Data.Dispose();
 }

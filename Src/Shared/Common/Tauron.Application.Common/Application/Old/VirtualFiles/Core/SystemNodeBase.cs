@@ -8,6 +8,7 @@ namespace Tauron.Application.VirtualFiles.Core;
 public abstract class SystemNodeBase<TSelf, TContext> : IFileSystemNode<TSelf> 
     where TSelf : IFileSystemNode<TSelf>
 {
+
     protected SystemNodeBase(TContext context, FileSystemFeature feature, NodeType nodeType)
     {
         Context = context;
@@ -24,6 +25,8 @@ public abstract class SystemNodeBase<TSelf, TContext> : IFileSystemNode<TSelf>
     
     protected TContext Context { get; }
 
+    public abstract IVirtualFileSystem Root { get; }
+    
     public FileSystemFeature Features { get; }
 
     public NodeType Type { get; }
