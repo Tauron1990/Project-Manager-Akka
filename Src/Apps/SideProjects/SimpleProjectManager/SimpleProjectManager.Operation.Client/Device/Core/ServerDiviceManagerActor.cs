@@ -5,6 +5,8 @@ using SimpleProjectManager.Client.Operations.Shared.Devices;
 using Tauron;
 using Tauron.Features;
 
+using static Akka.Cluster.Utility.ClusterActorDiscoveryMessage;
+
 
 namespace SimpleProjectManager.Operation.Client.Device.Core;
 
@@ -24,18 +26,21 @@ public sealed class ServerDiviceManagerActor : ActorFeatureBase<ServerDiviceMana
     {
         CallSingleHandler = true;
         
-        ReceiveState<ClusterActorDiscoveryMessage.ActorUp>(ActorUp);
-        ReceiveState<ClusterActorDiscoveryMessage.ActorDown>(ActorDown);
+        ReceiveState<ActorUp>(ActorUp);
+        ReceiveState<ActorDown>(ActorDown);
         
         Receive<DeviceServerOffline>(_ => {});
         Receive<DeviceServerOnline>(_ => { });
 
         Receive<object>(msg => CurrentState.Manager.Foreach(actor => actor.Forward(msg)));
+
+        Start.Subscribe(StartActor);
+        Stop.Subscribe(StopActor);
     }
     
-    private State ActorDown(StatePair<ClusterActorDiscoveryMessage.ActorDown, State> evt)
+    private static State ActorDown(StatePair<ActorDown, State> evt)
     {
-        (ClusterActorDiscoveryMessage.ActorDown down, State state) = evt;
+        (ActorDown down, State state) = evt;
         
         if(state.ActorCount == 0)
             return state;
@@ -52,23 +57,30 @@ public sealed class ServerDiviceManagerActor : ActorFeatureBase<ServerDiviceMana
         return newData;
     }
 
-    private void ActorUp(ClusterActorDiscoveryMessage.ActorUp up)
+    private static State ActorUp(StatePair<ActorUp, State> evt)
     {
-        _actorCount++;
-        _manager.Add(up.Actor);
+        (ActorUp up, State state) = evt;
 
-        if(_actorCount == 1)
-            _supervisor.Tell(new DeviceServerOnline());
+        State newState = state with
+        {
+            ActorCount = state.ActorCount + 1,
+            Manager = state.Manager.Add(up.Actor),
+        };
+
+        if(newState.ActorCount == 1)
+            newState.Supervisor.Tell(new DeviceServerOnline());
+
+        return newState;
     }
 
-    protected override void PreStart()
+    private void StartActor(IActorContext context)
     {
-        _supervisor.Tell(new DeviceServerOffline());
-        ClusterActorDiscovery.Get(Context.System).MonitorActor(new ClusterActorDiscoveryMessage.MonitorActor(DeviceManagerMessages.DeviceDataId));
+        CurrentState.Supervisor.Tell(new DeviceServerOffline());
+        ClusterActorDiscovery.Get(context.System).MonitorActor(new MonitorActor(DeviceManagerMessages.DeviceDataId));
     }
-    
 
-    protected override void PostStop()
-        => ClusterActorDiscovery.Get(Context.System).UnMonitorActor(new ClusterActorDiscoveryMessage.UnmonitorActor(DeviceManagerMessages.DeviceDataId));
+
+    private static void StopActor(IActorContext context)
+        => ClusterActorDiscovery.Get(context.System).UnMonitorActor(new UnmonitorActor(DeviceManagerMessages.DeviceDataId));
     
 }

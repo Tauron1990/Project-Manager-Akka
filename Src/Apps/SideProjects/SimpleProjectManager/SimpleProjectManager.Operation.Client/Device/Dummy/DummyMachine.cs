@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Akka.Actor;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
@@ -9,6 +10,7 @@ using Stl.Fusion;
 
 namespace SimpleProjectManager.Operation.Client.Device.Dummy;
 
+[UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
 public sealed class DummyMachine : IMachine, IDisposable
 {
     private const string DummyId = "9E72CF8B-B33E-421E-BFB5-DB17D70379D2";

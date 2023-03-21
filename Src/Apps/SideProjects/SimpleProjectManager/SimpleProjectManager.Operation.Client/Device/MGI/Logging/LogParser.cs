@@ -33,8 +33,7 @@ public class LogParser : IDisposable
 	                                                 } );
 	    try
 	    {
-		    // ReSharper disable once MethodSupportsCancellation
-		    Task runner = Task.Run(() => _dataReader.ReadAsync(messages.Writer, cancellationToken));
+		    Task runner = Task.Run(() => _dataReader.ReadAsync(messages.Writer, cancellationToken), cancellationToken);
 
 		    await foreach (string newMessage in messages.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
 		    {
