@@ -23,6 +23,9 @@ public static class ObjectExtension
     }
 
     public static Option<TData> AsOption<TData>(this TData data) => new(hasValue: true, data);
+    
+    public static Option<TData> AsOption<TData>(this Stl.Result<TData> data) => 
+        data.HasValue ? Option<TData>.Some(data.Value) : Option<TData>.None;
 
     public static Option<TData> OptionNotNull<TData>(this TData? data)
         where TData : class
@@ -54,7 +57,7 @@ public static class ObjectExtension
     {
         try
         {
-            return old.HasValue ? Result.Value(onValue(old.Value)) : Result.Error<TNew>(old.Error!);
+            return old.HasValue ? Result.Value(onValue(old.Value)) : ConvertError<TOld, TNew>(old);
         }
         catch (Exception ex)
         {
@@ -78,13 +81,122 @@ public static class ObjectExtension
     {
         try
         {
-            return old.HasValue ? onValue(old.Value) : Result.Error<TNew>(old.Error!);
+            
+            return old.HasValue ? onValue(old.Value) : ConvertError<TOld, TNew>(old);
         }
         catch (Exception e)
         {
             return Result.Error<TNew>(e);
         }
     }
+
+    public static Result<TNew> Collect<TData1, TData2, TNew>(
+        this in Result<TData1> result1, 
+        in Result<TData2> result2, 
+        Func<TData1, TData2, TNew> selector)
+    {
+        try
+        {
+            TData1 data1;
+            TData2 data2;
+
+            if(result1.HasValue)
+                data1 = result1.Value;
+            else
+                return ConvertError<TData1, TNew>(result1);
+            
+            if(result2.HasValue)
+                data2 = result2.Value;
+            else
+                return ConvertError<TData2, TNew>(result2);
+            
+            return Result.Value(selector(data1, data2));
+        }
+        catch (Exception e)
+        {
+            return Result.Error<TNew>(e);
+        }
+    }
+    
+    public static Result<TNew> Collect<TData1, TData2, TData3, TNew>(
+        this in Result<TData1> result1, 
+        in Result<TData2> result2,
+        in Result<TData3> result3,
+        Func<TData1, TData2, TData3,  TNew> selector)
+    {
+        try
+        {
+            TData1 data1;
+            TData2 data2;
+            TData3 data3;
+
+            if(result1.HasValue)
+                data1 = result1.Value;
+            else
+                return ConvertError<TData1, TNew>(result1);
+            
+            if(result2.HasValue)
+                data2 = result2.Value;
+            else
+                return ConvertError<TData2, TNew>(result2);
+            
+            if(result3.HasValue)
+                data3 = result3.Value;
+            else
+                return ConvertError<TData3, TNew>(result3);
+            
+            return Result.Value(selector(data1, data2, data3));
+        }
+        catch (Exception e)
+        {
+            return Result.Error<TNew>(e);
+        }
+    }
+    
+    public static Result<TNew> Collect<TData1, TData2, TData3, TData4, TNew>(
+        this in Result<TData1> result1, 
+        in Result<TData2> result2,
+        in Result<TData3> result3,
+        in Result<TData4> result4,
+        Func<TData1, TData2, TData3, TData4,  TNew> selector)
+    {
+        try
+        {
+            TData1 data1;
+            TData2 data2;
+            TData3 data3;
+            TData4 data4;
+            
+            if(result1.HasValue)
+                data1 = result1.Value;
+            else
+                return ConvertError<TData1, TNew>(result1);
+            
+            if(result2.HasValue)
+                data2 = result2.Value;
+            else
+                return ConvertError<TData2, TNew>(result2);
+            
+            if(result3.HasValue)
+                data3 = result3.Value;
+            else
+                return ConvertError<TData3, TNew>(result3);
+            
+            if(result4.HasValue)
+                data4 = result4.Value;
+            else
+                return ConvertError<TData4, TNew>(result4);
+            
+            return Result.Value(selector(data1, data2, data3, data4));
+        }
+        catch (Exception e)
+        {
+            return Result.Error<TNew>(e);
+        }
+    }
+
+    private static Result<TData> ConvertError<TOld, TData>(Result<TOld> input) => 
+        Result.Error<TData>(input.Error ?? new InvalidOperationException($"No Result Error not found ({typeof(TOld)}). Propetly Default Value"));
 
     public static void Run<TData>(this in Result<TData> result, Action<TData> onValue, Action<Exception> onError)
     {

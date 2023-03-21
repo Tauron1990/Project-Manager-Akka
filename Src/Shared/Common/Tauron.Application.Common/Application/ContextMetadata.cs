@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Immutable;
 
 namespace Tauron.Application;
 
@@ -8,31 +8,38 @@ public sealed class ContextMetadata
 {
     private const string DefaultKey = "Key";
 
-    private readonly ConcurrentDictionary<CacheKey, object?> _meta = new();
+    private readonly ImmutableDictionary<CacheKey, object?> _meta;
 
-    public TData Get<TData>(string name = DefaultKey)
+    public ContextMetadata() => _meta = ImmutableDictionary<CacheKey, object?>.Empty;
+
+    private ContextMetadata(ImmutableDictionary<CacheKey, object?> meta) => _meta = meta;
+
+    [Pure]
+    public Result<TData> Get<TData>(string name = DefaultKey)
         where TData : notnull
     {
         if(_meta.TryGetValue(new CacheKey(name, typeof(TData)), out object? dat) && dat is TData data)
             return data;
-
-        throw new InvalidOperationException($"Not Metadata Found {name} -- {typeof(TData)}");
+        
+        return Result.Error<TData>(new InvalidOperationException($"Not Metadata Found {name} -- {typeof(TData)}"));
     }
 
-    public TData? GetOptional<TData>(string name = DefaultKey)
+    [Pure]
+    public Option<TData> GetOptional<TData>(string name = DefaultKey)
     {
         if(_meta.TryGetValue(new CacheKey(name, typeof(TData)), out object? dat) && dat is TData data)
             return data;
 
-        return default;
+        return Option<TData>.None;
     }
 
-    public void Set<TData>(string name, TData data)
-        => _meta[new CacheKey(name, typeof(TData))] = data;
+    [Pure]
+    public ContextMetadata Set<TData>(string name, TData data) =>
+        new(_meta.SetItem(new CacheKey(name, typeof(TData)), data));
 
-    public void Set<TData>(TData data)
-        => _meta[new CacheKey(DefaultKey, typeof(TData))] = data;
-
+    [Pure]
+    public ContextMetadata Set<TData>(TData data) =>
+        new(_meta.SetItem(new CacheKey(DefaultKey, typeof(TData)), data));
 
     private sealed record CacheKey(string Name, Type Type);
 }

@@ -1,29 +1,32 @@
+
+
 using System.Collections.Generic;
-using Tauron.Application.VirtualFiles;
+using Zio;
+using Zio.FileSystems;
 
 namespace Tauron.Application;
 
 public sealed class TauronEnviromentImpl : ITauronEnviroment
 {
-    private IDirectory? _defaultPath;
+    private DirectoryEntry? _defaultPath;
 
-    public TauronEnviromentImpl(VirtualFileFactory factory)
+    public TauronEnviromentImpl()
     {
-        LocalApplicationData = factory.Local(TauronEnviroment.LocalApplicationData);
-        LocalApplicationTempFolder = factory.Local(TauronEnviroment.LocalApplicationTempFolder);
+        var fileSystem = new PhysicalFileSystem();
+        
+        LocalApplicationData = fileSystem.GetDirectoryEntry(TauronEnviroment.LocalApplicationData);
+        LocalApplicationTempFolder = fileSystem.GetDirectoryEntry(TauronEnviroment.LocalApplicationTempFolder);
     }
 
-    IDirectory ITauronEnviroment.DefaultProfilePath
+    DirectoryEntry ITauronEnviroment.DefaultProfilePath
     {
         get => _defaultPath ??= TauronEnviroment.DefaultPath.Value;
-        set => _defaultPath = value;
     }
 
-    public IDirectory LocalApplicationData { get; }
+    public DirectoryEntry LocalApplicationData { get; }
 
-    public IDirectory LocalApplicationTempFolder { get; }
+    public DirectoryEntry LocalApplicationTempFolder { get; }
 
-    public IEnumerable<IDirectory> GetProfiles(string application)
-        => TauronEnviroment.DefaultProfilePath.GetDirectory(application)
-           .Directories;
+    public IEnumerable<DirectoryEntry> GetProfiles(string application)
+        => TauronEnviroment.DefaultProfilePath.EnumerateDirectories();
 }

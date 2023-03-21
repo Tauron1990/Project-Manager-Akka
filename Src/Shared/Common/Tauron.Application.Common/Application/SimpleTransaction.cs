@@ -12,14 +12,27 @@ public abstract class SimpleTransaction<TContext>
     private ImmutableList<InternalStep> _registrations = ImmutableList<InternalStep>.Empty;
 
     protected void Register(RunStep<TContext> runner)
-        => _registrations = _registrations.Add(async (context, roll) => roll.Push(await runner(context).ConfigureAwait(false)));
+        => _registrations = _registrations.Add(async (context, roll) =>
+        {
+            var result = await runner(context).ConfigureAwait(false);
+            roll.Push(result.Rollback);
+
+            return result.Context;
+        });
 
     protected void RegisterLoop<TItem>(Func<Context<TContext>, IEnumerable<TItem>> enumSelector, RunLoogItem<TContext, TItem> runner)
         => _registrations = _registrations.Add(
             async (context, roll) =>
             {
                 foreach (TItem item in enumSelector(context))
-                    roll.Push(await runner(context, item).ConfigureAwait(false));
+                {
+                    var result = await runner(context, item).ConfigureAwait(false);
+                    
+                    roll.Push(result.Rollback);
+                    context = result.Context;
+                }
+
+                return context;
             });
 
     public async ValueTask<TransactionResult> Execute(TContext contextData, CancellationToken token = default)
@@ -29,10 +42,11 @@ public abstract class SimpleTransaction<TContext>
 
         try
         {
+            
             foreach (InternalStep step in _registrations)
-                await step(context, rollback).ConfigureAwait(false);
+                context = await step(context, rollback).ConfigureAwait(false);
 
-            return new TransactionResult(TrasnactionState.Successeded, null);
+            return new TransactionResult(TrasnactionState.Successeded, Exception: null);
         }
         catch (Exception exception)
         {
@@ -50,5 +64,5 @@ public abstract class SimpleTransaction<TContext>
         }
     }
 
-    private delegate Task InternalStep(Context<TContext> context, Stack<Rollback<TContext>> rollback);
+    private delegate Task<Context<TContext>> InternalStep(Context<TContext> context, Stack<Rollback<TContext>> rollback);
 }

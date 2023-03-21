@@ -1,10 +1,9 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Tauron.Application.VirtualFiles;
+using Zio;
 
 namespace Tauron.Application;
 
@@ -15,12 +14,12 @@ public static class TauronEnviroment
 
     internal static string AppRepository = "Tauron";
 
-    internal static Lazy<IDirectory> DefaultPath = new(
+    internal static Lazy<DirectoryEntry> DefaultPath = new(
         () =>
         {
-            string defaultPath = LocalApplicationData;
+            UPath defaultPath = LocalApplicationData;
 
-            return new VirtualFileFactory().Local(defaultPath);
+            return new Zio.FileSystems.PhysicalFileSystem().GetDirectoryEntry(defaultPath);
         },
         LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -42,11 +41,12 @@ public static class TauronEnviroment
         }
     }
 
-    public static IDirectory DefaultProfilePath => DefaultPath.Value;
+    public static DirectoryEntry DefaultProfilePath => DefaultPath.Value;
 
-    public static string LocalApplicationData => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppRepository);
+    public static UPath LocalApplicationData => 
+        (UPath)Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) / AppRepository;
 
-    internal static string LocalApplicationTempFolder => Path.Combine(LocalApplicationData, "Temp");
+    internal static UPath LocalApplicationTempFolder => LocalApplicationData / "Temp";
 
     public static ILogger GetLogger(Type log)
         => LoggerFactory.CreateLogger(log);

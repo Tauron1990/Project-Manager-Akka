@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
-using Tauron.Application.VirtualFiles;
+using Zio;
 
 namespace Tauron.Application;
 
 [PublicAPI]
 public interface ITauronEnviroment
 {
-    IDirectory DefaultProfilePath { get; set; }
+    DirectoryEntry DefaultProfilePath { get; }
 
-    IDirectory LocalApplicationData { get; }
+    DirectoryEntry LocalApplicationData { get; }
 
-    IDirectory LocalApplicationTempFolder { get; }
+    DirectoryEntry LocalApplicationTempFolder { get; }
 
-    IEnumerable<IDirectory> GetProfiles(string application);
+    IEnumerable<DirectoryEntry> GetProfiles(string application);
 }

@@ -27,7 +27,7 @@ public sealed class GenericWeakReference<TType> : WeakReference, IEquatable<Gene
         object? t1 = Target;
         object? t2 = other?.Target;
 
-        return t1?.Equals(t2) ?? t2 == null;
+        return t1?.Equals(t2) ?? t2 is null;
     }
 
     public override bool Equals(object? obj)
@@ -43,7 +43,7 @@ public sealed class GenericWeakReference<TType> : WeakReference, IEquatable<Gene
                 continue;
             }
 
-            return target?.Equals(obj) ?? obj == null;
+            return target?.Equals(obj) ?? obj is null;
         }
     }
 
@@ -51,7 +51,7 @@ public sealed class GenericWeakReference<TType> : WeakReference, IEquatable<Gene
     {
         object? target = Target;
 
-        return target == null ? 0 : target.GetHashCode();
+        return target is null ? 0 : target.GetHashCode();
     }
 
     public static bool operator ==(GenericWeakReference<TType> left, GenericWeakReference<TType> right)

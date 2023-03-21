@@ -2,4 +2,4 @@ using System.Threading.Tasks;
 
 namespace Tauron.Application;
 
-public delegate ValueTask<Rollback<TContext>> RunStep<TContext>(Context<TContext> context);
+public delegate ValueTask<RunStepResult<TContext>> RunStep<TContext>(Context<TContext> context);
