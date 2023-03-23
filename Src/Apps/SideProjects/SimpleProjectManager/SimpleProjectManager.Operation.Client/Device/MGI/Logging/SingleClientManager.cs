@@ -3,21 +3,23 @@ using System.Threading.Channels;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
 using Tauron.Application;
+using Tauron.Features;
 using Tauron.Servicemnager.Networking.Data;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 
-public sealed partial class SingleClientManager : ReceiveActor, IDisposable
+public sealed partial class SingleClientManager : ActorFeatureBase<SingleClientManager.State>
 {
-    private readonly ILogger<SingleClientManager> _logger = TauronEnviroment.LoggerFactory.CreateLogger<SingleClientManager>();
-    private readonly IMessageStream _client;
-    private readonly ChannelWriter<LogInfo> _writer;
-    private readonly LogParser _logParser;
+    public sealed record State(IMessageStream Client, ChannelWriter<LogInfo> Writer, LogParser LogParser, string App = "Unkowen");
 
-    private string _app = "Unkowen";
+    private readonly ILogger _logger;
 
-    public SingleClientManager(IMessageStream client, ChannelWriter<LogInfo> writer)
+    public static IPreparedFeature New
+
+    private SingleClientManager(IMessageStream client, ChannelWriter<LogInfo> writer)
     {
+        _logger = Logger;
+        
         _client = client;
         _writer = writer;
         _logParser = new LogParser(client);
@@ -27,6 +29,11 @@ public sealed partial class SingleClientManager : ReceiveActor, IDisposable
         Run(Self).PipeTo(Self,
             success:() => PoisonPill.Instance,
             failure: e => ClientError.CreateError("Error on Process Socket Receive Data", e));
+    }
+
+    protected override void ConfigImpl()
+    {
+        
     }
 
     private void OnFailure(ClientError obj)
