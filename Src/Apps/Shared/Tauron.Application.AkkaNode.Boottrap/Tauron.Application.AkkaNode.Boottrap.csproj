@@ -21,11 +21,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Cluster.Hosting" Version="1.0.3" />
-        <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.49" />
-        <PackageReference Include="Akka.Hosting" Version="1.0.3" />
-        <PackageReference Include="Akka.Logger.NLog" Version="1.4.10" />
-        <PackageReference Include="Akka.Serialization.Hyperion" Version="1.4.49" />
+        <PackageReference Include="Akka.Cluster.Hosting" Version="1.5.2" />
+        <PackageReference Include="Akka.Cluster.Sharding" Version="1.5.2" />
+        <PackageReference Include="Akka.Hosting" Version="1.5.2" />
+        <PackageReference Include="Akka.Logger.NLog" Version="1.5.0" />
+        <PackageReference Include="Akka.Serialization.Hyperion" Version="1.5.2" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -34,11 +34,11 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.18">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.32">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
