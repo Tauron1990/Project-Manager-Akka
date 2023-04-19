@@ -13,7 +13,6 @@ public sealed class CommonUiModule : IModule
 {
     public void Load(IServiceCollection collection)
     {
-        collection.AddHostedService<UiAppService>();
         collection.TryAddSingleton<IDialogCoordinator, DialogCoordinator>();
     }
 }

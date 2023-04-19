@@ -2,7 +2,10 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Tauron.Application.CommonUI.AppCore;
 using Tauron.Application.CommonUI.Model;
 
@@ -11,6 +14,13 @@ namespace Tauron.Application.CommonUI;
 [PublicAPI]
 public static class CommonUiExetension
 {
+    public static async Task RunCommonUi(this IHostBuilder hostBuilder)
+    {
+        hostBuilder.ConfigureServices(sc => sc.AddSingleton<IHostLifetime, UiAppService>());
+
+        await hostBuilder.Build().RunAsync().ConfigureAwait(false);
+    }
+
     #region UIProperty
 
     public static FluentPropertyRegistration<TData> WithFlow<TData>(

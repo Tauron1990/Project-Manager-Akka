@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Threading.Tasks;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -106,7 +107,7 @@ public sealed class AvaloniaFramework : CommonUIFramework
         public int Run()
         {
             AppLifetime.Startup += (_, args) => Startup?.Invoke(this, args);
-
+            
             return AppLifetime.Start(Environment.GetCommandLineArgs());
         }
     }

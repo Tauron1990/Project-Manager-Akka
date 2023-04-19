@@ -1,11 +1,13 @@
 ﻿using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Tauron.Application.CommonUI.AppCore;
 
 namespace Tauron.Application.Avalonia.AppCore;
 
+[PublicAPI]
 public sealed class AvaloniaConfiguration : BaseAppConfiguration
 {
     public AvaloniaConfiguration(IServiceCollection serviceCollection)

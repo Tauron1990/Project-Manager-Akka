@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +9,83 @@ using Microsoft.Extensions.Hosting;
 
 namespace Tauron.Application.CommonUI.AppCore;
 
+public sealed class UiAppService : IHostLifetime
+{
+    private readonly IServiceProvider _factory;
+    private readonly CommonUIFramework _framework;
+    private readonly AtomicBoolean _shutdown = new();
+    private readonly TaskCompletionSource<int> _shutdownWaiter = new();
+    private readonly ActorSystem _system;
+
+    private IUIApplication? _internalApplication;
+
+    public UiAppService(IServiceProvider factory, CommonUIFramework framework, ActorSystem system)
+    {
+        _factory = factory;
+        _framework = framework;
+        _system = system;
+    }
+
+    public Task WaitForStartAsync(CancellationToken stoppingToken)
+    {
+
+        void Runner()
+        {
+            using IServiceScope scope = _factory.CreateScope();
+            IServiceProvider provider = scope.ServiceProvider;
+
+            _internalApplication = provider.GetService<IAppFactory>()?.Create() ?? _framework.CreateDefault();
+            _internalApplication.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+            _internalApplication.Startup += (_, _) =>
+                                            {
+                                                
+                                                DispatcherScheduler.CurrentDispatcher = DispatcherScheduler.From(provider.GetRequiredService<IUIDispatcher>());
+                                                var applicationLifetime = provider.GetRequiredService<IHostApplicationLifetime>();
+                                                
+                                                IWindow? splash = provider.GetService<ISplashScreen>()?.Window;
+                                                splash?.Show();
+
+                                                var mainWindow = provider.GetRequiredService<IMainWindow>();
+                                                mainWindow.Window.Show();
+                                                mainWindow.Shutdown += (_, _) =>
+                                                {
+                                                    
+                                                    applicationLifetime.StopApplication();
+                                                };
+
+                                                splash?.Hide();
+                                                // ReSharper restore AccessToDisposedClosure
+                                            };
+
+            _system.RegisterOnTermination(() => _internalApplication.AppDispatcher.Post(() => _internalApplication.Shutdown(0)));
+
+            _shutdownWaiter.SetResult(_internalApplication.Run());
+        }
+
+        Thread uiThread = new(Runner)
+                          {
+                              Name = "UI Thread",
+                              IsBackground = false,
+                          };
+        if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            uiThread.SetApartmentState(ApartmentState.STA);
+        uiThread.Start();
+
+        return Task.CompletedTask;
+    }
+
+    private async Task ShutdownApp()
+    {
+        if(_shutdown.GetAndSet(newValue: true)) return;
+        
+        await _system.Terminate().ConfigureAwait(false);
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken) => ShutdownApp();
+}
+
+/*
 public sealed class UiAppService : BackgroundService
 {
     private readonly IServiceProvider _factory;
@@ -92,4 +168,4 @@ public sealed class UiAppService : BackgroundService
         _system.Terminate()
            .Ignore();
     }
-}
+*/
