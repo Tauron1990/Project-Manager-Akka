@@ -3,7 +3,7 @@ using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.Services;
 
-public interface IJobFileService
+public interface IJobFileService : IComputeService
 {
     [ComputeMethod(MinCacheDuration = 5)]
     Task<ProjectFileInfo?> GetJobFileInfo(ProjectFileId id, CancellationToken token);

@@ -3,7 +3,7 @@ using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.Services.Tasks;
 
-public interface ITaskManager
+public interface ITaskManager : IComputeService
 {
     [ComputeMethod(MinCacheDuration = 5)]
     Task<TaskList> GetTasks(CancellationToken token);

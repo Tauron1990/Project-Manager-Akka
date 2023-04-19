@@ -1,6 +1,5 @@
 using Akka.Cluster.Hosting;
 using Akka.DependencyInjection;
-using Akka.Hosting;
 using Akka.Persistence;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;

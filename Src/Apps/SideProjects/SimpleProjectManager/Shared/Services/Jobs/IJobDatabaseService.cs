@@ -3,7 +3,7 @@ using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.Services;
 
-public interface IJobDatabaseService
+public interface IJobDatabaseService : IComputeService
 {
     [ComputeMethod(MinCacheDuration = 120)]
     Task<Jobs> GetActiveJobs(CancellationToken token);

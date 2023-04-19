@@ -88,11 +88,11 @@ public sealed partial class ClusterManagerActor
     }
 
     [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "Timeout while Updating {name} with id {id}")]
-    private partial void ReplicatorUpdateTimeout(ILogger logger, DeviceId id, in DeviceName name);
+    private static partial void ReplicatorUpdateTimeout(ILogger logger, DeviceId id, in DeviceName name);
     
     [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "New Data for Device {name} with id {id}")]
-    private partial void UpdateDeviceInfo(ILogger logger, DeviceId id, in DeviceName name);
+    private static partial void UpdateDeviceInfo(ILogger logger, DeviceId id, in DeviceName name);
     
     [LoggerMessage(Level = LogLevel.Critical, Message = "Critical error on Update Device Data")]
-    private partial void FatalErrorOnUpdate(ILogger logger, Exception ex);
+    private static partial void FatalErrorOnUpdate(ILogger logger, Exception ex);
 }
