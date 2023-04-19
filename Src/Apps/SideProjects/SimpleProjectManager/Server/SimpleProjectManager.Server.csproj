@@ -18,8 +18,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.48" />
-        <PackageReference Include="Akka.Persistence.Query" Version="1.4.49" />
+        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.5.1.1" />
+        <PackageReference Include="Akka.Persistence.Query" Version="1.5.2" />
         <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
@@ -29,22 +29,22 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.18">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.34">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.3" />
-        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.9.5">
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.5" />
+        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.0.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion.Server" Version="4.3.11" />
+        <PackageReference Include="Stl.Fusion.Server" Version="5.2.8" />
     </ItemGroup>
 
     <ItemGroup>

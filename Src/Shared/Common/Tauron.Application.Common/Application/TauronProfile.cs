@@ -115,7 +115,7 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
         }
     }
 
-    public virtual string? GetValue(string? defaultValue, [CallerMemberName] string? key = null)
+    public virtual string GetValue(string defaultValue, [CallerMemberName] string? key = null)
     {
         if(string.IsNullOrWhiteSpace(key)) return string.Empty;
 
@@ -125,12 +125,12 @@ public abstract class TauronProfile : ObservableObject, IEnumerable<string>
     }
 
     public virtual int GetValue(int defaultValue, IFormatProvider? provider = null, [CallerMemberName] string? key = null)
-        => int.TryParse(GetValue(null, key), NumberStyles.Any, provider, out int result) ? result : defaultValue;
+        => int.TryParse(GetValue(string.Empty, key), NumberStyles.Any, provider, out int result) ? result : defaultValue;
 
     #pragma warning disable AV1564
     public virtual bool GetValue(bool defaultValue, [CallerMemberName] string? key = null)
         #pragma warning restore AV1564
-        => bool.TryParse(GetValue(null, key), out bool result) ? result : defaultValue;
+        => bool.TryParse(GetValue(string.Empty, key), out bool result) ? result : defaultValue;
 
     public virtual void SetVaue(object value, [CallerMemberName] string? key = null)
     {

@@ -14,7 +14,7 @@ using SimpleProjectManager.Operation.Client.Setup;
 using SimpleProjectManager.Shared.ServerApi;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
-
+#pragma warning disable GU0011
 namespace SimpleProjectManager.Operation.Client;
 
 public sealed class ClientRunner

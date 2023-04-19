@@ -3,7 +3,7 @@ using Tauron.Operations;
 
 namespace SimpleProjectManager.Shared.Services;
 
-public interface ICriticalErrorService
+public interface ICriticalErrorService : IComputeService
 {
     [ComputeMethod(MinCacheDuration = 5)]
     Task<ErrorCount> CountErrors(CancellationToken token);

@@ -5,7 +5,7 @@ using Tauron.Operations;
 namespace SimpleProjectManager.Shared.Services.Devices;
 
 [PublicAPI]
-public interface IDeviceService
+public interface IDeviceService : IComputeService
 {
     [ComputeMethod]
     Task<DeviceList> GetAllDevices(CancellationToken token);

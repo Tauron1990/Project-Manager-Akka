@@ -3,12 +3,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading.Channels;
 using Akka.Actor;
-using Akka.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Operation.Client.Device.MGI.Logging;
+using SimpleProjectManager.Operation.Client.Device.MGI.MgiUi;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
@@ -20,11 +20,13 @@ namespace SimpleProjectManager.Operation.Client.Device.MGI;
 public sealed class MgiMachine : IMachine
 {
     private const string MgiId = "CFDD2F56-AD5C-4A7C-A3B5-535A46B21EC5";
-    public const int Port = 23421;
+    private const int Port = 23421;
     
     private readonly LogCollector<LogInfo> _logCollector;
     private readonly DeviceId _deviceId;
     private readonly ObjectName _clientName;
+
+    private readonly MgiUiManager _uiManager;
 
 #pragma warning disable GU0073
     public MgiMachine(ILoggerFactory loggerFactory, OperationConfiguration operationConfiguration)
@@ -37,18 +39,31 @@ public sealed class MgiMachine : IMachine
         
         _deviceId = operationConfiguration.CreateDeviceId(MgiId);
         _clientName = operationConfiguration.Name;
+
+        _uiManager = new MgiUiManager(loggerFactory.CreateLogger<MgiUiManager>());
     }
 
     private LogData ConvertLogInfo(LogInfo element)
     {
+        _uiManager.ProcessStatus(element);
+        
         return new LogData(
             string.Equals(element.Type.ToLower(CultureInfo.InvariantCulture), "error", StringComparison.Ordinal)
                 ? LogLevel.Error
                 : LogLevel.Trace,
-            LogCategory.From(element.Type),
-            SimpleMessage.From(element.Content),
+            GetCategory(element.Type),
+            SimpleMessage.From($"{element.Type}; {element.Content}"),
             element.TimeStamp,
             ImmutableDictionary<string, PropertyValue>.Empty.Add("Application", PropertyValue.From(element.Application)));
+
+        LogCategory GetCategory(string type) =>
+            type.ToLower(CultureInfo.InvariantCulture) switch
+            {
+                "cudalib" => LogCategory.From("Scanner"),
+                "scanner" => LogCategory.From("Scanner"),
+                "gis" => LogCategory.From("Scanner"),
+                _ => LogCategory.From("Maschiene"),
+            };
     }
 
     public Task Init(IActorContext context)
@@ -62,8 +77,6 @@ public sealed class MgiMachine : IMachine
         
         _logCollector.CollectLogs(channel.Reader);
 
-        DependencyResolver resolver = DependencyResolver.For(context.System);
-        
         context.ActorOf(() => new LoggerServer(channel.Writer, Port), "Logging_Server");
         
         return Task.CompletedTask;
@@ -74,7 +87,7 @@ public sealed class MgiMachine : IMachine
             _deviceId, 
             DeviceName.From($"{_clientName} MGI"), 
             HasLogs:true, 
-            DeviceUi.Text("Keine UI"),
+            _uiManager.CreateUi(),
             ImmutableList<ButtonState>.Empty,
             Nobody.Instance));
 
