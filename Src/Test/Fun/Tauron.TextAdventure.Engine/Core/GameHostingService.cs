@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tauron.TextAdventure.Engine.Systems.Rooms.Builders;
 using Tauron.TextAdventure.Engine.Systems.Rooms.Core;
@@ -14,6 +15,7 @@ internal sealed class GameHostingService<TGame> : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly IUILayer _uiLayer;
 
+    [SuppressMessage("Gu.Analyzers.Correctness", "GU0073:Member of non-public type should be internal")]
     public GameHostingService(IHostApplicationLifetime lifetime, IServiceProvider serviceProvider, TGame game, IUILayer uiLayer)
     {
         _lifetime = lifetime;

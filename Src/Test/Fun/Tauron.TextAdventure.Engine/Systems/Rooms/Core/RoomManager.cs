@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Linq;
 using Tauron.TextAdventure.Engine.Systems.Actor;
 using Tauron.TextAdventure.Engine.UI;
 
@@ -8,7 +9,8 @@ internal sealed class RoomManager : ISystem
 {
     private readonly RoomMap _map;
 
-    internal RoomManager(RoomMap map)
+    [SuppressMessage("Gu.Analyzers.Correctness", "GU0073:Member of non-public type should be internal")]
+    public RoomManager(RoomMap map)
         => _map = map;
 
     public IEnumerable<IDisposable> Initialize(EventManager eventManager)
@@ -16,7 +18,9 @@ internal sealed class RoomManager : ISystem
         var renderState = eventManager.GameState.Get<RenderState>();
 
         yield return eventManager.GameState.Get<Player>()
-           .Location.Select(_map.Get).Subscribe(
+           .Location
+           .Where(s => !string.IsNullOrWhiteSpace(s))
+           .Select(_map.Get).Subscribe(
                 r =>
                 {
                     renderState.ToRender.Set(nameof(RoomManager), r.CreateRender());

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
+using Tauron.TextAdventure.Engine.Systems.Actor;
 
 namespace Tauron.TextAdventure.Engine.Data;
 
@@ -40,15 +41,17 @@ internal sealed class EventStore
 
     }
 
-    internal void LoadGame()
+    internal Player LoadGame()
     {
         using ZipArchive? zip = GetSaveGameFile(ZipArchiveMode.Read);
 
         ZipArchiveEntry? entry = zip?.Entries.FirstOrDefault(ent => string.Equals(ent.Name, "state", StringComparison.Ordinal));
-        if(entry is null) return;
+        if(entry is null) return GameState.Get<Player>();
 
         using Stream entryStream = entry.Open();
         ((ISaveable)GameState).Read(new BinaryReader(entryStream));
+
+        return GameState.Get<Player>();
     }
 
     internal void SaveGame()
@@ -56,7 +59,9 @@ internal sealed class EventStore
         using ZipArchive? zip = GetSaveGameFile(ZipArchiveMode.Update);
 
         if(zip is null)
+            #pragma warning disable EX002
             throw new UnreachableException();
+        #pragma warning restore EX002
 
         ZipArchiveEntry state = zip.Entries.FirstOrDefault(ent => string.Equals(ent.Name, "state", StringComparison.Ordinal))
                              ?? zip.CreateEntry("state", CompressionLevel.Optimal);
@@ -75,14 +80,16 @@ internal sealed class EventStore
         foreach (var currentEvent in CurrentEvents)
         {
             writer.Write(currentEvent.Key);
+            #pragma warning disable EX002
             writer.Write(currentEvent.Value.GetType().AssemblyQualifiedName ?? throw new UnreachableException());
+            #pragma warning restore EX002
             currentEvent.Value.Write(writer);
         }
 
         CurrentEvents = ImmutableSortedDictionary<int, IEvent>.Empty;
     }
 
-    public void ApplyEvent<TEvent>(TEvent evt, Action<GameState, TEvent>? applyState)
+    internal void ApplyEvent<TEvent>(TEvent evt, Action<GameState, TEvent>? applyState)
         where TEvent : IEvent
     {
         GameState.Sequence++;

@@ -47,10 +47,10 @@ public sealed class CommandFrame : IInputElement
     public IEnumerable<FrameItem> CreateItems()
     {
         foreach (CommandFrame commandFrame in _subMenus)
-            yield return new FrameItem(commandFrame.Name, commandFrame.Name, true);
+            yield return new FrameItem(commandFrame.Name, commandFrame.Name, SubMenu: true);
 
         foreach (CommandItem item in _commandItems)
-            yield return new FrameItem(item.Label, item.Id, false);
+            yield return new FrameItem(item.Label, item.Id, SubMenu: false);
     }
 
     public void AddFrame(CommandFrame frame)

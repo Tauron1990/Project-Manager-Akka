@@ -12,6 +12,5 @@ internal static class CorePack
         yield return PackageElement.System<RoomManager>();
         yield return PackageElement.System<GameStateAdderSystem>();
         yield return PackageElement.System<TickCommandSystem>();
-        yield return PackageElement.Init(static s => s.Get<Player>().Location.Value = RoomKeys.Start);
     }
 }

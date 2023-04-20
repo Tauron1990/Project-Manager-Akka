@@ -19,7 +19,7 @@ public abstract class SinglePackage : IGamePackageFetcher
         #pragma warning restore CS1998
     {
         HostEnvironment = hostEnvironment;
-        yield return new GamePackage(new Metadata(Name, Version, true), LoadPack);
+        yield return new GamePackage(new Metadata(Name, Version, Display: true), LoadPack);
     }
 
     private IEnumerable<PackageElement> LoadPack()

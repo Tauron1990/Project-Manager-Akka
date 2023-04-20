@@ -7,6 +7,6 @@ internal sealed class RoomMap
     internal BaseRoom Get(string name)
         => _rooms[name];
 
-    public void Add(string name, BaseRoom baseRoom)
+    internal void Add(string name, BaseRoom baseRoom)
         => _rooms[name] = baseRoom;
 }

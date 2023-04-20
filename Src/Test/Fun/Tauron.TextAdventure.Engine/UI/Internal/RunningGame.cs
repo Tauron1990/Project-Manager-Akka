@@ -78,7 +78,9 @@ public sealed class RunningGame
                 _eventManager.SendCommand(new TickCommand(ask.AskCompled(command).ToArray()));
                 break;
             default:
+                #pragma warning disable EX002
                 throw new UnreachableException();
+            #pragma warning restore EX002
         }
 
         IEnumerable<CommandPairBase> Unfold(CommandPairBase toUnfold)
@@ -98,9 +100,9 @@ public sealed class RunningGame
         _currentCommands = renderState.Commands;
         var element = MultiElement.Create(renderState.ToRender);
 
-        MultiElement.Add(element, new SpacingElement { Amount = 3 });
-        MultiElement.Add(element, mainMenu);
-        MultiElement.AddRange(element, renderState.Commands.Select(c => c.Collect()));
+        element = MultiElement.Add(element, new SpacingElement { Amount = 3 });
+        element = MultiElement.Add(element, mainMenu);
+        element = MultiElement.AddRange(element, renderState.Commands.Select(c => c.Collect()));
 
         _mode = _currentCommands.Any(c => c.IsAsk) ? Mode.Ask : Mode.Command;
 
@@ -108,7 +110,7 @@ public sealed class RunningGame
     }
 
     private CommandMenu CreateMainMenu()
-        => new CommandMenu(
+        => new(
             UiKeys.GameCoreMenu,
             new CommandItem(UiKeys.SaveGame),
             new CommandItem(UiKeys.CloseRunningGame)

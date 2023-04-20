@@ -61,12 +61,13 @@ public abstract class SpectreVisitor : IRenderVisitor
                         Name = commandMenu.Name,
                     };
 
-        NextCommandFrame(frame);
+        bool needPop = NextCommandFrame(frame);
 
         foreach (CommandBase menuItem in commandMenu.MenuItems)
             menuItem.Accept(this);
 
-        CommandFrameExit();
+        if(needPop)
+            CommandFrameExit();
     }
 
     public abstract void VisitCommandItem(CommandItem commandItem);
@@ -81,7 +82,7 @@ public abstract class SpectreVisitor : IRenderVisitor
     public void RunRender()
         => _writers.ForEach(a => a());
 
-    protected abstract void NextCommandFrame(CommandFrame frame);
+    protected abstract bool NextCommandFrame(CommandFrame frame);
 
     protected abstract void CommandFrameExit();
 }

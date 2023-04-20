@@ -21,7 +21,7 @@ public abstract class PackageFetcherBase : IGamePackageFetcher
 
     public static async IAsyncEnumerable<GamePackage> Group(IHostEnvironment environment, params IGamePackageFetcher?[] fetcher)
     {
-        foreach (IGamePackageFetcher? packageFetcher in fetcher)
+        foreach (var packageFetcher in fetcher)
         {
             if(packageFetcher is null) continue;
 

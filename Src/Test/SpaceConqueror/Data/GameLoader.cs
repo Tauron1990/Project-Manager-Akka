@@ -16,7 +16,7 @@ public sealed class GameLoader : SinglePackage
 
     protected override IEnumerable<PackageElement> LoadPack(IHostEnvironment hostEnvironment)
     {
-        yield return PackageElement.Asset(AssetLoader.LoadAssets);
+        yield return PackageElement.Asset(hostEnvironment, AssetLoader.LoadAssets);
         yield return PackageElement.Translate(hostEnvironment, "GameData");
         yield return RoomLoader.Load();
     }

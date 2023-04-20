@@ -8,9 +8,6 @@ public sealed class DocumentElement : RenderElement
 {
     public DocumentElement() { }
 
-    public DocumentElement(IDocument document)
-        => Document = document;
-
     public DocumentElement(IDocument document, IContext context)
     {
         Document = document;

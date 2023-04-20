@@ -32,7 +32,7 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
     }
 
     public override void VisitGameTitle(GameTitleElement gameTitleElement)
-        => AddWriter(static () => AnsiConsole.Write(new FigletText("Space Conqueror") { Alignment = Justify.Center }));
+        => AddWriter(static () => AnsiConsole.Write(new FigletText("Space Conqueror") { Justification = Justify.Center }));
 
     public override void Visit(RenderElement element)
     {
@@ -42,18 +42,19 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
         base.Visit(element);
     }
 
-    protected override void NextCommandFrame(CommandFrame frame)
+    protected override bool NextCommandFrame(CommandFrame frame)
     {
         if(RootInputElement is null)
         {
             _currentFrame = frame;
             SetRootInput(frame);
-            return;
+            return false;
         }
 
         _frames.Push(CurrentFrame);
         CurrentFrame.AddFrame(frame);
         CurrentFrame = frame;
+        return true;
     }
 
     protected override void CommandFrameExit()

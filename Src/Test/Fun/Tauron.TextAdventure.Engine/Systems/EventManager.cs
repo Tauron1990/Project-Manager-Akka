@@ -90,7 +90,7 @@ public sealed class EventManager : IDisposable
         private readonly Subject<object> _dispatcher;
         private readonly Action<GameState, TEvent> _processor;
 
-        public EventProcessor(Subject<object> dispatcher, Action<GameState, TEvent> processor)
+        internal EventProcessor(Subject<object> dispatcher, Action<GameState, TEvent> processor)
         {
             _dispatcher = dispatcher;
             _processor = processor;

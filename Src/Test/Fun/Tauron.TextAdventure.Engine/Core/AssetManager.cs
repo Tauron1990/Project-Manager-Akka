@@ -10,16 +10,16 @@ public sealed class AssetManager
 {
     private readonly ConcurrentDictionary<string, IBox?> _assets = new(StringComparer.Ordinal);
     private Dictionary<Value, Value> _contextValues = new();
-    private IContext _renderContext;
+    public IContext RenderContext { get; private set; }
 
     public AssetManager()
     {
-        _renderContext = Context.Empty;
+        RenderContext = Context.Empty;
 
         IFunction func = Function.CreatePure1(
             (_, value) => _assets.TryGetValue(value.AsString, out IBox? box)
-                ? box!.GetString(_renderContext)
-                : _renderContext[value]);
+                ? box!.GetString(RenderContext)
+                : RenderContext[value]);
 
         UpdateContext("GetString", Value.FromFunction(func));
     }
@@ -27,7 +27,7 @@ public sealed class AssetManager
     public void UpdateContext(Value key, Value value)
     {
         _contextValues[key] = value;
-        _renderContext = Context.CreateBuiltin(_contextValues);
+        RenderContext = Context.CreateBuiltin(_contextValues);
     }
 
     private void ThrowDuplicate(string name)
@@ -60,7 +60,7 @@ public sealed class AssetManager
     public string GetString(string name, IContext context)
     {
         if(_assets.TryGetValue(name, out IBox? toCast) && toCast is IBox<string> box)
-            return box.Get(Context.CreateCascade(context, _renderContext));
+            return box.Get(Context.CreateCascade(context, RenderContext));
 
         return name;
     }
@@ -76,7 +76,7 @@ public sealed class AssetManager
     public TData Get<TData>(string name)
     {
         if(_assets.TryGetValue(name, out IBox? toCast) && toCast is IBox<TData> box)
-            return box.Get(_renderContext);
+            return box.Get(RenderContext);
 
         throw new InvalidOperationException("The Specific Asset tis not found or has anathor Type");
     }
@@ -84,7 +84,7 @@ public sealed class AssetManager
     public Option<TData> TryGet<TData>(string name)
     {
         if(_assets.TryGetValue(name, out IBox? value) && value is IBox<TData> typedValue)
-            return typedValue.Get(_renderContext);
+            return typedValue.Get(RenderContext);
 
         return Option<TData>.None;
     }

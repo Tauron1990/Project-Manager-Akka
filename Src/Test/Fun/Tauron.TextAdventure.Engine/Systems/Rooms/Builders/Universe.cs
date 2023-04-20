@@ -15,7 +15,7 @@ public class Universe
 
     public static PackageElement Create(Action<Universe> factory)
     {
-        var uni = new Universe(false);
+        var uni = new Universe(modify: false);
         factory(uni);
 
         return PackageElement.Group(uni._rooms);
@@ -23,7 +23,7 @@ public class Universe
 
     public static PackageElement Modify(Action<Universe> factory)
     {
-        var uni = new Universe(true);
+        var uni = new Universe(modify: true);
         factory(uni);
 
         return PackageElement.Group(uni._rooms);

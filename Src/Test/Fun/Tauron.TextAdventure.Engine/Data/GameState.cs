@@ -14,7 +14,9 @@ public sealed class GameState : ISaveable
         writer.Write(Sequence);
         foreach (var state in _states)
         {
+            #pragma warning disable EX002
             writer.Write(state.Key.AssemblyQualifiedName ?? throw new UnreachableException());
+            #pragma warning restore EX002
             state.Value.Write(writer);
         }
     }
@@ -27,9 +29,11 @@ public sealed class GameState : ISaveable
         for (var i = 0; i < count; i++)
         {
             string typeString = reader.ReadString();
-            var type = Type.GetType(typeString, true);
+            var type = Type.GetType(typeString, throwOnError: true);
 
+            #pragma warning disable EX002
             if(type is null) throw new UnreachableException();
+            #pragma warning restore EX002
 
             if(_states.TryGetValue(type, out IState? state))
             {

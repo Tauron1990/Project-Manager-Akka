@@ -17,7 +17,7 @@ public sealed class Translator : PackageElement
     public Translator(string fromDic, IHostEnvironment environment)
     {
         _environment = environment;
-        _fromDic = Path.Combine(fromDic, "lang");
+        _fromDic = fromDic;
     }
 
     private void PostConfig(IServiceProvider serviceProvider)
@@ -43,7 +43,7 @@ public sealed class Translator : PackageElement
         }
         else
         {
-            manager.Add(Path.GetFileName(targetFile.Name), Create(targetFile));
+            manager.Add(Path.GetFileNameWithoutExtension(targetFile.Name), Create(targetFile));
         }
     }
 

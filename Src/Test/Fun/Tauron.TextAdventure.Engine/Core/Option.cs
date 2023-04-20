@@ -32,7 +32,7 @@ public readonly struct Option<TData>
     }
 
     public static implicit operator Option<TData>(TData data)
-        => new(data, true);
+        => new(data, hasValue: true);
 
     public TResult Map<TResult>(Func<TData, TResult> selector, Func<TResult> defaultValue)
         => HasValue ? selector(_data!) : defaultValue();

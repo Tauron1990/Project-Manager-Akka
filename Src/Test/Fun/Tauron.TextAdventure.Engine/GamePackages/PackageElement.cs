@@ -20,7 +20,8 @@ public abstract class PackageElement
 
     public static PackageElement Translate(IHostEnvironment environment, string path) => new Translator(path, environment);
 
-    public static PackageElement Asset(Action<AssetManager> configurator) => new AssetLoader(configurator);
+    public static PackageElement Asset(IHostEnvironment environment, Action<IHostEnvironment, AssetManager> configurator) => 
+        new AssetLoader(environment, configurator);
 
     public static PackageElement System<TSystem>()
         where TSystem : class, ISystem
@@ -46,7 +47,7 @@ public abstract class PackageElement
         private readonly IEnumerable<PackageElement> _gamepackages;
         private HashSet<PackageElement>? _visited;
 
-        public GroupingElement(IEnumerable<PackageElement> gamepackages)
+        internal GroupingElement(IEnumerable<PackageElement> gamepackages)
             => _gamepackages = gamepackages;
 
         internal override void Load(ElementLoadContext context)

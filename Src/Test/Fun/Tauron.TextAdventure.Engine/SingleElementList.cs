@@ -20,7 +20,7 @@ public sealed class SingleElementList<TValue> : IEnumerable<TValue>
     {
         private bool _nextFinish;
 
-        public Enumerator(TValue value)
+        internal Enumerator(TValue value)
             => Current = value;
 
         public bool MoveNext()

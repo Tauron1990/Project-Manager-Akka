@@ -21,12 +21,11 @@ public sealed class ConsoleUI : SpectreConsoleLayerBase<ConsoleUIVisitor>
 
     protected override async ValueTask<string?> ExecutePage(ConsoleUIVisitor visitor)
     {
-        if(visitor.RootInputElement is null)
-        {
-            visitor.RunRender();
+        if(visitor.RootInputElement is not null)
+            return await visitor.RootInputElement.Execute(_manager, visitor.RunRender).ConfigureAwait(false);
 
-            return string.Empty;
-        }
-        return await visitor.RootInputElement.Execute(_manager, visitor.RunRender).ConfigureAwait(false);
+        visitor.RunRender();
+
+        return string.Empty;
     }
 }

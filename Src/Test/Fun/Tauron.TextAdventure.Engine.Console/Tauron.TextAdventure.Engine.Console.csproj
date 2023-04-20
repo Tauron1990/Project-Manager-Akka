@@ -6,6 +6,15 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;IL2121;GU0011</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+      <NoWarn>1701;1702;IL2121;GU0011</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
           <PrivateAssets>all</PrivateAssets>
@@ -15,11 +24,11 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Gu.Analyzers" Version="2.0.2">
+        <PackageReference Include="Gu.Analyzers" Version="2.0.3">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.14">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.34">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

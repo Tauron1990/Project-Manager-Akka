@@ -2,7 +2,7 @@
 
 namespace Tauron.TextAdventure.Engine.Core;
 
-[PublicAPI]
+[PublicAPI, Serializable]
 public sealed class RoomCreationException : Exception
 {
     public RoomCreationException(string roomName, Exception error)

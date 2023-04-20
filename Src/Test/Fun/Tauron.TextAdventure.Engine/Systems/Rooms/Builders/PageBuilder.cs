@@ -50,7 +50,7 @@ public sealed class PageBuilder : RoomBuilderBase
     }
 
     private static Func<AssetManager, RenderElement> FromDocument(Func<AssetManager, IDocument> builder)
-        => manager => new DocumentElement(builder(manager));
+        => manager => new DocumentElement(builder(manager), manager.RenderContext);
 
     private static Func<AssetManager, RenderElement> FromString(Func<AssetManager, string> builder)
         => manager => new TextElement(builder(manager));

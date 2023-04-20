@@ -10,6 +10,8 @@ using Tauron.TextAdventure.Engine.Data;
 using Tauron.TextAdventure.Engine.GamePackages;
 using Tauron.TextAdventure.Engine.GamePackages.Core;
 using Tauron.TextAdventure.Engine.Systems;
+using Tauron.TextAdventure.Engine.Systems.Actor;
+using Tauron.TextAdventure.Engine.Systems.Rooms;
 using Tauron.TextAdventure.Engine.Systems.Rooms.Core;
 using Tauron.TextAdventure.Engine.UI;
 using Tauron.TextAdventure.Engine.UI.Internal;
@@ -97,11 +99,14 @@ public sealed class GameHost
             var store = new EventStore(toLoad);
 
             eventManager.Initialize(store);
-            store.LoadGame();
+            Player player = store.LoadGame();
 
             foreach (IDisposable system in systems.SelectMany(s => s.Initialize(eventManager)))
                 disposer.Add(system);
 
+            if(string.IsNullOrWhiteSpace(player.Location.Value))
+                player.Location.Value = RoomKeys.Start;
+            
             var menu = new RunningGame(scope.ServiceProvider);
             await menu.RunGame().ConfigureAwait(false);
 
