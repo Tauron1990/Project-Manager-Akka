@@ -10,4 +10,5 @@ public enum UIType
     SensorNumber,
     Text,
     Button,
+    Input,
 }

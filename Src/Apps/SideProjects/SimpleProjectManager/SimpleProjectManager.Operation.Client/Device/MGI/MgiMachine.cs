@@ -12,6 +12,7 @@ using SimpleProjectManager.Operation.Client.Device.MGI.MgiUi;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
+using Tauron.Application;
 using Tauron.TAkka;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI;
@@ -29,7 +30,11 @@ public sealed class MgiMachine : IMachine
     private readonly MgiUiManager _uiManager;
 
 #pragma warning disable GU0073
-    public MgiMachine(ILoggerFactory loggerFactory, OperationConfiguration operationConfiguration)
+    public MgiMachine(
+        ILoggerFactory loggerFactory, 
+        OperationConfiguration operationConfiguration, 
+        ITauronEnviroment tauronEnviroment,
+        IStateFactory stateFactory)
 #pragma warning restore GU0073
     {
         _logCollector = new LogCollector<LogInfo>(
@@ -40,7 +45,7 @@ public sealed class MgiMachine : IMachine
         _deviceId = operationConfiguration.CreateDeviceId(MgiId);
         _clientName = operationConfiguration.Name;
 
-        _uiManager = new MgiUiManager(loggerFactory.CreateLogger<MgiUiManager>());
+        _uiManager = new MgiUiManager(loggerFactory.CreateLogger<MgiUiManager>(), tauronEnviroment, stateFactory);
     }
 
     private LogData ConvertLogInfo(LogInfo element)
@@ -92,20 +97,16 @@ public sealed class MgiMachine : IMachine
             Nobody.Instance));
 
     public IState<DeviceUiGroup>? UIUpdates()
-        => null;
+        => _uiManager.DynamicUi;
 
     public Task<DeviceManagerMessages.ISensorBox> UpdateSensorValue(DeviceSensor sensor)
-        => Task.FromResult(DeviceManagerMessages.SensorBox.CreateDefault(sensor.SensorType));
+        => _uiManager.UpdateSensorValue(sensor);
 
     public void ButtonClick(DeviceId identifer)
-    {
-        
-    }
+        => _uiManager.ButtonClick(identifer);
 
     public void WhenButtonStateChanged(DeviceId identifer, Action<bool> onButtonStateChanged)
-    {
-        
-    }
+        => _uiManager.WhenButtonStateChanged(identifer, onButtonStateChanged);
 
     public Task<LogBatch> NextLogBatch()
         => _logCollector.GetLogs(_deviceId);

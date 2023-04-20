@@ -70,7 +70,7 @@ public sealed class ClientRunner
                 })
            .ConfigureServices(
                 (_, coll) => coll
-                   .AddSingleton<NameService>()
+                    .AddSingleton<NameService>()
                    .AddSingleton(_configManager.Configuration)
                    .AddHostedService<HostStarter>()
                    .AddSingleton<HostStarter>())
