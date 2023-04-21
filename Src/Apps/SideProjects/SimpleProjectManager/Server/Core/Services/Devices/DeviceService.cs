@@ -123,6 +123,16 @@ public partial class DeviceService : IDeviceService, IDisposable
                 return Task.FromResult(SimpleResult.Success());
             }).ConfigureAwait(false);
 
+    public async Task<SimpleResult> DeviceInput(DeviceInputData inputData, CancellationToken token) =>
+        await Run(
+            async man =>
+            {
+                var response = await man.Ask<DeviceInputResponse>(new DeviceInput(inputData.Device, inputData.Element, inputData.Data, token), token)
+                    .ConfigureAwait(false);
+                return response.SimpleResult;
+            })
+            .ConfigureAwait(false);
+
     public virtual void Dispose()
         => _subscription.Dispose();
 

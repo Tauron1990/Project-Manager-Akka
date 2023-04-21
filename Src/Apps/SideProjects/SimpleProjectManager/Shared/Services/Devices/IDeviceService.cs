@@ -31,4 +31,6 @@ public interface IDeviceService : IComputeService
     Task<Logs> GetBatches(DeviceId deviceId, DateTime from, DateTime to, CancellationToken token);
 
     Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token);
+
+    Task<SimpleResult> DeviceInput(DeviceInputData inputData, CancellationToken token);
 }

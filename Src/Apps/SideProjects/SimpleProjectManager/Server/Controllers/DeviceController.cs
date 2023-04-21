@@ -63,6 +63,10 @@ public class DeviceController : Controller, IDeviceService
         => _deviceService.ClickButton(device, button, token);
 
     [HttpPost]
+    public async Task<SimpleResult> DeviceInput([FromBody]DeviceInputData inputData, CancellationToken token) =>
+        await _deviceService.DeviceInput(inputData, token).ConfigureAwait(false);
+
+    [HttpPost]
     public async Task<SimpleResult> ClickButton(CancellationToken token)
     {
         try

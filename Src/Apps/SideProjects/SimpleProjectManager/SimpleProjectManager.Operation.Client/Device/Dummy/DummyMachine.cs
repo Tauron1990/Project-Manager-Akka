@@ -7,6 +7,7 @@ using SimpleProjectManager.Operation.Client.Config;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Operation.Client.Device.Dummy;
 
@@ -98,6 +99,8 @@ public sealed class DummyMachine : IMachine, IDisposable
 
     public void WhenButtonStateChanged(DeviceId identifer, Action<bool> onButtonStateChanged)
         => _stateChanges = _stateChanges.SetItem(identifer, onButtonStateChanged);
+
+    public Task<SimpleResult> NewInput(DeviceId element, string input) => Task.FromResult(SimpleResult.Success());
 
     public Task<LogBatch> NextLogBatch()
         => _dummyOperator.NextBatch();

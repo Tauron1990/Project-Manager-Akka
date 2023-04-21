@@ -4,6 +4,7 @@ using SimpleProjectManager.Operation.Client.Device.MGI.Logging;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 using Tauron.Application;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.MgiUi;
 
@@ -36,7 +37,7 @@ public sealed partial class MgiUiManager
                 _currentStatus.Set(status);
             }
             else if(string.Equals(log.Type, "ERROR", StringComparison.Ordinal))
-                _currentStatus.Set(log.Content);
+                _currentStatus.Set($"Fehler: {log.Content}");
         }
         catch (Exception e)
         {
@@ -60,4 +61,6 @@ public sealed partial class MgiUiManager
     {
         
     }
+
+    public Task<SimpleResult> NewInput(DeviceId element, string input) => Task.FromResult(SimpleResult.Success());
 }

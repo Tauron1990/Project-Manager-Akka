@@ -13,6 +13,7 @@ using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 using Tauron.Application;
+using Tauron.Operations;
 using Tauron.TAkka;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI;
@@ -107,6 +108,8 @@ public sealed class MgiMachine : IMachine
 
     public void WhenButtonStateChanged(DeviceId identifer, Action<bool> onButtonStateChanged)
         => _uiManager.WhenButtonStateChanged(identifer, onButtonStateChanged);
+
+    public Task<SimpleResult> NewInput(DeviceId element, string input) => _uiManager.NewInput(element, input);
 
     public Task<LogBatch> NextLogBatch()
         => _logCollector.GetLogs(_deviceId);

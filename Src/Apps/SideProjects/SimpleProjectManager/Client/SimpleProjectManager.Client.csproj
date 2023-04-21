@@ -263,6 +263,9 @@
         <Compile Update="Shared\LogFiles\LogFileDisplay.cs">
           <DependentUpon>LogFileDisplay.razor</DependentUpon>
         </Compile>
+        <Compile Update="Shared\Devices\DeviceInputDisplay.cs">
+          <DependentUpon>DeviceInputDisplay.razor</DependentUpon>
+        </Compile>
     </ItemGroup>
 
 </Project>

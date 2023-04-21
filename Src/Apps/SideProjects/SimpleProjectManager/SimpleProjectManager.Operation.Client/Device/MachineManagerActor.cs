@@ -71,6 +71,20 @@ public sealed partial class MachineManagerActor : ReceiveActor, IWithStash
             Context.ActorOf(() => new LoggerActor(_machine, _device.DeviceId));
 
         Receive<ButtonClick>(c => Context.Child(c.Identifer.Value).Forward(c));
+        Receive<DeviceInput>(async input =>
+        {
+            IActorRef sender = Sender;
+            
+            try
+            {
+                SimpleResult result = await _machine.NewInput(input.Element, input.Data).ConfigureAwait(false);
+                sender.Tell(new DeviceInputResponse(result));
+            }
+            catch (Exception e)
+            {
+                sender.Tell(new DeviceInputResponse(SimpleResult.Failure(e)));
+            }
+        });
         
         Receive<DeviceServerOffline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
         Receive<DeviceServerOnline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));

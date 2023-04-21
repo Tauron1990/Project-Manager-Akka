@@ -37,4 +37,7 @@ public interface IDeviceServiceDef
 
     [Post(nameof(ClickButton))]
     Task<SimpleResult> ClickButton([Body] DeviceId device, [Query("button")] DeviceId button, CancellationToken token);
+    
+    [Post(nameof(DeviceInput))]
+    Task<SimpleResult> DeviceInput([Body] DeviceInputData inputData, CancellationToken token);
 }

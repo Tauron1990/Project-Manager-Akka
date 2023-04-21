@@ -39,11 +39,31 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         Observ<Terminated>(obs => obs.ToUnit(p => p.Context.Stop(p.Self)));
         Observ<NewUIData>(obs => obs.Select(NewUI));
         Observ<Status.Success>(obs => obs.Subscribe());
+        ReceiveState<DeviceInput>(NewInput);
         
         if(!CurrentState.Info.HasLogs) return;
 
         IActorRef? loggerActor = Context.ActorOf(LoggerActor.Create(Context.System, CurrentState.Info.DeviceId), $"Logger--{Guid.NewGuid():N}");
         Observ<QueryLoggerBatch>(obs => obs.ToUnit(p => loggerActor.Forward(p.Event)));
+    }
+
+    [LoggerMessage(1, LogLevel.Error, "Error on Transfer Input to Device: {data}")]
+    private static partial void ErrorOnTransferInput(ILogger logger, Exception e, DeviceInput data);
+    
+    private void NewInput(StatePair<DeviceInput, State> pair)
+    {
+        try
+        {
+            pair.State.Info.DeviceManager
+                .Ask<DeviceInputResponse>(pair.Event, cancellationToken: pair.Event.Token)
+                #pragma warning disable EPC13
+                .PipeTo(pair.Sender);
+                #pragma warning restore EPC13
+        }
+        catch (Exception e)
+        {
+            ErrorOnTransferInput(Logger, e, pair.Event);
+        }
     }
 
     private State NewInfo(StatePair<DeviceInformations, State> message)

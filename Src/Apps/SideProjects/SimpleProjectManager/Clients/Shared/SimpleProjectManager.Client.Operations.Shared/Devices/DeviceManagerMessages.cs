@@ -155,4 +155,8 @@ public static class DeviceManagerMessages
     public sealed record UiResponse(DeviceUiGroup Root);
 
     public sealed record NewUIData(DeviceId DeviceName, DeviceUiGroup Ui) : IDeviceCommand;
+
+    public sealed record DeviceInput(DeviceId DeviceName, DeviceId Element, string Data, CancellationToken Token) : IDeviceCommand;
+
+    public sealed record DeviceInputResponse(SimpleResult SimpleResult);
 }

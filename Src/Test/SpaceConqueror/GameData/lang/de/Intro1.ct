@@ -1,1 +1,1 @@
-﻿Es war einmal {GetString(EmpireName)}.
+﻿Es war einmal {GetString("EmpireName")}.
