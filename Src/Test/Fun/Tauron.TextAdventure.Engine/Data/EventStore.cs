@@ -20,8 +20,8 @@ internal sealed class EventStore
     internal GameState GameState { get; }
 
     private string SaveGameName { get; }
-
-    private ZipArchive? GetSaveGameFile(ZipArchiveMode mode)
+    
+    private ZipArchive? GetSaveGameFile(bool read)
     {
         string dic = Path.GetFullPath(Path.Combine(GameHost.RootDic, "SaveGames"));
         if(!Directory.Exists(dic))
@@ -30,20 +30,21 @@ internal sealed class EventStore
         string gameFile = Path.Combine(dic, SaveGameName);
 
 
-        if(mode != ZipArchiveMode.Read)
-            return File.Exists(gameFile)
-                ? new ZipArchive(File.Open(gameFile, FileMode.OpenOrCreate), mode)
-                : new ZipArchive(File.Open(gameFile, FileMode.OpenOrCreate), ZipArchiveMode.Create);
+        if(read)
+            return !File.Exists(gameFile)
+                ? null
+                : new ZipArchive(File.OpenRead(gameFile), ZipArchiveMode.Read);
 
-        return !File.Exists(gameFile)
-            ? null
-            : new ZipArchive(File.OpenRead(gameFile), mode);
+        if(File.Exists(gameFile))
+            File.Delete(gameFile);
+            
+        return new ZipArchive(File.Open(gameFile, FileMode.OpenOrCreate), ZipArchiveMode.Create);
 
     }
 
     internal Player LoadGame()
     {
-        using ZipArchive? zip = GetSaveGameFile(ZipArchiveMode.Read);
+        using ZipArchive? zip = GetSaveGameFile(read:true);
 
         ZipArchiveEntry? entry = zip?.Entries.FirstOrDefault(ent => string.Equals(ent.Name, "state", StringComparison.Ordinal));
         if(entry is null) return GameState.Get<Player>();
@@ -56,18 +57,17 @@ internal sealed class EventStore
 
     internal void SaveGame()
     {
-        using ZipArchive? zip = GetSaveGameFile(ZipArchiveMode.Update);
+        using ZipArchive? zip = GetSaveGameFile(read:false);
 
         if(zip is null)
             #pragma warning disable EX002
             throw new UnreachableException();
         #pragma warning restore EX002
 
-        ZipArchiveEntry state = zip.Entries.FirstOrDefault(ent => string.Equals(ent.Name, "state", StringComparison.Ordinal))
-                             ?? zip.CreateEntry("state", CompressionLevel.Optimal);
+        ZipArchiveEntry state = zip.CreateEntry("state", CompressionLevel.Optimal);
 
-        using Stream entryStream = state.Open();
-        ((ISaveable)GameState).Write(new BinaryWriter(entryStream));
+        using (Stream entryStream = state.Open())
+            ((ISaveable)GameState).Write(new BinaryWriter(entryStream));
 
         long eventsName = DateTime.UtcNow.Ticks;
 
