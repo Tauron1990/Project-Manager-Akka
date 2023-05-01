@@ -102,7 +102,7 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
     object? IViewFor.ViewModel
     {
         get => ViewModel;
-        set => ViewModel = (TModel?)value;
+        set => ViewModel = (TModel)value;
     }
 
     /// <inheritdoc />

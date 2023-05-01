@@ -1,6 +1,6 @@
 ﻿@inherits NonAutoRenderingView<SimpleProjectManager.Client.ViewModels.Devices.DeviceInputViewModel>
 
-
-<MudGrid>
-    <MudItem></MudItem>
-</MudGrid>
+<MudStack Row="true">
+    <MudTextField T="string" Label="@Name.Value" @bind-Value="InputText"/>
+    <MudCommandButton @ref="_sendCommand">Abschicken</MudCommandButton>
+</MudStack>

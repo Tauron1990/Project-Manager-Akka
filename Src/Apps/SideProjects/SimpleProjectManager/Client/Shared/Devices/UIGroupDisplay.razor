@@ -96,7 +96,7 @@
             break;
         case UIType.Input:
             <DeviceInputDisplay DeviceId="DeviceId" Element="UiGroup.Id" Name="UiGroup.Name" 
-                                Content="@(UiGroup.Ui.SingleOrDefault()?.Name.Value ?? string.Empty)"/>
+                                Content="@(GetText(UiGroup.Ui))"/>
             break;
         default:
             <MudText>Unbekannter UI Type</MudText>

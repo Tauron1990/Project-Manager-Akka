@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using JetBrains.Annotations;
 
 namespace SimpleProjectManager.Shared.Services.Devices;
@@ -77,11 +74,17 @@ public static class DeviceUi
     public static DeviceUiGroup Text(string text) 
         => Text(DisplayName.From(text));
 
-    public static DeviceUiGroup TextInput(DeviceId id, in DisplayName text) 
-        => new(text, UIType.Input, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty);
+    public static DeviceUiGroup TextInput(DeviceId id, in DisplayName label, in DisplayName text) 
+        => new(label, UIType.Input, DeviceId.New, ImmutableList<DeviceUiGroup>.Empty);
     
-    public static DeviceUiGroup TextInput(DeviceId id, string text) 
-        => Text(DisplayName.From(text));
+    public static DeviceUiGroup TextInput(DeviceId id, string label, string text) 
+        => TextInput(id, DisplayName.From(label), DisplayName.From(text));
+    
+    public static DeviceUiGroup TextInput(DeviceId id, in DisplayName label) 
+        => TextInput(id, label, DisplayName.From(string.Empty));
+    
+    public static DeviceUiGroup TextInput(DeviceId id, string label) 
+        => TextInput(id, label, string.Empty);
     
     public static DeviceUiGroup Button(DeviceButton button)
         => new(button.DisplayName, UIType.Button, button.Identifer, ImmutableList<DeviceUiGroup>.Empty);

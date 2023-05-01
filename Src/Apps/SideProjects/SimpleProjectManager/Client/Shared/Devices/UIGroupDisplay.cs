@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
 
 namespace SimpleProjectManager.Client.Shared.Devices;
@@ -37,4 +38,6 @@ public partial class UIGroupDisplay
         count++;
         yield return (count, list);
     }
+
+    private static string GetText(ImmutableList<DeviceUiGroup> from) => from.Count == 1 ? from[0].Name.Value : string.Empty;
 }
