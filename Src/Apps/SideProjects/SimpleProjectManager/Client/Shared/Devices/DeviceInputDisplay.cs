@@ -51,11 +51,6 @@ public partial class DeviceInputDisplay
                 select pv.Value
             )
             .DistinctUntilChanged()
-            .Subscribe(
-                s =>
-                {
-                    InputText = s;
-                    RenderingManager.StateHasChangedAsync().Ignore();
-                });
+            .Subscribe(_ => OnPropertyChanged(nameof(InputText)));
     }
 }

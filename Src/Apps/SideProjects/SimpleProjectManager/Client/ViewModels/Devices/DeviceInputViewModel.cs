@@ -1,5 +1,4 @@
 ﻿using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ReactiveUI;
@@ -9,12 +8,13 @@ using Stl.Fusion;
 using Tauron;
 using Tauron.Application;
 using Tauron.Application.Blazor;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.ViewModels.Devices;
 
 public class DeviceInputViewModel : BlazorViewModel
 {
-    private string _input;
+    private string _input = string.Empty;
 
     public string Input
     {
@@ -50,6 +50,20 @@ public class DeviceInputViewModel : BlazorViewModel
             DeviceId? elementId = element.ValueOrDefault;
             if(elementId is null || device is null)
                 return;
+
+            try
+            {
+                await aggregator.IsSuccess(
+                    () => TimeoutToken.WithDefault(
+                        default,
+                        async t => await service.DeviceInput(new DeviceInputData(device, elementId, Input), t).ConfigureAwait(false)
+                    )).ConfigureAwait(false);
+
+            }
+            catch (Exception e)
+            {
+                aggregator.PublishError(e);
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ using JetBrains.Annotations;
 
 namespace SimpleProjectManager.Shared;
 
+[PublicAPI]
 public static class SimpleLazy
 {
     public static Lazy<TData> Create<TData, TArg>(TArg arg, Func<TArg, TData> factory)
@@ -13,7 +14,10 @@ public static class SimpleLazy
     public static Lazy<TData> Create<TData>()
         where  TData : new()
         => new StateLessLazy<TData>(() => new TData());
-    
+
+    public static Lazy<TData> Create<TData>(TData data) =>
+        new FakeLazy<TData>(data);
+
     [PublicAPI]
     public abstract class Lazy<TData>
     {
@@ -66,5 +70,14 @@ public static class SimpleLazy
 
         protected override TData Create()
             => _factory();
+    }
+    
+    private sealed class FakeLazy<TData> : Lazy<TData>
+    {
+        private readonly TData _inst;
+
+        internal FakeLazy(TData inst) => _inst = inst;
+
+        protected override TData Create() => _inst;
     }
 }
