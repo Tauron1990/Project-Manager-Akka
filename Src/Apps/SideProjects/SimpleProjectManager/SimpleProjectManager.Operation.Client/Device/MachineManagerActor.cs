@@ -71,10 +71,17 @@ public sealed partial class MachineManagerActor : ReceiveActor, IWithStash
             Context.ActorOf(() => new LoggerActor(_machine, _device.DeviceId));
 
         Receive<ButtonClick>(c => Context.Child(c.Identifer.Value).Forward(c));
-        Receive<DeviceInput>(async input =>
+        
+
+        Receive<DeviceInput>(HandleInput);
+        
+        Receive<DeviceServerOffline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
+        Receive<DeviceServerOnline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
+        
+        async void HandleInput(DeviceInput input)
         {
             IActorRef sender = Sender;
-            
+
             try
             {
                 SimpleResult result = await _machine.NewInput(input.Element, input.Data).ConfigureAwait(false);
@@ -84,10 +91,7 @@ public sealed partial class MachineManagerActor : ReceiveActor, IWithStash
             {
                 sender.Tell(new DeviceInputResponse(SimpleResult.Failure(e)));
             }
-        });
-        
-        Receive<DeviceServerOffline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
-        Receive<DeviceServerOnline>(msg => Context.GetChildren().Foreach(actor => actor.Forward(msg)));
+        }
     }
 
     [LoggerMessage(EventId = 66, Level = LogLevel.Error, Message = "Error on Registrating Device with {error}")]

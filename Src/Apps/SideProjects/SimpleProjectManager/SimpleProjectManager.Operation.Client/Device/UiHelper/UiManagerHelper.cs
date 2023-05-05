@@ -13,7 +13,7 @@ public class UiManagerHelper : IHasServices
     private readonly Dictionary<string, ScreenRegistration> _screens = new(StringComparer.Ordinal);
     private readonly IMutableState<DeviceUiGroup> _currentui;
     
-    private IScreenModel? _current;
+    private ScreenRegistration? _current;
 
     public IState<DeviceUiGroup> UI => _currentui;
     
@@ -32,19 +32,27 @@ public class UiManagerHelper : IHasServices
         return this;
     }
 
-    public void Replace(DeviceUiGroup group) =>
+    public void Replace(DeviceUiGroup group)
+    {
+        lock (_lock)
+        {
+            if(_current is not null)
+                _current.Ui = group;
+        }
+        
         _currentui.Set(group);
+    }
 
     public void Show(string name)
     {
         lock (_lock)
         {
-            _current?.OnHide();
+            _current?.Model.OnHide();
             ScreenRegistration reg = _screens[name];
-            _current = reg.Model;
+            _current = reg;
             _currentui.Set(reg.Ui);
             
-            _current.OnShow(this);
+            _current.Model.OnShow(this);
         }
     }
 
@@ -52,7 +60,7 @@ public class UiManagerHelper : IHasServices
     {
         IScreenModel? model;
         lock (_lock)
-            model = _current;
+            model = _current?.Model;
 
         if(model is null) return DeviceManagerMessages.SensorBox.CreateDefault(sensor.SensorType);
 
@@ -62,20 +70,20 @@ public class UiManagerHelper : IHasServices
     public void ButtonClick(DeviceId identifer)
     {
         lock(_lock)
-            _current?.ButtonClick(identifer);
+            _current?.Model.ButtonClick(identifer);
     }
 
     public void WhenButtonStateChanged(DeviceId identifer, Action<bool> onButtonStateChanged)
     {
         lock(_lock)
-            _current?.WhenButtonStateChanged(identifer, onButtonStateChanged);
+            _current?.Model.WhenButtonStateChanged(identifer, onButtonStateChanged);
     }
 
     public async Task<SimpleResult> NewInput(DeviceId element, string input)
     {
         IScreenModel? model;
         lock (_lock)
-            model = _current;
+            model = _current?.Model;
 
         if(model is null) return SimpleResult.Failure("No UI Screen Model Found");
 
@@ -87,7 +95,11 @@ public class UiManagerHelper : IHasServices
         private readonly SimpleLazy.Lazy<IScreenModel> _model;
         private DeviceUiGroup? _ui;
 
-        internal DeviceUiGroup Ui => _ui ??= _model.Value.Initialize();
+        internal DeviceUiGroup Ui
+        {
+            get => _ui ??= _model.Value.Initialize();
+            set => _ui = value;
+        }
 
         internal IScreenModel Model => _model.Value;
         
