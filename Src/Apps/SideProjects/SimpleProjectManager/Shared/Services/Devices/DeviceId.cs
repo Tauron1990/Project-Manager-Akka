@@ -7,7 +7,7 @@ namespace SimpleProjectManager.Shared.Services.Devices;
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
 public sealed class DeviceId : Identity<DeviceId>
 {
-    private static readonly Guid _namespace = new("14958213-06AB-4ACE-A6CF-897F67755015");
+    private static readonly Guid Namespace = new("14958213-06AB-4ACE-A6CF-897F67755015");
 
     public DeviceId(string value) : base(value) { }
 
@@ -16,5 +16,5 @@ public sealed class DeviceId : Identity<DeviceId>
         => TryParse(value, out deviceId);
 
     public static DeviceId ForName(string name)
-        => NewDeterministic(_namespace, name);
+        => NewDeterministic(Namespace, name);
 }

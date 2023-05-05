@@ -46,7 +46,7 @@ public sealed class MgiMachine : IMachine
         _deviceId = operationConfiguration.CreateDeviceId(MgiId);
         _clientName = operationConfiguration.Name;
 
-        _uiManager = new MgiUiManager(loggerFactory.CreateLogger<MgiUiManager>(), tauronEnviroment, stateFactory);
+        _uiManager = new MgiUiManager(loggerFactory, tauronEnviroment, stateFactory);
     }
 
     private LogData ConvertLogInfo(LogInfo element)
@@ -97,19 +97,20 @@ public sealed class MgiMachine : IMachine
             ImmutableList<ButtonState>.Empty,
             Nobody.Instance));
 
-    public IState<DeviceUiGroup>? UIUpdates()
-        => _uiManager.DynamicUi;
+    public IState<DeviceUiGroup> UIUpdates() => 
+        _uiManager.DynamicUi;
 
-    public Task<DeviceManagerMessages.ISensorBox> UpdateSensorValue(DeviceSensor sensor)
-        => _uiManager.UpdateSensorValue(sensor);
+    public Task<DeviceManagerMessages.ISensorBox> UpdateSensorValue(DeviceSensor sensor) => 
+        _uiManager.UpdateSensorValue(sensor);
 
-    public void ButtonClick(DeviceId identifer)
-        => _uiManager.ButtonClick(identifer);
+    public void ButtonClick(DeviceId identifer) => 
+        _uiManager.ButtonClick(identifer);
 
-    public void WhenButtonStateChanged(DeviceId identifer, Action<bool> onButtonStateChanged)
-        => _uiManager.WhenButtonStateChanged(identifer, onButtonStateChanged);
+    public void WhenButtonStateChanged(DeviceId identifer, Action<bool> onButtonStateChanged) =>
+        _uiManager.WhenButtonStateChanged(identifer, onButtonStateChanged);
 
-    public Task<SimpleResult> NewInput(DeviceId element, string input) => _uiManager.NewInput(element, input);
+    public Task<SimpleResult> NewInput(DeviceId element, string input) => 
+        _uiManager.NewInput(element, input);
 
     public Task<LogBatch> NextLogBatch()
         => _logCollector.GetLogs(_deviceId);

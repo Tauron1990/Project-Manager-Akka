@@ -8,7 +8,7 @@ public interface IScreenModel
 {
     DeviceUiGroup Initialize();
     
-    void OnShow();
+    void OnShow(UiManagerHelper helper);
 
     void OnHide();
     

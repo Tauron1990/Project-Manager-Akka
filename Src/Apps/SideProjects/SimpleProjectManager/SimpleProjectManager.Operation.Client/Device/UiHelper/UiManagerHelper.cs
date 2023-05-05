@@ -1,21 +1,29 @@
 ﻿using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Shared;
 using SimpleProjectManager.Shared.Services.Devices;
+using Stl.DependencyInjection;
 using Stl.Fusion;
 using Tauron.Operations;
 
 namespace SimpleProjectManager.Operation.Client.Device.UiHelper;
 
-public class UiManagerHelper
+public class UiManagerHelper : IHasServices
 {
     private readonly object _lock = new();
     private readonly Dictionary<string, ScreenRegistration> _screens = new(StringComparer.Ordinal);
     private readonly IMutableState<DeviceUiGroup> _currentui;
-
-    private IScreenModel? _current;
     
-    public UiManagerHelper(IStateFactory factory, DeviceUiGroup initialUi) 
-        => _currentui = factory.NewMutable(initialUi);
+    private IScreenModel? _current;
+
+    public IState<DeviceUiGroup> UI => _currentui;
+    
+    public IServiceProvider Services { get; }
+    
+    public UiManagerHelper(IStateFactory factory, DeviceUiGroup initialUi)
+    {
+        _currentui = factory.NewMutable(initialUi);
+        Services = factory.Services;
+    }
 
     public UiManagerHelper WithScreen(string key, SimpleLazy.Lazy<IScreenModel> model)
     {
@@ -23,6 +31,9 @@ public class UiManagerHelper
             _screens.Add(key, new ScreenRegistration(model));
         return this;
     }
+
+    public void Replace(DeviceUiGroup group) =>
+        _currentui.Set(group);
 
     public void Show(string name)
     {
@@ -33,7 +44,7 @@ public class UiManagerHelper
             _current = reg.Model;
             _currentui.Set(reg.Ui);
             
-            _current.OnShow();
+            _current.OnShow(this);
         }
     }
 
