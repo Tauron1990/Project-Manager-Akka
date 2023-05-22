@@ -1,9 +1,11 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
+using FluentResults;
 using Newtonsoft.Json;
 using NLog;
 using Stl.Channels;
@@ -19,7 +21,7 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
     private readonly Subject<NetworkMessage> _messageHandler = new();
     private IDataClient? _dataClient;
     private IDataServer? _dataServer;
-    private Task _messageHandlerTask = Task.CompletedTask;
+    //private Task _messageHandlerTask = Task.CompletedTask;
     
     internal IpcConnection(bool masterExists, IpcApplicationType type, Action<string, Exception> errorHandler)
     {
@@ -60,12 +62,12 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
 
                     break;
                 default:
-                    #pragma warning disable EX006
-                    throw new ArgumentOutOfRangeException(nameof(type), type, message: null);
-                #pragma warning restore EX006
+                    #pragma warning disable EX002, EX006
+                    throw new UnreachableException();
+                #pragma warning restore EX002, EX006
             }
         }
-        catch (Exception e)
+        catch (Exception e) when(e is not UnreachableException)
         {
             errorHandler("Global", e);
             ErrorMessage = e.Message;
@@ -87,20 +89,26 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
 
     public bool IsReady { get; private set; } = true;
 
-    public IObservable<CallResult<TType>> OnMessage<TType>()
+    public IObservable<Result<TType>> OnMessage<TType>()
     {
         if(!IsReady)
-            return Observable.Empty<CallResult<TType>>();
+            return Observable.Empty<Result<TType>>();
 
-        string type = typeof(TType).AssemblyQualifiedName ??
-                      throw new InvalidOperationException("Invalid Message Type");
+        string? type = typeof(TType).AssemblyQualifiedName;
+        if(string.IsNullOrWhiteSpace(type))
+            return Observable.Return<Result<TType>>(Result.Fail("AssemblyQualifiedName was null or Empty"));
 
-        return _messageHandler
-           .Where(nm => string.Equals(nm.Type, type, StringComparison.Ordinal))
-           .SelectSafe(nm => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data))!);
+        return
+            from nm in _messageHandler
+            where string.Equals(nm.Type, type, StringComparison.Ordinal)
+            let data = Result.Try(() => JsonConvert.DeserializeObject<TType>(Encoding.UTF8.GetString(nm.Data)))
+            select data.Bind(
+                deserialized => deserialized is null
+                    ? Result.Fail("No Data Deserialized")
+                    : Result.Ok(deserialized));
     }
 
-    public async ValueTask<bool> SendMessage<TMessage>(Client to, TMessage message)
+    public async ValueTask<Result> SendMessage<TMessage>(Client to, TMessage message)
     {
         if(!IsReady)
             return false;

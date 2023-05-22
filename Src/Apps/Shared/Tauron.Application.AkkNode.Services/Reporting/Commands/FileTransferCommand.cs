@@ -1,4 +1,5 @@
 ﻿using System;
+using FluentResults;
 using JetBrains.Annotations;
 using Tauron.Application.AkkaNode.Services.FileTransfer;
 
@@ -9,25 +10,13 @@ public abstract record FileTransferCommand<TSender, TThis> : ReporterCommandBase
     where TThis : FileTransferCommand<TSender, TThis>
     where TSender : ISender
 {
-    private DataTransferManager? _manager;
-
     [UsedImplicitly]
-    public DataTransferManager? Manager
-    {
-        get => _manager;
-        set
-        {
-            if(_manager != null)
-                throw new InvalidOperationException("Datamanager Should set only once");
+    public DataTransferManager? Manager { get; set; }
 
-            _manager = value;
-        }
-    }
-
-    public DataTransferManager GetTransferManager()
+    public Result<DataTransferManager> GetTransferManager()
     {
         if(Manager is null)
-            throw new InvalidOperationException("Transfer manager not Set");
+            return Result.Fail("Transfer manager not Set");
 
         return Manager;
     }

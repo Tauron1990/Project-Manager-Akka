@@ -43,6 +43,20 @@
         <Compile Remove="ActorFlowBuilder.cs" />
         <None Include="ObservableExt\Branch.cs" />
         <None Include="ActorFlowBuilder.cs" />
+        <Compile Remove="Operations\Error.cs" />
+        <None Include="Operations\Error.cs" />
+        <Compile Remove="Operations\IErrorConvertable.cs" />
+        <None Include="Operations\IErrorConvertable.cs" />
+        <Compile Remove="Operations\IOperationResult.cs" />
+        <None Include="Operations\IOperationResult.cs" />
+        <Compile Remove="Operations\OperationResult.cs" />
+        <None Include="Operations\OperationResult.cs" />
+        <Compile Remove="Operations\OperationResultExtensions.cs" />
+        <None Include="Operations\OperationResultExtensions.cs" />
+        <Compile Remove="Operations\SimpleResult.cs" />
+        <None Include="Operations\SimpleResult.cs" />
+        <Compile Remove="Operations\SimpleResultExtensions.cs" />
+        <None Include="Operations\SimpleResultExtensions.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -55,6 +69,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="FastExpressionCompiler" Version="3.3.4" />
+        <PackageReference Include="FluentResults" Version="3.15.2" />
         <PackageReference Include="Gu.Analyzers" Version="2.0.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

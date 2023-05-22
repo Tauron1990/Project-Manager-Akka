@@ -4,8 +4,10 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Util;
 using JetBrains.Annotations;
-using Tauron.Operations;
 using UnitsNet;
+
+using ReporterResult = FluentResults.Result<Tauron.Application.AkkaNode.Services.Reporting.Reporter>;
+using Result = FluentResults.Result;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting;
 
@@ -112,24 +114,24 @@ public sealed class Reporter
         out Task<IOperationResult> onCompled)
         => CreateListner(factory, listner, timeout, name: null, out onCompled);
 
-    public Reporter Listen(IActorRef actor)
+    public ReporterResult Listen(IActorRef actor)
     {
         if(_reporter.IsNobody()) return this;
 
         if(_compledCalled.Value)
-            throw new InvalidOperationException("Reporter is Compled");
+            return Result.Fail(new ReporterCompledError());
 
         _reporter.Tell(new ListeningActor(actor));
 
         return this;
     }
 
-    public void Send(string message)
+    public Result Send(string message)
     {
-        if(_reporter.IsNobody()) return;
+        if(_reporter.IsNobody()) return Result.Fail(new NoReporterError());
 
         if(_compledCalled.Value)
-            throw new InvalidOperationException("Reporter is Compled");
+            return Result.Fail(new ReporterCompledError());
 
         _reporter.Tell(new TransferedMessage(message));
     }
@@ -138,14 +140,16 @@ public sealed class Reporter
         where T : notnull
         => Send(message.ToString() ?? string.Empty);
     
-    public void Compled(IOperationResult result)
+    public Result Compled(IOperationResult result)
     {
-        if(_reporter.IsNobody()) return;
+        if(_reporter.IsNobody()) return Result.Fail(new NoReporterError());
 
         if(_compledCalled.GetAndSet(newValue: true))
-            throw new InvalidOperationException("Reporter is Compled");
+            return Result.Fail(new ReporterCompledError());
 
         _reporter.Tell(result);
+        
+        return Result.Ok();
     }
 
     private sealed class Listner : ReceiveActor
