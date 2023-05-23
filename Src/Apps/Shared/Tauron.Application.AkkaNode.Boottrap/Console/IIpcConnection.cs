@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using FluentResults;
 using JetBrains.Annotations;
 using Tauron.Servicemnager.Networking;
 
@@ -10,9 +11,9 @@ public interface IIpcConnection
 {
     bool IsReady { get; }
 
-    IObservable<CallResult<TType>> OnMessage<TType>();
+    IObservable<Result<TType>> OnMessage<TType>();
 
-    ValueTask<bool> SendMessage<TMessage>(Client to, TMessage message);
+    ValueTask<Result> SendMessage<TMessage>(Client to, TMessage message);
 
     ValueTask<bool> SendMessage<TMessage>(TMessage message);
 }

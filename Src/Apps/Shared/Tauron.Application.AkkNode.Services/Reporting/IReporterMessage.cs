@@ -1,5 +1,6 @@
 ﻿using System;
 using Akka.Actor;
+using FluentResults;
 
 namespace Tauron.Application.AkkaNode.Services.Reporting;
 
@@ -11,5 +12,5 @@ public interface IReporterMessage
 
     void SetListner(IActorRef listner);
 
-    void ValidateApi(Type apiType);
+    Result ValidateApi(Type apiType);
 }
