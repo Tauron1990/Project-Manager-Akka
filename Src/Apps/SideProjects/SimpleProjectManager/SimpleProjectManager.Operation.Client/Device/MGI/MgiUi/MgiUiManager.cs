@@ -30,7 +30,7 @@ public sealed partial class MgiUiManager
         _screenManager.Show(
             string.IsNullOrWhiteSpace(uiConfiguration.UvLampIp)
                 ? ScreenTypes.Configuration
-                : ScreenTypes.UVControl);
+                : ScreenTypes.MainControl);
     }
 
     [LoggerMessage(1, LogLevel.Error, "Error on Process Logentry for Status Change")]
