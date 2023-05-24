@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using JetBrains.Annotations;
-using Stl;
+using Tauron.Errors;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
@@ -21,55 +20,63 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
     protected DirectoryBase(Func<IFileSystemNode, TContext> context, FileSystemFeature feature)
         : base(context, feature, NodeType.Directory) { }
 
-    public abstract IEnumerable<IDirectory> Directories { get; }
+    public abstract Result<IEnumerable<IDirectory>> Directories { get; }
 
-    public abstract IEnumerable<IFile> Files { get; }
+    public abstract Result<IEnumerable<IFile>> Files { get; }
 
-    public IFile GetFile(in PathInfo name)
+    public Result<IFile> GetFile(in PathInfo name)
         => SplitFilePath(name);
 
-    public IDirectory GetDirectory(in PathInfo name)
+    public Result<IDirectory> GetDirectory(in PathInfo name)
         => SplitDirectoryPath(name);
 
-    public IDirectory MoveTo(in PathInfo location)
-    {
-        ValidateFeature(FileSystemFeature.Moveable);
+    public Result<IDirectory> MoveTo(PathInfo location) =>
+        ValidateFeature(FileSystemFeature.Moveable)
+            .Bind(() => RunMoveTo(Context, GenericPathHelper.NormalizePath(location)));
 
-        return MovetTo(Context, GenericPathHelper.NormalizePath(location));
+    protected abstract Result<IDirectory> GetDirectory(TContext context, in PathInfo name);
+
+    protected abstract Result<IFile> GetFile(TContext context, in PathInfo name);
+
+    private Result<TResult> SplitPath<TResult>(in PathInfo pathInfo, Func<TContext, PathInfo, Result<TResult>> getDirect, Func<TContext, string, string, Result<TResult>> getFromSubpath)
+    {
+        try
+        {
+            PathInfo path = GenericPathHelper.NormalizePath(pathInfo);
+
+            if(!path.Path.Contains(GenericPathHelper.GenericSeperator, StringComparison.Ordinal)) return getDirect(Context, path);
+
+            string[] elements = path.Path.Split(GenericPathHelper.GenericSeperator, 2);
+
+            return getFromSubpath(Context, elements[0], elements[1]);
+        }
+        catch (Exception e)
+        {
+            return new ExceptionalError(e);
+        }
     }
 
-    protected abstract IDirectory GetDirectory(TContext context, in PathInfo name);
-
-    protected abstract IFile GetFile(TContext context, in PathInfo name);
-
-    private TResult SplitPath<TResult>(in PathInfo pathInfo, Func<TContext, PathInfo, TResult> getDirect, Func<TContext, string, string, TResult> getFromSubpath)
-    {
-        PathInfo path = GenericPathHelper.NormalizePath(pathInfo);
-
-        if(!path.Path.Contains(GenericPathHelper.GenericSeperator, StringComparison.Ordinal)) return getDirect(Context, path);
-
-        string[] elements = path.Path.Split(GenericPathHelper.GenericSeperator, 2);
-
-        return getFromSubpath(Context, elements[0], elements[1]);
-    }
-
-    protected virtual IDirectory SplitDirectoryPath(in PathInfo name)
+    protected virtual Result<IDirectory> SplitDirectoryPath(in PathInfo name)
     {
         string nameData = name.Path;
-
-        return nameData.IsNullOrEmpty()
+        
+        return string.IsNullOrEmpty(nameData)
             ? this
-            : SplitPath(nameData, (context, name1) => GetDirectory(context, name1), (context, path, actualName) => GetDirectory(context, path).GetDirectory(actualName));
+            : SplitPath(nameData,
+                (context, name1) => GetDirectory(context, name1), 
+                (context, path, actualName) => GetDirectory(context, path).Bind(d => d.GetDirectory(actualName)));
     }
 
-    protected virtual IFile SplitFilePath(in PathInfo name)
+    protected virtual Result<IFile> SplitFilePath(in PathInfo name)
     {
-        if(name.Path.IsNullOrEmpty())
-            throw new InvalidOperationException("No File Name Provided");
+        if(string.IsNullOrEmpty(name.Path))
+            return new NoFileName();
 
-        return SplitPath(name, (context, name1) => GetFile(context, name1), (context, path, actualName) => GetDirectory(context, path).GetFile(actualName));
+        return SplitPath(name,
+            (context, name1) => GetFile(context, name1),
+            (context, path, actualName) => GetDirectory(context, path).Bind(d => d.GetFile(actualName)));
     }
 
-    protected virtual IDirectory MovetTo(TContext context, in PathInfo location)
-        => throw new IOException("Move is not Implemented");
+    protected virtual Result<IDirectory> RunMoveTo(TContext context, in PathInfo location)
+        => new NotImplemented(nameof(RunMoveTo));
 }

@@ -1,39 +1,25 @@
-﻿using System;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reactive.PlatformServices;
+using JetBrains.Annotations;
+using Tauron.Errors;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
+[UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 public sealed class FileEntry : DataElementBase
 {
     public MemoryStream? Data { get; private set; }
 
-    public string ActualName
-    {
-        get
-        {
-            if(string.IsNullOrWhiteSpace(Name))
-                ThrowNotInitException();
+    public Result<string> ActualName => CheckNotInit().Bind(() => Result.Ok(Name));
 
-            return Name;
-        }
-    }
+    public Result<MemoryStream> ActualData => CheckNotInit().Bind(() => Result.Ok(Data))!;
 
-    public MemoryStream ActualData
-    {
-        get
-        {
-            if(Data is null)
-                ThrowNotInitException();
-
-            return Data!;
-        }
-    }
-
-    public FileEntry Init(string name, MemoryStream stream, ISystemClock clock)
+    public Result<FileEntry> Init(string name, MemoryStream stream, ISystemClock clock)
     {
         if(string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name dhould not be null", nameof(name));
+            return new NullOrEmpty(nameof(name));
 
         Name = name;
         Data = stream;
@@ -52,6 +38,8 @@ public sealed class FileEntry : DataElementBase
         Name = string.Empty;
     }
 
-    private static void ThrowNotInitException()
-        => throw new InvalidOperationException("Entry not initialized");
+    private Result CheckNotInit()
+        => Result.FailIf(
+            Data is null || string.IsNullOrWhiteSpace(Name), 
+            () =>new InvalidOperation().CausedBy("Entry not Initialized"));
 }

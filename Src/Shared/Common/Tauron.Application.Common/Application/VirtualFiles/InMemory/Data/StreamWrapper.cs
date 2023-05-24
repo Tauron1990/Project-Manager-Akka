@@ -7,8 +7,8 @@ namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
 public static class StreamWrapper
 {
-    public static StreamWrapper<TStream> Create<TStream>(TStream stream, FileAccess access, Action<TStream> modify)
-        where TStream : Stream => new(stream, access, modify);
+    public static Stream Create<TStream>(TStream stream, FileAccess access, Action<TStream> modify)
+        where TStream : Stream => new StreamWrapper<TStream>(stream, access, modify);
 }
 
 public sealed class StreamWrapper<TStream> : Stream

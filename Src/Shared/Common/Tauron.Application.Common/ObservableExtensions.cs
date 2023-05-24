@@ -259,7 +259,7 @@ public static class ObservableExtensions
             _strategy = strategy;
             _target = target;
 
-            strategy.ReSubscribe(AddSubscription, null);
+            strategy.ReSubscribe(AddSubscription, cause: null);
         }
 
         public void Dispose()
@@ -354,7 +354,7 @@ public static class ObservableExtensions
 
     private static Func<Exception, bool>? CreateErrorHandler(Action<Exception>? handler)
     {
-        if(handler == null) return null;
+        if(handler is null) return null;
 
         return e =>
                {

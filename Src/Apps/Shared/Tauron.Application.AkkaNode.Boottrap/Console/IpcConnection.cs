@@ -111,21 +111,34 @@ internal sealed class IpcConnection : IIpcConnection, IDisposable
     public async ValueTask<Result> SendMessage<TMessage>(Client to, TMessage message)
     {
         if(!IsReady)
-            return false;
+            return Result.Fail(new IpcNotReadyError());
 
-        string name = typeof(TMessage).AssemblyQualifiedName ??
-                      throw new InvalidOperationException("Invalid Message Type");
+        string? name = typeof(TMessage).AssemblyQualifiedName;
+        if(string.IsNullOrWhiteSpace(name))
+            return Result.Fail(new MessageTypeError(typeof(TMessage)));
+        
         string data = JsonConvert.SerializeObject(message);
 
         var nm = NetworkMessage.Create(name, Encoding.UTF8.GetBytes(data));
 
-        if(_dataClient != null)
-            return _dataClient.Send(nm);
+        if(_dataClient is not null)
+        {
+            var sendResult = Result.Try(() => _dataClient.Send(nm));
 
-        return _dataServer != null && await _dataServer.Send(to, nm).ConfigureAwait(false);
+            return sendResult.Bind(sendOk => sendOk ? Result.Ok() : Result.Fail(new SendNotSuccessfullError()));
+        }
+
+        if(_dataServer is not null)
+        {
+            var sendResult = await Result.Try(() => _dataServer.Send(to, nm)).ConfigureAwait(false);
+         
+            return sendResult.Bind(sendOk => sendOk ? Result.Ok() : Result.Fail(new SendNotSuccessfullError()));
+        }
+        
+        return Result.Fail(new NoServerOrClientError());
     }
 
-    public ValueTask<bool> SendMessage<TMessage>(TMessage message) => SendMessage(Client.All, message);
+    public ValueTask<Result> SendMessage<TMessage>(TMessage message) => SendMessage(Client.All, message);
 
     internal async Task Start(string serviceName)
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Tauron.Errors;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
@@ -14,29 +15,25 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
 
     public bool IsRealTime => Features.HasFlag(FileSystemFeature.RealTime);
 
-    public bool SaveAfterDispose { get; set; }
+    public bool SaveWhenDispose { get; set; }
 
     public abstract PathInfo Source { get; }
 
-    public void Reload(in PathInfo source)
-    {
-        ValidateFeature(FileSystemFeature.Reloading);
-        ReloadImpl(Context, source);
-    }
+    public Result Reload(PathInfo source) =>
+        ValidateFeature(FileSystemFeature.Reloading)
+            .Bind(() => ReloadImpl(Context, source));
 
-    public void Save()
-    {
-        ValidateFeature(FileSystemFeature.Save);
-
-        SaveImpl(Context);
-    }
+    public Result Save() =>
+        ValidateFeature(FileSystemFeature.Save)
+            .Bind(() => SaveImpl(Context));
 
     public void Dispose()
     {
         try
         {
-            if(Features.HasFlag(FileSystemFeature.Save) && SaveAfterDispose)
-                Save();
+            if(Features.HasFlag(FileSystemFeature.Save) && SaveWhenDispose)
+            #pragma warning disable EPC13
+                Save().LogIfFailed<VirtualFileSystemBase<TContext>>();
         }
         finally
         {
@@ -44,11 +41,11 @@ public abstract class VirtualFileSystemBase<TContext> : DirectoryBase<TContext>,
         }
     }
 
-    protected virtual void SaveImpl(TContext context)
-        => throw new InvalidOperationException("Save not Implemented");
+    protected virtual Result SaveImpl(TContext context)
+        => new NotImplemented(nameof(SaveImpl));
 
     protected virtual void DisposeImpl() { }
 
-    protected virtual void ReloadImpl(TContext context, in PathInfo filePath)
-        => throw new InvalidOperationException("Reloading not Supported");
+    protected virtual Result ReloadImpl(TContext context, in PathInfo filePath)
+        => new NotImplemented(nameof(ReloadImpl));
 }

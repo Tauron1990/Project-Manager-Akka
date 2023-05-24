@@ -18,7 +18,7 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
 
     public override PathInfo Source => Context.OriginalPath;
 
-    internal TResult? MoveElement<TResult, TElement>(string name, in PathInfo path, TElement element, Func<DirectoryContext, PathInfo, TElement, TResult> factory)
+    internal Result<TResult> MoveElement<TResult, TElement>(string name, in PathInfo path, TElement element, Func<DirectoryContext, PathInfo, TElement, TResult> factory)
         where TElement : IDataElement
         where TResult : class
     {

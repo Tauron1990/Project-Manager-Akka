@@ -1,6 +1,6 @@
-﻿using System;
-using System.Reactive.PlatformServices;
+﻿using System.Reactive.PlatformServices;
 using Microsoft.IO;
+using Tauron.Errors;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
@@ -10,18 +10,16 @@ public sealed class InMemoryRoot : DirectoryEntry
     private readonly SimplePool<DirectoryEntry> _directoryPool = new(PoolConfig<DirectoryEntry>.Default);
     private readonly SimplePool<FileEntry> _filePool = new(PoolConfig<FileEntry>.Default);
 
-    public FileEntry GetInitializedFile(string name, ISystemClock clock)
+    public Result<FileEntry> GetInitializedFile(string name, ISystemClock clock)
         => _filePool.Rent().Init(name, Manager.GetStream(), clock);
 
-    public DirectoryEntry GetDirectoryEntry(string name, ISystemClock clock)
+    public Result<DirectoryEntry> GetDirectoryEntry(string name, ISystemClock clock)
     {
         if(string.IsNullOrWhiteSpace(name))
-            throw new InvalidOperationException("Name Should not be null or Empty");
+            return new NullOrEmpty(nameof(name));
 
-        DirectoryEntry dic = _directoryPool.Rent();
-        dic.Init(name, clock);
-
-        return dic;
+        return Result.Try(() => _directoryPool.Rent())
+            .Bind(dic => dic.Init(name, clock));
     }
 
     public void ReturnFile(FileEntry entry)
@@ -29,9 +27,6 @@ public sealed class InMemoryRoot : DirectoryEntry
 
     public void ReturnDirectory(DirectoryEntry entry)
     {
-        if(entry.GetType() != typeof(DirectoryEntry))
-            throw new InvalidOperationException("Invalid Directory Returned");
-
         foreach (IDataElement subEntry in entry.Elements)
             switch (subEntry)
             {
@@ -55,9 +50,9 @@ public sealed class InMemoryRoot : DirectoryEntry
         _directoryPool.Clear();
     }
 
-    public void ReInit(FileEntry data, ISystemClock clock)
+    public Result<FileEntry> ReInit(FileEntry data, ISystemClock clock)
     {
-        data.ActualData.Dispose();
-        data.Init(data.ActualName, Manager.GetStream(), clock);
+        data.Data?.Dispose();
+        return data.ActualName.Bind(name =>  data.Init(name, Manager.GetStream(), clock));
     }
 }

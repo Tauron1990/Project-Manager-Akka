@@ -48,9 +48,9 @@ public static class OptionExtensions
             throw new ArgumentNullException(nameof(resultSelector));
 
         return from sourceInst in source
-               let opt = optionSelector(sourceInst)
-               where opt.HasValue
-               select resultSelector(sourceInst, opt.Value);
+            let opt = optionSelector(sourceInst)
+            where opt.HasValue
+            select resultSelector(sourceInst, opt.Value);
     }
 
     public static IObservable<TType> ToObservable<TType>(this Option<TType> option)
@@ -66,10 +66,10 @@ public static class OptionExtensions
             throw new ArgumentNullException(nameof(resultSelector));
 
         return from sourceInst in source
-               #pragma warning restore AV1250
-               let opt = optionSelector(sourceInst)
-               where opt.HasValue
-               select resultSelector(sourceInst, opt.Value);
+#pragma warning restore AV1250
+            let opt = optionSelector(sourceInst)
+            where opt.HasValue
+            select resultSelector(sourceInst, opt.Value);
     }
 
     public static void Run<TType>(this ref Option<TType> option, Action<TType> onSuccess, Action onEmpty)

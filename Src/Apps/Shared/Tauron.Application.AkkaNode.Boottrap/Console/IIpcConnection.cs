@@ -15,5 +15,5 @@ public interface IIpcConnection
 
     ValueTask<Result> SendMessage<TMessage>(Client to, TMessage message);
 
-    ValueTask<bool> SendMessage<TMessage>(TMessage message);
+    ValueTask<Result> SendMessage<TMessage>(TMessage message);
 }

@@ -10,6 +10,6 @@ public sealed class InMemoryResolver : IFileSystemResolver
 {
     public string Scheme => "mem";
 
-    public IVirtualFileSystem? TryResolve(in PathInfo path, IServiceProvider services)
+    public Result<IVirtualFileSystem> TryResolve(in PathInfo path, IServiceProvider services)
         => !GenericPathHelper.HasScheme(path, Scheme) ? null : new InMemoryFileSystem(services.GetRequiredService<ISystemClock>(), path);
 }

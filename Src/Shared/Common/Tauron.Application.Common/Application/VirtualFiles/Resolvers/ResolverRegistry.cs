@@ -18,22 +18,16 @@ public static class ResolverRegistry
     public static void Register(IFileSystemResolver resolver)
         => Resolvers.Add(resolver);
 
-    public static IVirtualFileSystem? TryResolve(in PathInfo path, IServiceProvider serviceProvider)
+    public static Result<IVirtualFileSystem> TryResolve(in PathInfo path, IServiceProvider serviceProvider)
     {
         if(path.Kind != PathType.Absolute)
-            return null;
+            return Result.Fail(new NotAbsoluteError(path));
 
         // ReSharper disable once LoopCanBeConvertedToQuery
         foreach (IFileSystemResolver resolver in Resolvers)
-        {
             if(GenericPathHelper.HasScheme(path, resolver.Scheme))
-            {
-                IVirtualFileSystem? system = resolver.TryResolve(path, serviceProvider);
-                if(system is not null)
-                    return system;
-            }
-        }
-        
-        return null;
+                return resolver.TryResolve(path, serviceProvider);
+
+        return Result.Fail(new RsolverNotMatch(path));
     }
 }

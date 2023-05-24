@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.Resolvers;
 
@@ -11,9 +12,9 @@ public sealed class LocalFile : FileBase<FileContext>, IHasFileAttributes, IFull
         : base(context, feature) { }
 
     public override PathInfo OriginalPath => Context.Data.FullName;
-    public override DateTime LastModified => Context.Data.LastWriteTime;
+    public override FluentResults.Result<DateTime> LastModified => Context.Data.LastWriteTime;
 
-    public override IDirectory? ParentDirectory
+    public override Result<IDirectory> ParentDirectory
     {
         get
         {
@@ -26,9 +27,9 @@ public sealed class LocalFile : FileBase<FileContext>, IHasFileAttributes, IFull
     }
 
     public override bool Exist => Context.Data.Exists;
-    public override string Name => Context.Data.Name;
+    public override FluentResults.Result<string> Name => Context.Data.Name;
 
-    protected override string ExtensionImpl
+    protected override FluentResults.Result<string> ExtensionImpl
     {
         get => Context.Data.Extension;
         set
@@ -40,7 +41,7 @@ public sealed class LocalFile : FileBase<FileContext>, IHasFileAttributes, IFull
         }
     }
 
-    public override long Size => Context.Data.Length;
+    public override FluentResults.Result<long> Size => Context.Data.Length;
 
     public Stream Open(FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options)
         => new FileStream(Context.Data.FullName, mode, access, share, bufferSize, options);

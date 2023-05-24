@@ -1,17 +1,16 @@
-﻿using System;
-using System.Reactive.PlatformServices;
+﻿using System.Reactive.PlatformServices;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
 public abstract record FileSystemContextBase<TData>(InMemoryRoot Root, DirectoryContext? Parent, TData? Data, PathInfo Path, ISystemClock Clock, InMemoryFileSystem RootSystem)
     where TData : class, IDataElement
 {
-    public TData ActualData
+    public Result<TData> ActualData
     {
         get
         {
             if(Data is null)
-                throw new InvalidOperationException("Element does not Exist");
+                return new Error("Element does not Exist");
 
             return Data;
         }

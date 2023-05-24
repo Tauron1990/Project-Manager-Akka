@@ -12,8 +12,8 @@ namespace Tauron.Application.VirtualFiles;
 public sealed class VirtualFileFactory
 {
     public static readonly VirtualFileFactory Shared = new();
-    
-    public IVirtualFileSystem? TryResolve(in PathInfo path, IServiceProvider serviceProvider)
+
+    public Result<IVirtualFileSystem> TryResolve(in PathInfo path, IServiceProvider serviceProvider)
         => ResolverRegistry.TryResolve(path, serviceProvider);
 
     public IVirtualFileSystem InMemory(ISystemClock clock)

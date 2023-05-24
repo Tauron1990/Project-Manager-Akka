@@ -12,13 +12,13 @@ public interface IFileSystemNode
 
     PathInfo OriginalPath { get; }
 
-    DateTime LastModified { get; }
+    Result<DateTime> LastModified { get; }
 
-    IDirectory? ParentDirectory { get; }
+    Result<IDirectory> ParentDirectory { get; }
 
     bool Exist { get; }
 
-    string Name { get; }
+    Result<string> Name { get; }
 
-    void Delete();
+    Result Delete();
 }

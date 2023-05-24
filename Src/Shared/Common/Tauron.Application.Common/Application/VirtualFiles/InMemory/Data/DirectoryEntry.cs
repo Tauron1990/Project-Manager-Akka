@@ -1,14 +1,15 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.PlatformServices;
+using Tauron.Errors;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.VirtualFiles.InMemory.Data;
 
 public class DirectoryEntry : DataElementBase
 {
-    private readonly ConcurrentDictionary<string, IDataElement> _elements = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, IDataElement> _elements = new(StringComparer.Ordinal);
 
     public IEnumerable<IDataElement> Elements => _elements.Values;
 
@@ -17,21 +18,39 @@ public class DirectoryEntry : DataElementBase
     public IEnumerable<DirectoryEntry> Directorys => _elements.Values.OfType<DirectoryEntry>();
 
     public bool Remove(string name)
-        => _elements.TryRemove(name, out _);
+    {
+        lock(_elements)
+            return _elements.Remove(name);
+    }
 
-    public TResult GetOrAdd<TResult>(string name, Func<TResult> factory)
+    public Result<TResult> GetOrAdd<TResult>(string name, Func<Result<TResult>> factory)
         where TResult : IDataElement
-        => _elements.GetOrAdd(name, static (_, fac) => fac(), factory) is TResult res
-            ? res
-            : throw new InvalidCastException("Factory Created Wrong Type (Should Be Impossible)");
+    {
+        lock (_elements)
+        {
+            if(_elements.TryGetValue(name, out var element))
+            {
+                if(element is TResult data) return data;
 
-    public void Init(string name, ISystemClock clock)
+                return new TypeMismatch().CausedBy("Duplicate Element with wrong Type");
+            }
+
+            return
+                from data in factory()
+                from add in Result.Try(() => _elements.Add(name, data)).ToUnit()
+                select Result.Ok(data);
+        }
+    }
+
+    public Result<DirectoryEntry> Init(string name, ISystemClock clock)
     {
         if(string.IsNullOrWhiteSpace(name))
-            throw new InvalidOperationException("Name should not be Empty or null");
+            return new InvalidOperation().CausedBy("Name should not be Empty or null");
 
         Name = name;
         ModifyDate = clock.UtcNow.LocalDateTime;
+        
+        return this;
     }
 
     public override void Dispose()

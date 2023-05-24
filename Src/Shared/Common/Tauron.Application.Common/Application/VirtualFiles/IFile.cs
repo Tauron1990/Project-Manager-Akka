@@ -6,15 +6,17 @@ namespace Tauron.Application.VirtualFiles;
 [PublicAPI]
 public interface IFile : IFileSystemNode
 {
-    string Extension { get; set; }
+    Result<string> Extension { get; }
 
-    long Size { get; }
+    Result<long> Size { get; }
 
-    Stream Open(FileAccess access);
+    Result SetExtension(string extension);
+    
+    Result<Stream> Open(FileAccess access);
 
-    Stream Open();
+    Result<Stream> Open();
 
-    Stream CreateNew();
+    Result<Stream> CreateNew();
 
-    IFile MoveTo(in PathInfo location);
+    Result<IFile> MoveTo(PathInfo location);
 }

@@ -13,27 +13,27 @@ public abstract class DelegatingVirtualFileSystem<TContext> : VirtualFileSystemB
 
     public override PathInfo OriginalPath => Context.OriginalPath;
 
-    public override DateTime LastModified => Context.LastModified;
+    public override Result<DateTime> LastModified => Context.LastModified;
 
-    public override IDirectory? ParentDirectory => Context.ParentDirectory;
+    public override Result<IDirectory> ParentDirectory => Context.ParentDirectory;
 
     public override bool Exist => Context.Exist;
 
-    public override string Name => Context.Name;
+    public override Result<string> Name => Context.Name;
 
-    public override IEnumerable<IDirectory> Directories => Context.Directories;
+    public override Result<IEnumerable<IDirectory>> Directories => Context.Directories;
 
-    public override IEnumerable<IFile> Files => Context.Files;
+    public override Result<IEnumerable<IFile>> Files => Context.Files;
 
-    protected override IDirectory GetDirectory(TContext context, in PathInfo name)
+    protected override Result<IDirectory> GetDirectory(TContext context, in PathInfo name)
         => context.GetDirectory(name);
 
-    protected override IFile GetFile(TContext context, in PathInfo name)
+    protected override Result<IFile> GetFile(TContext context, in PathInfo name)
         => context.GetFile(name);
 
-    protected override void Delete(TContext context)
+    protected override Result Delete(TContext context)
         => context.Delete();
 
-    protected override IDirectory MovetTo(TContext context, in PathInfo location)
+    protected override Result<IDirectory> RunMoveTo(TContext context, in PathInfo location)
         => context.MoveTo(location);
 }

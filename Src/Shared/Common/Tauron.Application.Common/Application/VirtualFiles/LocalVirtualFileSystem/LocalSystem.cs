@@ -8,7 +8,7 @@ public sealed class LocalSystem : DelegatingVirtualFileSystem<LocalDirectory>, I
     private string _rootPath;
 
     public LocalSystem(string rootPath)
-        : base(new LocalDirectory(new DirectoryContext(rootPath, true, new DirectoryInfo(rootPath)), LocalFeaturs), LocalFeaturs)
+        : base(new LocalDirectory(new DirectoryContext(rootPath, NoParent: true, new DirectoryInfo(rootPath)), LocalFeaturs), LocalFeaturs)
         => _rootPath = rootPath;
 
     private static FileSystemFeature LocalFeaturs => FileSystemFeature.Create | FileSystemFeature.Delete | FileSystemFeature.Extension | FileSystemFeature.Moveable

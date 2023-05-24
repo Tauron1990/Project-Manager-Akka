@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using JetBrains.Annotations;
+using Tauron.Errors;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
@@ -29,36 +29,31 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
 
     public abstract PathInfo OriginalPath { get; }
 
-    public abstract DateTime LastModified { get; }
+    public abstract Result<DateTime> LastModified { get; }
 
-    public abstract IDirectory? ParentDirectory { get; }
+    public abstract Result<IDirectory> ParentDirectory { get; }
 
     public abstract bool Exist { get; }
 
-    public abstract string Name { get; }
+    public abstract Result<string> Name { get; }
 
-    public void Delete()
+    public Result Delete()
     {
-        if(!Features.HasFlag(FileSystemFeature.Delete)) return;
+        return !Features.HasFlag(FileSystemFeature.Delete) ? new FeatureNotSupported(FileSystemFeature.Delete) : Delete(Context);
 
-        Delete(Context);
     }
 
-    protected virtual void Delete(TContext context)
-        => throw new IOException("Delete not Implemented");
+    protected virtual Result Delete(TContext context)
+        => new NotImplemented(nameof(Delete));
 
-    protected virtual void ValidateFeature(FileSystemFeature feature)
+    protected virtual Result ValidateFeature(FileSystemFeature feature) 
+        => Result.OkIf(Features.HasFlag(feature), () => new FeatureNotSupported(feature));
+
+    protected Result ValidateSheme(in PathInfo info, string scheme)
     {
-        if(Features.HasFlag(feature)) return;
+        return info.Kind == PathType.Relative 
+            ? Result.Ok() 
+            : Result.OkIf(GenericPathHelper.HasScheme(info, scheme), new SchemeMismatch(info, scheme));
 
-        throw new IOException($"Requested Flag {feature} is not set for {GetType().Name}");
-    }
-
-    protected void ValidateSheme(in PathInfo info, string scheme)
-    {
-        if(info.Kind == PathType.Relative) return;
-
-        if(!GenericPathHelper.HasScheme(info, scheme))
-            throw new IOException($"Invalid Absolute Path Scheme ({scheme})");
     }
 }

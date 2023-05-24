@@ -8,11 +8,11 @@ public interface IVirtualFileSystem : IDirectory, IDisposable
 {
     bool IsRealTime { get; }
 
-    bool SaveAfterDispose { get; set; }
+    bool SaveWhenDispose { get; set; }
 
     PathInfo Source { get; }
 
-    void Reload(in PathInfo source);
+    Result Reload(PathInfo source);
 
-    void Save();
+    Result Save();
 }

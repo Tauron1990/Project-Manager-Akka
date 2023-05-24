@@ -20,5 +20,5 @@ public class MainScreen : ScreenModelBase
         
     }
 
-    protected override DeviceUiGroup CreateInitialUI() => throw new NotImplementedException();
+    protected override DeviceUiGroup CreateInitialUI() => DeviceUi.Text("To be Implemented");
 }
