@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
 using Tauron.ObservableExt;
@@ -30,19 +31,17 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
 
     public override Result<IEnumerable<IDirectory>> Directories
         => from data in Context.ActualData
-            select d
-    //          => Result.Ok(
-        //    Context.ActualData.Directorys.Select(
-          //      d => (IDirectory)new InMemoryDirectory(
-            //        Context with { Parent = Context, Path = OriginalPath, Data = d },
-              //      Features)));
+            select data.Directorys.Select(
+                de => (IDirectory)new InMemoryDirectory(
+                    Context with { Parent = Context, Path = OriginalPath, Data = de },
+                    Features));
 
     public override Result<IEnumerable<IFile>> Files
-        => Result.Ok(
-            Context.ActualData.Files.Select(
-            f => (IFile)new InMemoryFile(
-                Context.GetFileContext(Context, f, OriginalPath),
-                Features)));
+        => from data in Context.ActualData
+            select data.Files.Select(
+                f => (IFile)new InMemoryFile(
+                    Context.GetFileContext(Context, f, OriginalPath),
+                    Features));
 
     public static Result<IDirectory> Create([NotNullIfNotNull("context")] DirectoryContext? context, FileSystemFeature features)
         => context is null ? new NoParentDirectory() : new InMemoryDirectory(context, features);
