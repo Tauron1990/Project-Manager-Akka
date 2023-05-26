@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.VirtualFiles.InMemory;
 
@@ -14,7 +15,7 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
 
     public override PathInfo OriginalPath => Context.Path;
 
-    public override Result<DateTime> LastModified => Context.ActualData.ModifyDate;
+    public override Result<DateTime> LastModified => Context.ActualData.Select(d => d.ModifyDate);
 
     public override Result<IDirectory> ParentDirectory =>
         Context.Parent != null
@@ -23,16 +24,18 @@ public class InMemoryDirectory : DirectoryBase<DirectoryContext>
 
     public override bool Exist => _exist;
 
-    public override Result<string> Name => Context.ActualData.Name;
+    public override Result<string> Name => Context.ActualData.Select(d => d.Name);
 
     internal DirectoryContext DirectoryContext => Context;
 
     public override Result<IEnumerable<IDirectory>> Directories
-        => Result.Ok(
-            Context.ActualData.Directorys.Select(
-                d => (IDirectory)new InMemoryDirectory(
-                    Context with { Parent = Context, Path = OriginalPath, Data = d },
-                    Features)));
+        => from data in Context.ActualData
+            select d
+    //          => Result.Ok(
+        //    Context.ActualData.Directorys.Select(
+          //      d => (IDirectory)new InMemoryDirectory(
+            //        Context with { Parent = Context, Path = OriginalPath, Data = d },
+              //      Features)));
 
     public override Result<IEnumerable<IFile>> Files
         => Result.Ok(
