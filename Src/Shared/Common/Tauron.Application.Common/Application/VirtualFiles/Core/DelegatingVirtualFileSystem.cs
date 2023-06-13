@@ -25,7 +25,7 @@ public abstract class DelegatingVirtualFileSystem<TContext> : VirtualFileSystemB
 
     public override Result<IEnumerable<IFile>> Files => Context.Files;
 
-    protected override Result<IDirectory> GetDirectory(TContext context, in PathInfo name)
+    protected override Result<IDirectory> GetDirectory(TContext context, PathInfo name)
         => context.GetDirectory(name);
 
     protected override Result<IFile> GetFile(TContext context, in PathInfo name)
@@ -34,6 +34,6 @@ public abstract class DelegatingVirtualFileSystem<TContext> : VirtualFileSystemB
     protected override Result Delete(TContext context)
         => context.Delete();
 
-    protected override Result<IDirectory> RunMoveTo(TContext context, in PathInfo location)
+    protected override Result<IDirectory> RunMoveTo(TContext context, PathInfo location)
         => context.MoveTo(location);
 }

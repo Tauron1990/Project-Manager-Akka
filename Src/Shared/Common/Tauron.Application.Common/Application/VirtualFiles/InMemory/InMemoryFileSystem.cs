@@ -2,6 +2,7 @@
 using System.Reactive.PlatformServices;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.InMemory.Data;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.VirtualFiles.InMemory;
 
@@ -9,7 +10,7 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
 {
     public InMemoryFileSystem(ISystemClock clock, PathInfo start)
         : base(
-            sys => CreateContext(sys, start, clock),
+            sys => CreateContext(sys, start, clock).Value,
             ReadyFeatures & ~(FileSystemFeature.Moveable | FileSystemFeature.Delete)) { }
 
     private static FileSystemFeature ReadyFeatures
@@ -20,41 +21,34 @@ public sealed class InMemoryFileSystem : DelegatingVirtualFileSystem<InMemoryDir
 
     internal Result<TResult> MoveElement<TResult, TElement>(string name, in PathInfo path, TElement element, Func<DirectoryContext, PathInfo, TElement, TResult> factory)
         where TElement : IDataElement
-        where TResult : class
-    {
-        PathInfo relative = GenericPathHelper.ToRelativePath(path);
-        IDirectory tempdic = GetDirectory(relative);
-        InMemoryDirectory dic;
-
-        if(tempdic == this)
-            dic = Context;
-        else
-            dic = (InMemoryDirectory)tempdic;
-
-        element.Name = name;
-
-        return dic.TryAddElement(name, element)
-            ? factory(dic.DirectoryContext, GenericPathHelper.Combine(dic.OriginalPath, name), element)
+        where TResult : class =>
+        from tempDic in GetDirectory(GenericPathHelper.ToRelativePath(path))
+        let dic = tempDic == this
+            ? Context
+            : (InMemoryDirectory)tempDic
+        let actualElement = element.SetName(name)
+        from addOk in dic.TryAddElement(name, actualElement)
+        select addOk
+            ? factory(dic.DirectoryContext, GenericPathHelper.Combine(dic.OriginalPath, name), (TElement)actualElement)
             : null;
-    }
 
-    private static InMemoryDirectory CreateContext(IFileSystemNode system, in PathInfo startPath, ISystemClock clock)
+#pragma warning disable EPS05
+    private static Result<InMemoryDirectory> CreateContext(IFileSystemNode system, PathInfo startPath, ISystemClock clock)
+#pragma warning restore EPS05
     {
         var root = new InMemoryRoot();
-        var dicContext = new DirectoryContext(
-            root,
-            null,
-            root.GetDirectoryEntry(startPath, clock),
-            startPath,
-            clock,
-            (InMemoryFileSystem)system);
 
-        return new InMemoryDirectory(dicContext, ReadyFeatures);
+        return
+            from entry in root.GetDirectoryEntry(startPath, clock)
+            let context = new DirectoryContext(root, null!, entry, startPath, clock, (InMemoryFileSystem)system)
+            select (InMemoryDirectory)InMemoryDirectory.New(context, ReadyFeatures);
     }
 
     protected override void DisposeImpl()
     {
-        Context.Delete();
+#pragma warning disable EPC13
+        Context.Delete().LogIfFailed();
+#pragma warning restore EPC13
         Context.DirectoryContext.Root.Dispose();
     }
 }

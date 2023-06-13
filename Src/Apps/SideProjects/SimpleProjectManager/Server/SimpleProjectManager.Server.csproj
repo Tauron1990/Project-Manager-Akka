@@ -18,7 +18,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.5.1.1" />
+        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.5.7" />
         <PackageReference Include="Akka.Persistence.Query" Version="1.5.7" />
         <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
@@ -33,7 +33,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.54">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.56">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

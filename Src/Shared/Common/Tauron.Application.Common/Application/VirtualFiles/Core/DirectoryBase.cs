@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Tauron.Application.VirtualFiles.InMemory.Data;
 using Tauron.Errors;
 
 namespace Tauron.Application.VirtualFiles.Core;
@@ -34,7 +35,7 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
         ValidateFeature(FileSystemFeature.Moveable)
             .Bind(() => RunMoveTo(Context, GenericPathHelper.NormalizePath(location)));
 
-    protected abstract Result<IDirectory> GetDirectory(TContext context, in PathInfo name);
+    protected abstract Result<IDirectory> GetDirectory(TContext context, PathInfo name);
 
     protected abstract Result<IFile> GetFile(TContext context, in PathInfo name);
 
@@ -77,6 +78,6 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
             (context, path, actualName) => GetDirectory(context, path).Bind(d => d.GetFile(actualName)));
     }
 
-    protected virtual Result<IDirectory> RunMoveTo(TContext context, in PathInfo location)
+    protected virtual Result<IDirectory> RunMoveTo(TContext directoryContext, PathInfo pathInfo)
         => new NotImplemented(nameof(RunMoveTo));
 }

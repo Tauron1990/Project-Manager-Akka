@@ -8,9 +8,12 @@ namespace Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
 
 public sealed class LocalFile : FileBase<FileContext>, IHasFileAttributes, IFullFileStreamSupport
 {
-    public LocalFile(FileContext context, FileSystemFeature feature)
+    private LocalFile(FileContext context, FileSystemFeature feature)
         : base(context, feature) { }
 
+    public static IFile New(FileContext context, FileSystemFeature feature)
+        => new LocalFile(context, feature);
+    
     public override PathInfo OriginalPath => Context.Data.FullName;
     public override FluentResults.Result<DateTime> LastModified => Context.Data.LastWriteTime;
 

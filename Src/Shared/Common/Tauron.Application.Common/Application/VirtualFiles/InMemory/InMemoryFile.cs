@@ -12,8 +12,15 @@ public sealed class InMemoryFile : FileBase<FileContext>
 {
     private bool _exist = true;
 
-    public InMemoryFile(FileContext context, FileSystemFeature feature)
+    private InMemoryFile(FileContext context, FileSystemFeature feature)
         : base(context, feature) { }
+
+    public static IFile New(FileContext context, FileSystemFeature feature)
+        => new InMemoryFile(context, feature);
+
+    public static Result<IFile> New(Result<FileContext> contextResult, FileSystemFeature feature)
+        => from context in contextResult
+            select New(context, feature);
 
     public override PathInfo OriginalPath => Context.Path;
 
@@ -103,7 +110,7 @@ public sealed class InMemoryFile : FileBase<FileContext>
                 : () =>
                     from parent in ParentDirectory
                     from dic in parent.GetDirectory(valueTuple.Path)
-                    select dic is InMemoryDirectory newDic && newDic.TryAddElement(valueTuple.Name, contextData1)
+                    select dic is InMemoryDirectory newDic && newDic.TryAddElement(valueTuple.Name, contextData1).ValueOrDefault
                         ? newDic.GetFile(valueTuple.Name)
                         : Result.Fail<IFile>(new InvalidOperation().CausedBy("Invalid Path Data or Duplicate"));
         }

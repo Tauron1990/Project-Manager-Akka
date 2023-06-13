@@ -6,4 +6,9 @@ public sealed class InvalidOperation : Error
     {
         Message = "The Operation is Invalid";
     }
+    
+    public InvalidOperation(string message)
+    {
+        Message = message;
+    }
 }

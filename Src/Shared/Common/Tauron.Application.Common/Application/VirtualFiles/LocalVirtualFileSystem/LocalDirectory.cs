@@ -2,37 +2,43 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Stl;
 using Tauron.Application.VirtualFiles.Core;
 using Tauron.Application.VirtualFiles.Resolvers;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.VirtualFiles.LocalVirtualFileSystem;
 
 public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttributes
 {
-    public LocalDirectory(DirectoryContext context, FileSystemFeature feature) : base(context, feature) { }
+    private LocalDirectory(DirectoryContext context, FileSystemFeature feature) : base(context, feature) { }
     public override PathInfo OriginalPath => Context.Data.FullName;
-    public override FluentResults.Result<DateTime> LastModified => Context.Data.LastWriteTime;
+    public override Result<DateTime> LastModified => Context.Data.LastWriteTime;
 
+    public static IDirectory New(DirectoryContext context, FileSystemFeature feature)
+        => new LocalDirectory(context, feature);
+    
     public override Result<IDirectory> ParentDirectory
     {
         get
         {
-            if(Context.NoParent) return null;
+            if(Context.NoParent) return new NoParentDirectory();
 
-            DirectoryInfo? parent = Context.Data.Parent;
+            Result<DirectoryInfo?> parentResult = Result.Try(() => Context.Data.Parent);
 
-            return parent is null ? null : new LocalDirectory(Context with { Data = parent }, Features);
+            
+            
+            return  parentResult.Select<DirectoryInfo?, IDirectory>(parent => parent is null ? new NoParentDirectory() : New(Context with { Data = parent }, Features)));
         }
     }
 
     public override bool Exist => Context.Data.Exists;
-    public override FluentResults.Result<string> Name => Context.Data.Name;
+    public override Result<string> Name => Context.Data.Name;
 
-    public override FluentResults.Result<IEnumerable<IDirectory>> Directories
-        => Context.Data.EnumerateDirectories().Select(d => new LocalDirectory(Context with { Data = d, NoParent = false }, Features));
+    public override Result<IEnumerable<IDirectory>> Directories
+        => from dics in Result.Try(() => Context.Data.GetDirectories())
+            select dics.Select(d => New(Context with { Data = d, NoParent = false }, Features));
 
-    public override FluentResults.Result<IEnumerable<IFile>> Files
+    public override Result<IEnumerable<IFile>> Files
         => Context.Data.EnumerateFiles().Select(f => new LocalFile(new FileContext(Context.Root, Context.NoParent, f), Features));
 
     public FileAttributes Attributes
@@ -41,16 +47,18 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         set => Context.Data.Attributes = value;
     }
 
-    protected override FluentResults.Result<IDirectory> GetDirectory(DirectoryContext context, in PathInfo name)
+    Result SetFileAttributes(FileAttributes attributes);
+    
+    protected override Result<IDirectory> GetDirectory(DirectoryContext context, PathInfo name)
         => throw new NotSupportedException("Never called Method");
 
-    protected override FluentResults.Result<IFile> GetFile(DirectoryContext context, in PathInfo name)
+    protected override Result<IFile> GetFile(DirectoryContext context, in PathInfo name)
         => throw new NotSupportedException("Never called Method");
 
     protected override void Delete(DirectoryContext context)
         => context.Data.Delete(true);
 
-    protected override FluentResults.Result<IDirectory> RunMoveTo(DirectoryContext context, in PathInfo location)
+    protected override Result<IDirectory> RunMoveTo(DirectoryContext context, in PathInfo location)
     {
         ValidateSheme(location, LocalFileSystemResolver.SchemeName);
 
@@ -62,14 +70,14 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         return new LocalDirectory(context with { Data = new DirectoryInfo(target) }, Features);
     }
 
-    protected override FluentResults.Result<IFile> SplitFilePath(in PathInfo name)
+    protected override Result<IFile> SplitFilePath(in PathInfo name)
     {
         string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 
         return new LocalFile(new FileContext(Context.Root, Context.NoParent, new FileInfo(target)), Features);
     }
 
-    protected override FluentResults.Result<IDirectory> SplitDirectoryPath(in PathInfo name)
+    protected override Result<IDirectory> SplitDirectoryPath(in PathInfo name)
     {
         string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 

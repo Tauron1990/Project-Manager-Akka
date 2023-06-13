@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Reactive;
 using JetBrains.Annotations;
 using Tauron.Errors;
+using Tauron.ObservableExt;
 
 namespace Tauron.Application.VirtualFiles.Core;
 
@@ -49,11 +51,11 @@ public abstract class SystemNodeBase<TContext> : IFileSystemNode
     protected virtual Result ValidateFeature(FileSystemFeature feature) 
         => Result.OkIf(Features.HasFlag(feature), () => new FeatureNotSupported(feature));
 
-    protected Result ValidateSheme(in PathInfo info, string scheme)
+    protected Result<Unit> ValidateSheme(in PathInfo info, string scheme)
     {
         return info.Kind == PathType.Relative 
-            ? Result.Ok() 
-            : Result.OkIf(GenericPathHelper.HasScheme(info, scheme), new SchemeMismatch(info, scheme));
+            ? Result.Ok(Unit.Default) 
+            : Result.OkIf(GenericPathHelper.HasScheme(info, scheme), new SchemeMismatch(info, scheme)).ToUnit();
 
     }
 }
