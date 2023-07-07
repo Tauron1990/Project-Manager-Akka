@@ -49,7 +49,7 @@ public sealed class LocalFile : FileBase<FileContext>, IHasFileAttributes, IFull
     public Stream Open(FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options)
         => new FileStream(Context.Data.FullName, mode, access, share, bufferSize, options);
 
-    public FileAttributes Attributes
+    public FluentResults.Result<FileAttributes> Attributes
     {
         get => Context.Data.Attributes;
         set => Context.Data.Attributes = value;

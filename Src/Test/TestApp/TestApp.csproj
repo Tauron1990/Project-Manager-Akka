@@ -33,8 +33,8 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="linq2db" Version="5.2.1" />
-      <PackageReference Include="Meziantou.Analyzer" Version="2.0.56">
+      <PackageReference Include="linq2db" Version="5.2.2" />
+      <PackageReference Include="Meziantou.Analyzer" Version="2.0.63">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>

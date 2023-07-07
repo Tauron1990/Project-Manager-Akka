@@ -23,11 +23,12 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
         {
             if(Context.NoParent) return new NoParentDirectory();
 
-            Result<DirectoryInfo?> parentResult = Result.Try(() => Context.Data.Parent);
+            return 
+                from parent in Result.Try(() => Context.Data.Parent)
+                select CreateDirectory(parent);
 
-            
-            
-            return  parentResult.Select<DirectoryInfo?, IDirectory>(parent => parent is null ? new NoParentDirectory() : New(Context with { Data = parent }, Features)));
+            Result<IDirectory> CreateDirectory(DirectoryInfo? info)
+                => info is null ? new NoParentDirectory() : Result.Ok(New(Context with { Data = info }, Features));
         }
     }
 
@@ -39,48 +40,46 @@ public class LocalDirectory : DirectoryBase<DirectoryContext>, IHasFileAttribute
             select dics.Select(d => New(Context with { Data = d, NoParent = false }, Features));
 
     public override Result<IEnumerable<IFile>> Files
-        => Context.Data.EnumerateFiles().Select(f => new LocalFile(new FileContext(Context.Root, Context.NoParent, f), Features));
+        => from files in Result.Try(() => Context.Data.GetFiles())
+            select files.Select(f => LocalFile.New(new FileContext(Context.Root, Context.NoParent, f), Features));
 
-    public FileAttributes Attributes
-    {
-        get => Context.Data.Attributes;
-        set => Context.Data.Attributes = value;
-    }
+    public Result<FileAttributes> Attributes => Result.Try(() => Context.Data.Attributes);
 
-    Result SetFileAttributes(FileAttributes attributes);
-    
+    public Result SetFileAttributes(FileAttributes attributes)
+        => Result.Try(new Action(() => Context.Data.Attributes = attributes));
+
     protected override Result<IDirectory> GetDirectory(DirectoryContext context, PathInfo name)
-        => throw new NotSupportedException("Never called Method");
+        => new Errors.NotSupported();
 
     protected override Result<IFile> GetFile(DirectoryContext context, in PathInfo name)
-        => throw new NotSupportedException("Never called Method");
+        => new Errors.NotSupported();
 
-    protected override void Delete(DirectoryContext context)
-        => context.Data.Delete(true);
+    protected override Result Delete(DirectoryContext context)
+        => Result.Try(() => context.Data.Delete(recursive: true));
 
-    protected override Result<IDirectory> RunMoveTo(DirectoryContext context, in PathInfo location)
-    {
-        ValidateSheme(location, LocalFileSystemResolver.SchemeName);
+    protected override Result<IDirectory> RunMoveTo(DirectoryContext context, PathInfo pathInfo) =>
+        from validation in ValidateSheme(pathInfo, LocalFileSystemResolver.SchemeName)
+        let target = pathInfo.Kind == PathType.Absolute
+            ? Path.GetFullPath(pathInfo.Path)
+            : Path.GetFullPath(context.Root, pathInfo.Path)
+        from move in Result.Try(() => Directory.Move(OriginalPath, target)).ToUnit()
+        select New(context with { Data = new DirectoryInfo(target) }, Features);
 
-        string target = location.Kind == PathType.Absolute
-            ? Path.GetFullPath(location.Path)
-            : Path.GetFullPath(context.Root, location.Path);
-        Directory.Move(OriginalPath, target);
+    protected override Result<IFile> SplitFilePath(PathInfo name) =>
+        Result.Try(
+            () =>
+            {
+                string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 
-        return new LocalDirectory(context with { Data = new DirectoryInfo(target) }, Features);
-    }
+                return LocalFile.New(new FileContext(Context.Root, Context.NoParent, new FileInfo(target)), Features);
+            });
 
-    protected override Result<IFile> SplitFilePath(in PathInfo name)
-    {
-        string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
+    protected override Result<IDirectory> SplitDirectoryPath(PathInfo name) =>
+        Result.Try(
+            () =>
+            {
+                string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
 
-        return new LocalFile(new FileContext(Context.Root, Context.NoParent, new FileInfo(target)), Features);
-    }
-
-    protected override Result<IDirectory> SplitDirectoryPath(in PathInfo name)
-    {
-        string target = Path.Combine(GenericPathHelper.ToRelativePath(OriginalPath), GenericPathHelper.ToRelativePath(name));
-
-        return new LocalDirectory(Context with { Data = new DirectoryInfo(target), NoParent = false }, Features);
-    }
+                return New(Context with { Data = new DirectoryInfo(target), NoParent = false }, Features);
+            });
 }

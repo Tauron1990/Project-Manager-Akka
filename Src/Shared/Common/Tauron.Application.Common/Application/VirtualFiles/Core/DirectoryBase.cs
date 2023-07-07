@@ -57,7 +57,7 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
         }
     }
 
-    protected virtual Result<IDirectory> SplitDirectoryPath(in PathInfo name)
+    protected virtual Result<IDirectory> SplitDirectoryPath(PathInfo name)
     {
         string nameData = name.Path;
         
@@ -68,7 +68,7 @@ public abstract class DirectoryBase<TContext> : SystemNodeBase<TContext>, IDirec
                 (context, path, actualName) => GetDirectory(context, path).Bind(d => d.GetDirectory(actualName)));
     }
 
-    protected virtual Result<IFile> SplitFilePath(in PathInfo name)
+    protected virtual Result<IFile> SplitFilePath(PathInfo name)
     {
         if(string.IsNullOrEmpty(name.Path))
             return new NoFileName();

@@ -16,7 +16,7 @@ public sealed class LocalSystem : DelegatingVirtualFileSystem<LocalDirectory>, I
 
     public override PathInfo Source => _rootPath;
 
-    public FileAttributes Attributes
+    public Result<FileAttributes> Attributes
     {
         get => Context.Attributes;
         set => Context.Attributes = value;

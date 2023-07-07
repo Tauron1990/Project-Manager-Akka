@@ -30,13 +30,13 @@
         </PackageReference>
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
         <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.56">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.63">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="System.Management" Version="7.0.1" />
+        <PackageReference Include="System.Management" Version="7.0.2" />
     </ItemGroup>
 
     <ItemGroup>
