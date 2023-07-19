@@ -3,7 +3,7 @@
 @inject IFusionTime FusionTime
 
 @code {
-    protected override async Task<DateTime> ComputeState(CancellationToken cancellationToken) => await FusionTime.GetUtcNow(TimeSpan.FromMilliseconds(200));
+    protected override async Task<DateTime> ComputeState(CancellationToken cancellationToken) => await FusionTime.Now(TimeSpan.FromMilliseconds(200));
 }
 
 @{

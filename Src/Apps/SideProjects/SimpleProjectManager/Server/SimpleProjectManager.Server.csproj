@@ -18,8 +18,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.5.1.1" />
-        <PackageReference Include="Akka.Persistence.Query" Version="1.5.5" />
+        <PackageReference Include="Akka.Persistence.MongoDb" Version="1.5.8" />
+        <PackageReference Include="Akka.Persistence.Query" Version="1.5.9" />
         <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
         <PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.1.2">
             <PrivateAssets>all</PrivateAssets>
@@ -33,18 +33,18 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.45">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.66">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.5" />
-        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.0.4">
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.9" />
+        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.1.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Stl.Fusion.Server" Version="5.2.28" />
+        <PackageReference Include="Stl.Fusion.Server" Version="6.1.82" />
     </ItemGroup>
 
     <ItemGroup>

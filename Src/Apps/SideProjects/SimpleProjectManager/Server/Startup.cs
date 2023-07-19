@@ -32,11 +32,11 @@ public class Startup
     {
         FusionBuilder fusion = services.AddFusion();
         fusion
-           .AddComputeService<IJobDatabaseService, JobDatabaseService>()
-           .AddComputeService<IJobFileService, JobFileService>()
-           .AddComputeService<ICriticalErrorService, CriticalErrorService>()
-           .AddComputeService<ITaskManager, TaskManager>()
-           .AddComputeService<IDeviceService, DeviceService>();
+           .AddService<IJobDatabaseService, JobDatabaseService>()
+           .AddService<IJobFileService, JobFileService>()
+           .AddService<ICriticalErrorService, CriticalErrorService>()
+           .AddService<ITaskManager, TaskManager>()
+           .AddService<IDeviceService, DeviceService>();
 
         fusion.AddWebServer();
 

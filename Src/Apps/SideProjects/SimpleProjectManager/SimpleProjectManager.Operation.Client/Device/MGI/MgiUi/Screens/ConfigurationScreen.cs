@@ -1,6 +1,6 @@
-﻿using SimpleProjectManager.Operation.Client.Device.UiHelper;
+﻿using Microsoft.Extensions.Logging;
+using SimpleProjectManager.Operation.Client.Device.UiHelper;
 using SimpleProjectManager.Shared.Services.Devices;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.MgiUi.Screens;
 
@@ -10,10 +10,11 @@ public sealed class ConfigurationScreen : ScreenModelBase
 
     private readonly UiConfiguration _uiConfiguration;
 
-    private ConfigurationScreen(UiConfiguration uiConfiguration) => _uiConfiguration = uiConfiguration;
+    private ConfigurationScreen(UiConfiguration uiConfiguration, ILogger<ConfigurationScreen> logger) 
+        : base(logger) => _uiConfiguration = uiConfiguration;
 
-    public static IScreenModel Create(UiConfiguration configuration)
-        => new ConfigurationScreen(configuration);
+    public static IScreenModel Create((UiConfiguration configuration, ILoggerFactory factory) parms)
+        => new ConfigurationScreen(parms.configuration, parms.factory.CreateLogger<ConfigurationScreen>());
 
     protected override DeviceUiGroup CreateInitialUI() =>
         DeviceUi.GroupVertical(

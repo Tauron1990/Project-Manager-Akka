@@ -31,7 +31,6 @@ builder.Services.AddLogging(
 builder.Services.AddSingleton<BlazorModeHelper>();
 //builder.Services.AddSingleton<IUICommandTracker, UICommandTracker>();
 FusionBuilder config = ClientRegistration.ConfigFusion(builder.Services, new Uri(builder.HostEnvironment.BaseAddress));
-config.AddBlazorUIServices();
 
 //Services
 ServiceRegistrar.RegisterServices(builder.Services);

@@ -14,8 +14,7 @@ public static class ClientRegistration
     public static FusionBuilder ConfigFusion(IServiceCollection collection, Uri baseAdress)
     {
         return collection.AddFusion()
-           .AddBackendStatus()
-           .AddFusionTime()
+            .AddFusionTime()
            .AddRestEaseClient(
                 b =>
                 {

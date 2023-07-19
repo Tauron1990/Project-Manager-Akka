@@ -146,22 +146,22 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.45">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.66">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.5" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.5" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.9" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.9" PrivateAssets="all" />
         <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.0.4">
+        <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.1.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="OneOf" Version="3.0.243" />
-        <PackageReference Include="OneOf.SourceGenerator" Version="3.0.243" />
+        <PackageReference Include="OneOf" Version="3.0.255" />
+        <PackageReference Include="OneOf.SourceGenerator" Version="3.0.255" />
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
-        <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.6.8" />
+        <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.6.37" />
     </ItemGroup>
 
     <ItemGroup>
