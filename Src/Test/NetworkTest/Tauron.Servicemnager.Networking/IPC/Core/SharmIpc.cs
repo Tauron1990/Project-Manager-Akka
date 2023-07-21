@@ -229,6 +229,7 @@ public class SharmIpc : IDisposable
                 else
                 {
                     #pragma warning disable EPC13
+#pragma warning disable MA0134
                     Task.Run(
                         () =>
                         {

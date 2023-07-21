@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Operation.Client.Device.Core;
 using SimpleProjectManager.Shared.Services.Devices;
+using Tauron;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
 
 namespace SimpleProjectManager.Operation.Client.Device;
@@ -53,7 +54,7 @@ public sealed partial class MachineSensorActor : ReceiveActor, IWithTimers
     private partial void ErrorOnRunUpdate(Exception exception, DeviceSensor sensor);
 
     private void OnUpdate(RunUpdate pam)
-        => _machine.UpdateSensorValue(_target).PipeTo(Self);
+        => _machine.UpdateSensorValue(_target).PipeTo(Self).Ignore();
 
     protected override void PreStart()
     {

@@ -62,7 +62,7 @@ public partial class JobEditor
     protected override void OnAfterRender(bool firstRender)
     {
         if(firstRender)
-            _editorForm?.Validate();
+            _editorForm?.Validate().Ignore();
         base.OnAfterRender(firstRender);
     }
 

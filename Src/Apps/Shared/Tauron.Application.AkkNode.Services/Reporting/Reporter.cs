@@ -170,7 +170,9 @@ public sealed class Reporter
             if(timeSpan is null)
                 return;
 
-            Task.Delay(timeSpan.Value.ToTimeSpan()).PipeTo(Self, success: () => OperationResult.Failure(new Error(TimeoutError, TimeoutError)));
+            Task.Delay(timeSpan.Value.ToTimeSpan())
+                .PipeTo(Self, success: () => OperationResult.Failure(new Error(TimeoutError, TimeoutError)))
+                .LogTaskError(e => listner($"Error: {e}"));
             //Timers.StartSingleTimer(timeSpan, OperationResult.Failure(new Error(TimeoutError, TimeoutError)), timeSpan);
         }
     }

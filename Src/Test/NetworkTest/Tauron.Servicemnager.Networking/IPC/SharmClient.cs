@@ -47,6 +47,7 @@ public sealed class SharmClient : IDataClient
             Dispose();
             return;
         }
+#pragma warning disable MA0134
         _channel.Writer.WriteAsync(message);
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Tauron.Operations;
@@ -28,4 +29,30 @@ public readonly record struct SimpleResult(Error? Error)
     public static SimpleResult<TResult> Failure<TResult>(in Error error) => new(default, error);
 
     public static SimpleResult<TResult> Failure<TResult>(Exception error, IFormatProvider? provider = null) => new(default, Operations.Error.FromException(error, provider));
+
+    public static async ValueTask<SimpleResult> Catch(Task task)
+    {
+        try
+        {
+            await task.ConfigureAwait(false);
+            return Success();
+        }
+        catch (Exception e)
+        {
+            return Failure(e);
+        }
+    }
+    
+    public static async ValueTask<SimpleResult> Catch(ValueTask task)
+    {
+        try
+        {
+            await task.ConfigureAwait(false);
+            return Success();
+        }
+        catch (Exception e)
+        {
+            return Failure(e);
+        }
+    }
 }

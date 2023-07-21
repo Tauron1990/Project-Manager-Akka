@@ -17,22 +17,18 @@ public class JobDatabaseController : Controller, IJobDatabaseService
         => _service = service;
 
     [HttpGet]
-    [Publish]
     public Task<Jobs> GetActiveJobs(CancellationToken token)
         => _service.GetActiveJobs(token);
 
     [HttpGet]
-    [Publish]
     public Task<SortOrders> GetSortOrders(CancellationToken token)
         => _service.GetSortOrders(token);
 
     [HttpGet]
-    [Publish]
     public Task<JobData> GetJobData([FromQuery] ProjectId id, CancellationToken token)
         => _service.GetJobData(id, token);
 
     [HttpGet]
-    [Publish]
     public Task<ActiveJobs> CountActiveJobs(CancellationToken token)
         => _service.CountActiveJobs(token);
 

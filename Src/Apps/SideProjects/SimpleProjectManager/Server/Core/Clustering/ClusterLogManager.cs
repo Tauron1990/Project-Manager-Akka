@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Cluster.Utility;
-using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Client.Operations.Shared.Clustering;
-using SimpleProjectManager.Client.Shared.Data.States;
 using SimpleProjectManager.Shared.Services.LogFiles;
 
 namespace SimpleProjectManager.Server.Core.Clustering;
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public sealed partial class ClusterLogManager : ReceiveActor
 {
     private readonly ILogger<ClusterLogManager> _logger;
@@ -24,8 +20,8 @@ public sealed partial class ClusterLogManager : ReceiveActor
         Receive<ClusterActorDiscoveryMessage.ActorUp>(up => _logProviders.Add(up.Actor));
         Receive<ClusterActorDiscoveryMessage.ActorDown>(down => _logProviders.Remove(down.Actor));
 
-        Receive<QueryLogFileNames>(_ => QueryNames().PipeTo(Sender));
-        Receive<LogFileRequest>(rq => QueryContent(rq).PipeTo(Sender));
+        Receive<QueryLogFileNames>(_ => QueryNames().PipeTo(Sender).Ignore());
+        Receive<LogFileRequest>(rq => QueryContent(rq).PipeTo(Sender).Ignore());
     }
 
     [LoggerMessage(Level = LogLevel.Error, EventId = 1, Message = "Error On Query Names from hosts")]

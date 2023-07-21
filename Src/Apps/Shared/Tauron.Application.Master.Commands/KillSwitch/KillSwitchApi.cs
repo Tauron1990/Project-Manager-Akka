@@ -135,7 +135,7 @@ public static partial class KillSwitchApi
 
             Observ<KillNode>(
                 obs => obs.Do(_ => KillSwitchWatchLog.LeavingCluster(Logger))
-                   .SubscribeWithStatus(_ => Cluster.Get(Context.System).LeaveAsync()));
+                   .SubscribeWithStatus(_ => Cluster.Get(Context.System).LeaveAsync().LogTaskError("Failed To Leave Node", KillSwitchApi.Logger)));
 
             Observ<ActorUp>(
                 obs => obs.Where(m => string.Equals(m.Event.Tag, nameof(KillWatcher), StringComparison.Ordinal))

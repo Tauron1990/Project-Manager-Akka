@@ -17,36 +17,29 @@ public class DeviceController : Controller, IDeviceService
         => _deviceService = deviceService;
 
     [HttpGet]
-    [Publish]
     public Task<DeviceList> GetAllDevices(CancellationToken token) => _deviceService.GetAllDevices(token);
 
     [HttpGet]
-    [Publish]
     public Task<DeviceUiGroup> GetRootUi([FromQuery] DeviceId device, CancellationToken token)
         => _deviceService.GetRootUi(device, token);
 
     [HttpGet]
-    [Publish]
     public Task<string> GetStringSensorValue([FromQuery] DeviceId device, [FromQuery] DeviceId sensor, CancellationToken token)
         => _deviceService.GetStringSensorValue(device, sensor, token);
 
     [HttpGet]
-    [Publish]
     public Task<int> GetIntSensorValue([FromQuery] DeviceId device, [FromQuery] DeviceId sensor, CancellationToken token)
         => _deviceService.GetIntSensorValue(device, sensor, token);
 
     [HttpGet]
-    [Publish]
     public Task<double> GetDoubleSensorValue([FromQuery] DeviceId device, [FromQuery] DeviceId sensor, CancellationToken token)
         => _deviceService.GetDoubleSensorValue(device, sensor, token);
 
     [HttpGet]
-    [Publish]
     public Task<bool> CanClickButton([FromQuery] DeviceId device, [FromQuery] DeviceId button, CancellationToken token)
         => _deviceService.CanClickButton(device, button, token);
 
     [HttpGet]
-    [Publish]
     public Task<DateTime> CurrentLogs([FromQuery(Name = "device")]DeviceId id, CancellationToken token)
         => _deviceService.CurrentLogs(id, token);
 

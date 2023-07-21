@@ -14,7 +14,6 @@ public sealed partial class UiConfiguration : TauronProfile
         base("Simple_Project_Manager_Client", tauronEnviroment.DefaultProfilePath)
     {
         _logger = logger;
-        PropertyChangedObservable.Subscribe(RunSave);
     }
 
     [LoggerMessage(1, LogLevel.Error, "Error on Save MGI UI Configuration")]
@@ -26,7 +25,7 @@ public sealed partial class UiConfiguration : TauronProfile
         set => SetVaue(value);
     }
 
-    private async void RunSave(string _)
+    public async Task RunSave()
     {
         await _lock.WaitAsync().ConfigureAwait(false);
         

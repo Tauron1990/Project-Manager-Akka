@@ -22,12 +22,10 @@ public class JobFileController : Controller, IJobFileService
     public JobFileController(IJobFileService service)
         => _service = service;
 
-    [Publish]
     [HttpGet]
     public Task<ProjectFileInfo?> GetJobFileInfo([FromQuery] ProjectFileId id, CancellationToken token)
         => _service.GetJobFileInfo(id, token);
 
-    [Publish]
     [HttpGet]
     public Task<DatabaseFile[]> GetAllFiles(CancellationToken token)
         => _service.GetAllFiles(token);

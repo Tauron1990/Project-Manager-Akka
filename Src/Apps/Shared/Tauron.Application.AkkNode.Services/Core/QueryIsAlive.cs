@@ -30,7 +30,7 @@ public sealed record QueryIsAlive
             _cancellationTokenSource = cancellation;
             _source = source;
             IActorContext? context = Context;
-            source.Task.ContinueWith(_ => context.Stop(context.Self));
+            source.Task.ContinueWith(_ => context.Stop(context.Self)).Ignore();
 
 
             target.Tell(new QueryIsAlive(), Self);

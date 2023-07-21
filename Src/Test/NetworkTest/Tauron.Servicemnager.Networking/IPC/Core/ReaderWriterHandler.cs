@@ -1,4 +1,5 @@
-﻿using System.IO.MemoryMappedFiles;
+﻿using System.Diagnostics;
+using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 
 namespace Tauron.Servicemnager.Networking.IPC.Core;
@@ -642,33 +643,31 @@ internal class ReaderWriterHandler : IDisposable
         _readerAccessor.SafeMemoryMappedViewHandle.AcquirePointer(ref _readerAccessorPtr);
 
 
-        #pragma warning disable EPC13
-        Task.Run(
-            #pragma warning restore EPC13
-            () =>
-            {
-                switch (_sm.ProtocolVersion)
-                {
-                    case SharmIpc.EProtocolVersion.V1:
-                        #pragma warning disable CS4014
-                        #pragma warning disable EPC13
-                        ReaderV01();
-
-                        break;
-                    case SharmIpc.EProtocolVersion.V2:
-                        ReaderV02();
-                        #pragma warning restore EPC13
-                        #pragma warning restore CS4014
-
-                        break;
-
-                }
-
-            });
+#pragma warning disable MA0134
+#pragma warning disable EPC13
+        Task.Run(RunReader);
+#pragma warning restore EPC13
+#pragma warning restore MA0134
 
         //ReaderV01wrapper();
 
         //ReaderV01();
+    }
+
+    private async Task RunReader()
+    {
+        switch (_sm.ProtocolVersion)
+        {
+            case SharmIpc.EProtocolVersion.V1:
+                await ReaderV01().ConfigureAwait(false);
+                break;
+            case SharmIpc.EProtocolVersion.V2:
+                await ReaderV02().ConfigureAwait(false);
+                break;
+            default:
+                throw new UnreachableException("Protocol Version");
+        }
+
     }
 
     private async Task ReaderV02()

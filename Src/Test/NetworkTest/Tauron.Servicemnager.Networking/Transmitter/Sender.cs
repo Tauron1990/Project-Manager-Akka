@@ -35,7 +35,7 @@ public sealed class Sender : IDisposable
         {
             if(!_isRunnging)
             {
-                _server.Send(_client, NetworkMessage.Create(NetworkOperation.DataAccept.Value));
+                AwaitTask(_server.Send(_client, NetworkMessage.Create(NetworkOperation.DataAccept.Value)));
                 _isRunnging = true;
 
                 return true;
@@ -62,7 +62,7 @@ public sealed class Sender : IDisposable
         {
             _toSend.Dispose();
             _errorHandler(e);
-            _server.Send(_client, NetworkMessage.Create(NetworkOperation.Deny.Value));
+            AwaitTask(_server.Send(_client, NetworkMessage.Create(NetworkOperation.Deny.Value)));
 
             return false;
         }
@@ -77,19 +77,31 @@ public sealed class Sender : IDisposable
             if(count == 0)
             {
                 _toSend.Dispose();
-                _server.Send(_client, NetworkMessage.Create(NetworkOperation.DataCompled.Value));
+                AwaitTask(_server.Send(_client, NetworkMessage.Create(NetworkOperation.DataCompled.Value)));
                 Thread.Sleep(2000);
 
                 return false;
             }
 
-            _server.Send(_client, NetworkMessage.Create(NetworkOperation.DataChunk.Value, chunk, count));
+            AwaitTask(_server.Send(_client, NetworkMessage.Create(NetworkOperation.DataChunk.Value, chunk, count)));
 
             return true;
         }
         finally
         {
             _returnArray(chunk);
+        }
+    }
+
+    private async void AwaitTask(ValueTask<bool> toWait)
+    {
+        try
+        {
+            await toWait.ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            _errorHandler(e);
         }
     }
 }

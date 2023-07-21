@@ -19,6 +19,8 @@ using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Collections;
 using Stl.Fusion;
 using Stl.Fusion.Server;
+using Stl.Rpc;
+using Stl.Rpc.Server;
 using Tauron.AkkaHost;
 using Tauron.Application.AkkaNode.Bootstrap;
 
@@ -30,15 +32,18 @@ public class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-        FusionBuilder fusion = services.AddFusion();
+        FusionBuilder fusion = services.AddFusion(RpcServiceMode.Server);
+#pragma warning disable EPS06
+        fusion.AddWebServer();
+#pragma warning restore EPS06
         fusion
-           .AddService<IJobDatabaseService, JobDatabaseService>()
+            .AddService<IJobDatabaseService, JobDatabaseService>()
            .AddService<IJobFileService, JobFileService>()
            .AddService<ICriticalErrorService, CriticalErrorService>()
            .AddService<ITaskManager, TaskManager>()
            .AddService<IDeviceService, DeviceService>();
 
-        fusion.AddWebServer();
+        
 
         services.AddHttpContextAccessor();
         services.AddDataProtection();
@@ -117,7 +122,7 @@ public class Startup
             app.UseExceptionHandler("/Error");
         }
 
-        app.UseCors(builder => builder.WithFusionHeaders());
+        app.UseCors();
         app.UseCookiePolicy();
 
         app.UseBlazorFrameworkFiles();
@@ -132,7 +137,7 @@ public class Startup
         app.UseEndpoints(
             endpoints =>
             {
-                endpoints.MapFusionWebSocketServer();
+                endpoints.MapRpcWebSocketServer();
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
 

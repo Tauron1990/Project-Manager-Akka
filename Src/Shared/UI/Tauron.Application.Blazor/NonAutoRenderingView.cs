@@ -102,7 +102,7 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
     object? IViewFor.ViewModel
     {
         get => ViewModel;
-        set => ViewModel = (TModel)value;
+        set => ViewModel = value as TModel;
     }
 
     /// <inheritdoc />
@@ -126,7 +126,7 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
 
             viewModelChanged
                 #pragma warning disable CS4014
-               .Subscribe(_ => RenderingManager.StateHasChangedAsync())
+               .Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore())
                .DisposeWith(this);
 
             viewModelChanged
@@ -146,7 +146,7 @@ public abstract class NonAutoRenderingView<TModel> : DisposableComponent, IViewF
                                 eh => x.PropertyChanged -= eh);
                     })
                .Switch()
-               .Subscribe(_ => RenderingManager.StateHasChangedAsync())
+               .Subscribe(_ => RenderingManager.StateHasChangedAsync().Ignore())
                 #pragma warning restore CS4014
                .DisposeWith(this);
         }

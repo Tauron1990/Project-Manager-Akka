@@ -56,9 +56,8 @@ public sealed partial class SingleDeviceFeature : ActorFeatureBase<SingleDeviceF
         {
             pair.State.Info.DeviceManager
                 .Ask<DeviceInputResponse>(pair.Event, cancellationToken: pair.Event.Token)
-                #pragma warning disable EPC13
-                .PipeTo(pair.Sender);
-                #pragma warning restore EPC13
+                .PipeTo(pair.Sender)
+                .Ignore();
         }
         catch (Exception e)
         {

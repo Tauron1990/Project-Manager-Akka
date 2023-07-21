@@ -16,12 +16,10 @@ public class ErrorsController : Controller, ICriticalErrorService
         => _errorService = errorService;
 
     [HttpGet]
-    [Publish]
     public Task<ErrorCount> CountErrors(CancellationToken token)
         => _errorService.CountErrors(token);
 
     [HttpGet]
-    [Publish]
     public Task<CriticalErrorList> GetErrors(CancellationToken token)
         => _errorService.GetErrors(token);
 

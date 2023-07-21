@@ -28,7 +28,8 @@ public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, Tas
                 async () => await RunDeltation(job).ConfigureAwait(false),
                 default,
                 () => ImmutableList<ErrorProperty>.Empty.Add(new ErrorProperty(PropertyName.From("Task to Delete"), PropertyValue.From(job.EntryId))))
-           .AsTask().ContinueWith(
+           .AsTask()
+           .ContinueWith(
                 t =>
                 {
                     if(t.IsCanceled) return;
@@ -38,11 +39,12 @@ public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, Tas
                         if(!t.Result.IsError())
                             _errorHelper.Logger.LogWarning("Delete Job {Id} was not Successfull. {Casue}", job.EntryId, t.Result);
                     }
-                    else if(t.IsFaulted && t.Exception != null)
+                    else if(t is { IsFaulted: true, Exception: not null })
                     {
                         _errorHelper.Logger.LogError(t.Exception.Unwrap()!, "Error on Try Delete Job {Id}", job.EntryId);
                     }
-                });
+                })
+           .Ignore();
 
         return true;
     }
@@ -52,7 +54,7 @@ public sealed class TaskManagerJobRunner : JobRunner<TaskManagerDeleteEntry, Tas
         var filter = _collection.Operations.Eq(m => m.JobId, job.EntryId);
         DbOperationResult result = await _collection.DeleteOneAsync(filter).ConfigureAwait(false);
 
-        bool success = result.IsAcknowledged && result.DeletedCount == 1;
+        bool success = result is { IsAcknowledged: true, DeletedCount: 1 };
         if(success) _aggregator.Publish(TasksChanged.Inst);
 
         return success ? SimpleResult.Success() : SimpleResult.Failure("task nicht gelöscht");

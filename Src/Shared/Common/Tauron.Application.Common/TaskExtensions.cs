@@ -12,25 +12,17 @@ public static class TaskExtensions
         // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
         => LogTaskError(task, exception => logger.LogError(exception, errorMessage));
 
-    public static void LogTaskError(this Task task, Action<Exception> onError)
-        #pragma warning disable AV2235
-        => task.ContinueWith(
-            compled =>
-            {
-                if(compled.IsCompletedSuccessfully) return;
-
-                if(compled.IsCanceled)
-                {
-                    onError(new TaskCanceledException(compled));
-                }
-                else if(compled.IsFaulted)
-                {
-                    Exception? err = compled.Exception.Unwrap();
-                    if(err != null)
-                        onError(err);
-                }
-            });
-    #pragma warning restore AV2235
+    public static async void LogTaskError(this Task task, Action<Exception> onError)
+    {
+        try
+        {
+            await task.ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            onError(e);
+        }
+    }
 
     public static void Ignore(this Task _) { }
 

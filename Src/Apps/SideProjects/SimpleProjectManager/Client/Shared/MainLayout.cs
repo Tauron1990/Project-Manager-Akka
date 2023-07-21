@@ -10,7 +10,7 @@ public partial class MainLayout
     private readonly MudTheme _darkTheme =
         new()
         {
-            Palette = new Palette
+            Palette = new PaletteDark
                       {
                           Primary = "#776be7",
                           Black = "#27272f",

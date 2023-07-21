@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Operation.Client.Device.UiHelper;
 using SimpleProjectManager.Shared.Services.Devices;
+using Tauron.Operations;
 
 namespace SimpleProjectManager.Operation.Client.Device.MGI.MgiUi.Screens;
 
@@ -20,4 +21,15 @@ public sealed class ConfigurationScreen : ScreenModelBase
         DeviceUi.GroupVertical(
             "konfiguration",
             DeviceUi.TextInput(_uvIpInput, "Ip Uv Lampe", _uiConfiguration.UvLampIp));
+
+    public override async Task<SimpleResult> NewInput(DeviceId element, string input)
+    {
+        if(element == _uvIpInput)
+        {
+            _uiConfiguration.UvLampIp = input;
+            return await SimpleResult.Catch(_uiConfiguration.RunSave()).ConfigureAwait(false);
+        }
+        
+        return SimpleResult.Failure($"Kein Element in ConfigurationScreen bekannt ({element})");
+    }
 }

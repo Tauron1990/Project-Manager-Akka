@@ -36,7 +36,7 @@ internal sealed class ActorServiceProviderFactory : IServiceProviderFactory<IAct
         var system = prov.GetRequiredService<ActorSystem>();
         ActorApplication.ActorSystem = system;
         
-        lifetime.ApplicationStopping.Register(() => system.Terminate());
+        lifetime.ApplicationStopping.Register(() => system.Terminate().Ignore());
 
         return prov;
     }

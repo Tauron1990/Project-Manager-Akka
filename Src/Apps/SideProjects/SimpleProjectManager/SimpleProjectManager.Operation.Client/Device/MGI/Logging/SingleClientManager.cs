@@ -2,6 +2,7 @@
 using System.Threading.Channels;
 using Akka.Actor;
 using Microsoft.Extensions.Logging;
+using Tauron;
 using Tauron.Features;
 using Tauron.Servicemnager.Networking.Data;
 
@@ -37,10 +38,13 @@ public sealed partial class SingleClientManager : ActorFeatureBase<SingleClientM
     {
         Receive<ClientError>(OnFailure);
         ReceiveState<NewName>(p => p.State with { App = p.Event.Name });
-        
-        Run(CurrentState, Self).PipeTo(Self,
-            success:() => PoisonPill.Instance,
-            failure: e => ClientError.CreateError("Error on Process Socket Receive Data", e));
+
+        Run(CurrentState, Self)
+            .PipeTo(
+                Self,
+                success: () => PoisonPill.Instance,
+                failure: e => ClientError.CreateError("Error on Process Socket Receive Data", e))
+            .Ignore();
     }
 
     private void OnFailure(ClientError obj)

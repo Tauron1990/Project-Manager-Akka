@@ -164,7 +164,9 @@ public class ObservableActor : ActorBase, IObservableActor
         var source = new TaskCompletionSource<TSignal>(TaskCreationOptions.RunContinuationsAsynchronously);
         var signal = new ConcrretSignal<TSignal>(source, match);
         Self.Tell(new AddSignal(signal));
-        Task.Delay(timeout).PipeTo(Self, success: () => new SignalTimeOut(signal));
+        Task.Delay(timeout)
+            .PipeTo(Self, success: () => new SignalTimeOut(signal))
+            .LogTaskError($"Timeout Pipe Error {GetType()}", Log);
 
         return source.Task.ToObservable();
     }
