@@ -37,11 +37,11 @@ public class Startup
         fusion.AddWebServer();
 #pragma warning restore EPS06
         fusion
-            .AddService<IJobDatabaseService, JobDatabaseService>()
-           .AddService<IJobFileService, JobFileService>()
-           .AddService<ICriticalErrorService, CriticalErrorService>()
-           .AddService<ITaskManager, TaskManager>()
-           .AddService<IDeviceService, DeviceService>();
+            .AddServer<IJobDatabaseService, JobDatabaseService>()
+            .AddServer<IJobFileService, JobFileService>()
+            .AddServer<ICriticalErrorService, CriticalErrorService>()
+            .AddServer<ITaskManager, TaskManager>()
+            .AddServer<IDeviceService, DeviceService>();
 
         
 

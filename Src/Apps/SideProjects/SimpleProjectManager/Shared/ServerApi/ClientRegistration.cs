@@ -5,7 +5,9 @@ using SimpleProjectManager.Shared.Services;
 using SimpleProjectManager.Shared.Services.Devices;
 using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Fusion;
+using Stl.Fusion.Client;
 using Stl.Fusion.Extensions;
+using Stl.Rpc.Infrastructure;
 
 namespace SimpleProjectManager.Shared.ServerApi;
 
@@ -21,16 +23,16 @@ public static class ClientRegistration
             .AddSingleton(sp => sp.GetRequiredService<RestClient>().For<ITaskManagerDef>())
             .AddSingleton(sp => sp.GetRequiredService<RestClient>().For<IDeviceServiceDef>())
             .AddHttpClient()
-            
+
             .AddFusion()
 #pragma warning disable EPS06
             .AddFusionTime()
-            .AddRpcPeerStateMonitor()
+            //.AddRpcPeerStateMonitor()
             .AddClient<IJobDatabaseService>()
             .AddClient<IJobFileService>()
             .AddClient<ICriticalErrorService>()
             .AddClient<ITaskManager>()
-            .AddClient<IDeviceService>();
+            .AddClient<IDeviceService>()
            /*.AddRestEaseClient(
                 b =>
                 {
@@ -46,10 +48,10 @@ public static class ClientRegistration
                        .AddReplicaService<ICriticalErrorService, ICriticalErrorServiceDef>()
                        .AddReplicaService<ITaskManager, ITaskManagerDef>()
                        .AddReplicaService<IDeviceService, IDeviceServiceDef>();
-                });*/
+                })*/;
 
-        fusion.Rpc.AddWebSocketClient(baseAdress);
-        
-        return fusion;
+           fusion.Rpc.AddWebSocketClient(baseAdress);
+
+           return fusion;
     }
 }
