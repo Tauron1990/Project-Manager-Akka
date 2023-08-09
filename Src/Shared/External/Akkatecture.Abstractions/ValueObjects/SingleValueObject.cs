@@ -28,6 +28,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using Akkatecture.Extensions;
+using MemoryPack;
 
 namespace Akkatecture.ValueObjects;
 

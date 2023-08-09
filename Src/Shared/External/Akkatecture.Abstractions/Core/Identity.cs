@@ -38,7 +38,7 @@ namespace Akkatecture.Core;
 [PublicAPI]
 #pragma warning disable MA0097
 #pragma warning disable MA0018
-public abstract class Identity<T> : SingleValueObject<string>, IIdentity
+public abstract class Identity<T> : SingleValueObject<string>, IIdentity<T>
     where T : Identity<T>
 {
     // ReSharper disable StaticMemberInGenericType

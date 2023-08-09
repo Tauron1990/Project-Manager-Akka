@@ -10,7 +10,7 @@ public interface IStringValueType<TSelf>
 
     static abstract TSelf From(string value);
 
-    static abstract bool operator ==(TSelf left, string right);
-
-    static abstract bool operator !=(TSelf left, string right);
+    // static abstract bool operator ==(TSelf left, string right);
+    //
+    // static abstract bool operator !=(TSelf left, string right);
 }

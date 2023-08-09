@@ -11,26 +11,26 @@ public interface IDeviceService : IComputeService
     Task<DeviceList> GetAllDevices(CancellationToken token);
 
     [ComputeMethod]
-    Task<DeviceUiGroup> GetRootUi(DeviceId device, CancellationToken token);
+    Task<DeviceUiGroup> GetRootUi(Ic<DeviceId> device, CancellationToken token);
 
     [ComputeMethod]
-    Task<string> GetStringSensorValue(DeviceId device, DeviceId sensor, CancellationToken token);
+    Task<string> GetStringSensorValue(Ic<DeviceId> device, Ic<DeviceId> sensor, CancellationToken token);
 
     [ComputeMethod]
-    Task<int> GetIntSensorValue(DeviceId device, DeviceId sensor, CancellationToken token);
+    Task<int> GetIntSensorValue(Ic<DeviceId> device, Ic<DeviceId> sensor, CancellationToken token);
 
     [ComputeMethod]
-    Task<double> GetDoubleSensorValue(DeviceId device, DeviceId sensor, CancellationToken token);
+    Task<double> GetDoubleSensorValue(Ic<DeviceId> device, Ic<DeviceId> sensor, CancellationToken token);
 
     [ComputeMethod]
-    Task<bool> CanClickButton(DeviceId device, DeviceId button, CancellationToken token);
+    Task<bool> CanClickButton(Ic<DeviceId> device, Ic<DeviceId> button, CancellationToken token);
 
     [ComputeMethod]
-    Task<DateTime> CurrentLogs(DeviceId device, CancellationToken token);
+    Task<DateTime> CurrentLogs(Ic<DeviceId> device, CancellationToken token);
 
-    Task<Logs> GetBatches(DeviceId deviceId, DateTime from, DateTime to, CancellationToken token);
+    Task<Logs> GetBatches(Ic<DeviceId> deviceId, DateTime from, DateTime to, CancellationToken token);
 
-    Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token);
+    Task<SimpleResultContainer> ClickButton(Ic<DeviceId> device, Ic<DeviceId> button, CancellationToken token);
 
-    Task<SimpleResult> DeviceInput(DeviceInputData inputData, CancellationToken token);
+    Task<SimpleResultContainer> DeviceInput(DeviceInputData inputData, CancellationToken token);
 }

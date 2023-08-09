@@ -31,3 +31,23 @@ public interface IIdentity
 {
     string Value { get; }
 }
+
+public interface IIdentity<TSelf> : IIdentity
+    where TSelf : IIdentity<TSelf>
+{
+    static abstract TSelf New { get; }
+
+    static abstract TSelf NewDeterministic(Guid namespaceId, string name);
+
+    static abstract TSelf NewDeterministic(Guid namespaceId, byte[] nameBytes);
+
+    static abstract TSelf NewComb();
+
+    static abstract TSelf With(string value);
+
+    static abstract TSelf With(Guid guid);
+
+    static abstract bool IsValid(string value);
+
+    static abstract IEnumerable<string> Validate(string value);
+}

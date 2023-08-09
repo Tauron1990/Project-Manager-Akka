@@ -5,9 +5,7 @@ using SimpleProjectManager.Shared.Services;
 using SimpleProjectManager.Shared.Services.Devices;
 using SimpleProjectManager.Shared.Services.Tasks;
 using Stl.Fusion;
-using Stl.Fusion.Client;
 using Stl.Fusion.Extensions;
-using Stl.Rpc.Infrastructure;
 
 namespace SimpleProjectManager.Shared.ServerApi;
 

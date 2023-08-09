@@ -1,15 +1,19 @@
-﻿using Vogen;
+﻿using System.Runtime.Serialization;
+using MemoryPack;
+using Vogen;
 
 namespace SimpleProjectManager.Shared;
 
-[ValueObject(typeof(string))]
-[Instance("Empty", "")]
-#pragma warning disable MA0097
-public readonly partial struct SimpleMessage : IStringValueType<SimpleMessage>
-    #pragma warning restore MA0097
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public readonly partial record struct SimpleMessage([property:DataMember, MemoryPackOrder(0)]string Value) : IStringValueType<SimpleMessage>
 {
-    static SimpleMessage IStringValueType<SimpleMessage>.GetEmpty => Empty;
+    public static SimpleMessage GetEmpty { get; } = new(string.Empty);
+    public static SimpleMessage From(string value) =>
+        new(value);
 
-    private static Validation Validate(string value)
-        => value.ValidateNotNullOrEmpty(nameof(SimpleMessage));
+    public static bool operator ==(SimpleMessage left, string right) =>
+        string.Equals(left.Value, right, StringComparison.Ordinal);
+
+    public static bool operator !=(SimpleMessage left, string right) =>
+        !string.Equals(left.Value, right, StringComparison.Ordinal);
 }

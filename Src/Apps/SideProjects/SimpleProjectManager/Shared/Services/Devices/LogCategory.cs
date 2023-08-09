@@ -1,10 +1,9 @@
+using System.Runtime.Serialization;
+using MemoryPack;
 using Vogen;
 
 namespace SimpleProjectManager.Shared.Services.Devices;
 
-[ValueObject(typeof(string))]
-public readonly partial struct LogCategory
-{
-    private static Validation Validate(string value)
-        => value.ValidateNotNullOrEmpty(nameof(LogCategory));
-}
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public readonly partial record struct LogCategory(
+    [property:DataMember, MemoryPackOrder(0)] string Value);

@@ -1,3 +1,9 @@
-﻿namespace SimpleProjectManager.Shared.Services.Devices;
+﻿using System.Runtime.Serialization;
+using MemoryPack;
 
-public readonly record struct FoundDevice(DeviceName Name, DeviceId Id);
+namespace SimpleProjectManager.Shared.Services.Devices;
+
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public readonly partial record struct FoundDevice(
+    [property:DataMember, MemoryPackOrder(0)]DeviceName Name, 
+    [property:DataMember, MemoryPackOrder(1)]Ic<DeviceId> Id);

@@ -1,5 +1,8 @@
 ﻿using System.Collections.Immutable;
+using System.Runtime.Serialization;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared.Services.Devices;
 
-public sealed record DeviceList(ImmutableArray<FoundDevice> FoundDevices);
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public sealed partial record DeviceList([property:DataMember, MemoryPackOrder(0)]ImmutableArray<FoundDevice> FoundDevices);

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Akkatecture.Core;
 using JetBrains.Annotations;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared.Services.Devices;
 

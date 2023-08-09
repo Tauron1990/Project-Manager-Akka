@@ -1,8 +1,14 @@
 ﻿using System.Collections.Immutable;
+using System.Runtime.Serialization;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared.Services.Devices;
 
-public sealed record LogBatch(DeviceId DeviceName, ImmutableList<LogData> Logs)
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public sealed record LogBatch(
+    [property:DataMember, MemoryPackOrder(0)] DeviceId DeviceName, 
+    [property:DataMember, MemoryPackOrder(1)] ImmutableList<LogData> Logs)
 {
+    [MemoryPackIgnore]
     public bool IsEmpty => Logs.IsEmpty;
 }
