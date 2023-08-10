@@ -65,7 +65,8 @@ public static class DomainEventMapper
             eventEnvelope.PersistenceId,
             eventEnvelope.SequenceNr,
             domainEvent,
-            eventEnvelope.Timestamp);
+            eventEnvelope.Timestamp,
+            eventEnvelope.Tags);
 
         return newEventEnvelope;
     }

@@ -138,13 +138,13 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return ActiveJobs.From(await result.CountAsync(token).ConfigureAwait(false));
     }
 
-    public async Task<SimpleResult> DeleteJob(ProjectId id, CancellationToken token)
+    public async Task<SimpleResultContainer> DeleteJob(ProjectId id, CancellationToken token)
         => SimpleResult.FromOperation(await _commandProcessor.RunCommand(id, token).ConfigureAwait(false));
 
-    public virtual async Task<SimpleResult> CreateJob(CreateProjectCommand command, CancellationToken token)
+    public virtual async Task<SimpleResultContainer> CreateJob(CreateProjectCommand command, CancellationToken token)
         => SimpleResult.FromOperation(await _commandProcessor.RunCommand(command, token).ConfigureAwait(false));
 
-    public virtual async Task<SimpleResult> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
+    public virtual async Task<SimpleResultContainer> ChangeOrder(SetSortOrder newOrder, CancellationToken token)
     {
         (bool ignoreIfEmpty, SortOrder? sortOrder) = newOrder;
 
@@ -167,9 +167,9 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
         return SimpleResult.Success();
     }
 
-    public async Task<SimpleResult> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
+    public async Task<SimpleResultContainer> UpdateJobData(UpdateProjectCommand command, CancellationToken token)
         => SimpleResult.FromOperation(await _commandProcessor.RunCommand(command, token).ConfigureAwait(false));
 
-    public async Task<SimpleResult> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token)
+    public async Task<SimpleResultContainer> RemoveFiles(ProjectRemoveFilesCommand command, CancellationToken token)
         => SimpleResult.FromOperation(await _commandProcessor.RunCommand(command, token).ConfigureAwait(false));
 }

@@ -65,7 +65,7 @@ public class CriticalErrorService : ICriticalErrorService
         return new CriticalErrorList(await result.ToImmutableList(token).ConfigureAwait(false));
     }
 
-    public virtual async Task<SimpleResult> DisableError(ErrorId id, CancellationToken token)
+    public virtual async Task<SimpleResultContainer> DisableError(ErrorId id, CancellationToken token)
     {
         var filter = _errorEntrys.Operations.Eq(e => e.Id, id.Value);
         var updater = _errorEntrys.Operations.Set(e => e.IsDisabled, value: true);

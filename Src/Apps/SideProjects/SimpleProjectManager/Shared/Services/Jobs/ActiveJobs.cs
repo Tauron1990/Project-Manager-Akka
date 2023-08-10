@@ -7,7 +7,7 @@ namespace SimpleProjectManager.Shared.Services;
 
 [StructLayout(LayoutKind.Auto)]
 [MemoryPackable(GenerateType.VersionTolerant), DataContract]
-public readonly partial record struct ActiveJobs([property:DataMember, MemoryPackOrder(0)]int Value)
+public readonly partial record struct ActiveJobs([property:DataMember, MemoryPackOrder(0)]long Value)
 {
-    public static ActiveJobs From(int value) => new(value);
+    public static ActiveJobs From(long value) => new(value);
 }

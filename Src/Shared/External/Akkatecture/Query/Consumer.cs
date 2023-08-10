@@ -77,7 +77,8 @@ public class Consumer<TJournal> : Consumer
                 {
                     object? domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
 
-                    return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
+                    return new EventEnvelope(envelope.Offset, envelope.PersistenceId, 
+                        envelope.SequenceNr, domainEvent, envelope.Timestamp, envelope.Tags);
                 });
     }
 
@@ -94,7 +95,8 @@ public class Consumer<TJournal> : Consumer
                 {
                     object? domainEvent = mapper.FromJournal(envelope.Event, string.Empty).Events.Single();
 
-                    return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr, domainEvent, envelope.Timestamp);
+                    return new EventEnvelope(envelope.Offset, envelope.PersistenceId, envelope.SequenceNr,
+                        domainEvent, envelope.Timestamp, envelope.Tags);
                 });
     }
 }

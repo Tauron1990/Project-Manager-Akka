@@ -59,4 +59,17 @@
     <ItemGroup>
         <ProjectReference Include="..\..\..\..\Shared\External\Akkatecture.Abstractions\Akkatecture.Abstractions.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="ServerApi\RestApi\ICriticalErrorServiceDef.cs" />
+      <None Include="ServerApi\RestApi\ICriticalErrorServiceDef.cs" />
+      <Compile Remove="ServerApi\RestApi\IDeviceServiceDef.cs" />
+      <None Include="ServerApi\RestApi\IDeviceServiceDef.cs" />
+      <Compile Remove="ServerApi\RestApi\IJobDatabaseServiceDef.cs" />
+      <None Include="ServerApi\RestApi\IJobDatabaseServiceDef.cs" />
+      <Compile Remove="ServerApi\RestApi\IJobFileServiceDef.cs" />
+      <None Include="ServerApi\RestApi\IJobFileServiceDef.cs" />
+      <Compile Remove="ServerApi\RestApi\ITaskManagerDef.cs" />
+      <None Include="ServerApi\RestApi\ITaskManagerDef.cs" />
+    </ItemGroup>
 </Project>

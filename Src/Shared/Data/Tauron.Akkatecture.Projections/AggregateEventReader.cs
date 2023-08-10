@@ -246,7 +246,7 @@ public sealed class AggregateEventReader<TJournal> : AggregateEventReader
                     {
                         object? domainEvent = Mapper.FromJournal(x.Event, string.Empty).Events.Single();
 
-                        return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp);
+                        return new EventEnvelope(x.Offset, x.PersistenceId, x.SequenceNr, domainEvent, x.Timestamp, x.Tags);
                     });
         }
     }

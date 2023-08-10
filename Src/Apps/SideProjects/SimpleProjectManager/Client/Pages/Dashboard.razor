@@ -17,7 +17,7 @@
                 <MudItem lg="12">
                     <ObservableRenderer Observable="ViewModel?.JobCountState">
                         <ValueRenderer>
-                            <MudText Align="Align.Center">@context</MudText>
+                            <MudText Align="Align.Center">@context.Value</MudText>
                         </ValueRenderer>
                         <OnCompled>
                             <GenericStreamError/>

@@ -32,13 +32,13 @@ public class JobFileController : Controller, IJobFileService
 
 
     [HttpPost]
-    public Task<SimpleResult> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
+    public Task<SimpleResultContainer> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
         => _service.RegisterFile(projectFile, token);
 
-    public Task<SimpleResult> CommitFiles(FileList files, CancellationToken token)
+    public Task<SimpleResultContainer> CommitFiles(FileList files, CancellationToken token)
         => _service.CommitFiles(files, token);
 
-    public Task<SimpleResult> DeleteFiles(FileList files, CancellationToken token)
+    public Task<SimpleResultContainer> DeleteFiles(FileList files, CancellationToken token)
         => _service.DeleteFiles(files, token);
 
     [HttpGet("{id}")]

@@ -133,7 +133,7 @@ public sealed class UploadTransaction : SimpleTransaction<UploadTransactionConte
             Console.WriteLine("Upload Files");
             #endif
 
-            return await _client.PostJson<UploadFileResult>($"{ApiPaths.FilesApi}/{nameof(IJobFileServiceDef.UploadFiles)}", requestContent, t)
+            return await _client.PostJson<UploadFileResult>($"{ApiPaths.FilesApi}/UploadFiles", requestContent, t)
                .ConfigureAwait(false) ?? new UploadFileResult(SimpleResult.Failure("Unbekannter Fehler"), ImmutableList<ProjectFileId>.Empty);
         }
 

@@ -21,4 +21,6 @@ public readonly partial struct SimpleResultContainer
         SimpleResult = new SimpleResult(error.Error);
 
     public static implicit operator SimpleResult(SimpleResultContainer container) => container.SimpleResult;
+    
+    public static implicit operator SimpleResultContainer(SimpleResult result) => new(result);
 }

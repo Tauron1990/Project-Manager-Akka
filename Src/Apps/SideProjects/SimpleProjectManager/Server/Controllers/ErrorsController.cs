@@ -24,7 +24,7 @@ public class ErrorsController : Controller, ICriticalErrorService
         => _errorService.GetErrors(token);
 
     [HttpPost]
-    public Task<SimpleResult> DisableError([FromQuery] ErrorId id, CancellationToken token)
+    public Task<SimpleResultContainer> DisableError([FromQuery] ErrorId id, CancellationToken token)
         => _errorService.DisableError(id, token);
 
     [HttpPost]

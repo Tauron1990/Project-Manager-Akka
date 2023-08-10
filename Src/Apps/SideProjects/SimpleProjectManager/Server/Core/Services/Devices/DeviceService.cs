@@ -4,6 +4,7 @@ using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
 using SimpleProjectManager.Client.Operations.Shared.Devices;
 using SimpleProjectManager.Server.Core.DeviceManager.Events;
+using SimpleProjectManager.Shared.Services;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 using static SimpleProjectManager.Client.Operations.Shared.Devices.DeviceManagerMessages;
@@ -114,7 +115,7 @@ public partial class DeviceService : IDeviceService, IDisposable
                 return new Logs(result.Batches);
             }).ConfigureAwait(false);
 
-    public async Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token)
+    public async Task<SimpleResultContainer> ClickButton(DeviceId device, DeviceId button, CancellationToken token)
         => await Run(
             man =>
             {
@@ -123,7 +124,7 @@ public partial class DeviceService : IDeviceService, IDisposable
                 return Task.FromResult(SimpleResult.Success());
             }).ConfigureAwait(false);
 
-    public async Task<SimpleResult> DeviceInput(DeviceInputData inputData, CancellationToken token) =>
+    public async Task<SimpleResultContainer> DeviceInput(DeviceInputData inputData, CancellationToken token) =>
         await Run(
             async man =>
             {

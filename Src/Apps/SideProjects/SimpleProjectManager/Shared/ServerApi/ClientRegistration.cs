@@ -13,14 +13,7 @@ public static class ClientRegistration
 {
     public static FusionBuilder ConfigFusion(IServiceCollection collection, Uri baseAdress)
     {
-        FusionBuilder fusion = collection
-            .AddSingleton(_=> new RestClient(baseAdress))
-            .AddSingleton(sp => sp.GetRequiredService<RestClient>().For<IJobDatabaseServiceDef>())
-            .AddSingleton(sp => sp.GetRequiredService<RestClient>().For<IJobFileServiceDef>())
-            .AddSingleton(sp => sp.GetRequiredService<RestClient>().For<ICriticalErrorServiceDef>())
-            .AddSingleton(sp => sp.GetRequiredService<RestClient>().For<ITaskManagerDef>())
-            .AddSingleton(sp => sp.GetRequiredService<RestClient>().For<IDeviceServiceDef>())
-            .AddHttpClient()
+        FusionBuilder fusion = collection.AddHttpClient()
 
             .AddFusion()
 #pragma warning disable EPS06

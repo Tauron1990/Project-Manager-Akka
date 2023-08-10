@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using SimpleProjectManager.Shared.ServerApi;
+using SimpleProjectManager.Shared.Services;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion.Server;
 
@@ -51,11 +52,11 @@ public class DeviceController : Controller, IDeviceService
         CancellationToken token)
         => _deviceService.GetBatches(deviceId, from, to, token);
 
-    public Task<SimpleResult> ClickButton(DeviceId device, DeviceId button, CancellationToken token)
+    public Task<SimpleResultContainer> ClickButton(DeviceId device, DeviceId button, CancellationToken token)
         => _deviceService.ClickButton(device, button, token);
 
     [HttpPost]
-    public async Task<SimpleResult> DeviceInput([FromBody]DeviceInputData inputData, CancellationToken token) =>
+    public async Task<SimpleResultContainer> DeviceInput([FromBody]DeviceInputData inputData, CancellationToken token) =>
         await _deviceService.DeviceInput(inputData, token).ConfigureAwait(false);
 
     [HttpPost]

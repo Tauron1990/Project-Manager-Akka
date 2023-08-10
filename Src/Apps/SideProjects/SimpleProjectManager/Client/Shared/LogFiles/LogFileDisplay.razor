@@ -6,10 +6,10 @@
     <MudDataGrid Groupable="true" Items="ViewModel.Logs" Dense="true" Filterable="true" Virtualize="true">
         <Columns>
             <HierarchyColumn T="LogData"/>
-            <Column T="LogData" Field="Date" Title="Zeit"/>
-            <Column T="LogData" Field="Level" Title="Schwere"/>
-            <Column T="LogData" Field="Message" Title="Nachricht"/>
-            <Column T="LogData" Field="EventType" Title="Ereignis Type"/>
+            <PropertyColumn T="LogData" TProperty="String" Property="ld => ld.Date" Title="Zeit"/>
+            <PropertyColumn T="LogData" TProperty="String" Property="ld => ld.Level" Title="Schwere"/>
+            <PropertyColumn T="LogData" TProperty="String" Property="ld => ld.Message" Title="Nachricht"/>
+            <PropertyColumn T="LogData" TProperty="String" Property="ld => ld.EventType" Title="Ereignis Type"/>
         </Columns>
         <ChildRowContent>
                     <MudCard>

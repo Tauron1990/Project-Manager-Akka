@@ -13,11 +13,11 @@
                 <MudDataGrid T="LogData" Virtualize="true" Groupable="true" Items="group.Logs" Dense="true" SortMode="SortMode.Single">
                     <Columns>
                         <HierarchyColumn T="LogData" ButtonDisabledFunc="data => data.Data.IsEmpty"/>
-                        <Column T="LogData" Field="LogLevel" Title="Level" ShowFilterIcon="true"
+                        <PropertyColumn T="LogData" TProperty="LogLevel" Property="ld => ld.LogLevel" Title="Level" ShowFilterIcon="true"
                                 Groupable="true" Sortable="true" SortBy="data => data.LogLevel"/>
-                        <Column T="LogData" Field="Occurance" Title="Zeit" Groupable="false"
+                        <PropertyColumn T="LogData" TProperty="DateTime" Property="ld => ld.Occurance" Title="Zeit" Groupable="false"
                                 Sortable="true" SortBy="data => data.Occurance"/>
-                        <Column T="LogData" Field="Message" Title="Nachricht" Groupable="false" Sortable="false"/>
+                        <PropertyColumn T="LogData" TProperty="String" Property="ld => ld.Message.Value" Title="Nachricht" Groupable="false" Sortable="false"/>
                     </Columns>
                     <ChildRowContent Context="logContent">
                         <MudCard>

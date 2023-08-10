@@ -2,10 +2,10 @@
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Data;
 using SimpleProjectManager.Client.Shared.Devices;
+using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 using Tauron;
-using Tauron.Application;
 using Tauron.Application.Blazor;
 
 namespace SimpleProjectManager.Client.ViewModels.Devices;
@@ -16,10 +16,10 @@ public class SingleButtonViewModel : BlazorViewModel
     private readonly IMutableState<bool> _canClick;
     private readonly IState<DeviceId?> _deviceId;
     private readonly IDeviceService _deviceService;
-    private readonly IEventAggregator _eventAggregator;
+    private readonly IMessageDispatcher _eventAggregator;
     private readonly IOnlineMonitor _onlineMonitor;
 
-    public SingleButtonViewModel(IStateFactory stateFactory, IDeviceService deviceService, IEventAggregator eventAggregator, IOnlineMonitor onlineMonitor)
+    public SingleButtonViewModel(IStateFactory stateFactory, IDeviceService deviceService, IMessageDispatcher eventAggregator, IOnlineMonitor onlineMonitor)
         : base(stateFactory)
     {
         _deviceService = deviceService;

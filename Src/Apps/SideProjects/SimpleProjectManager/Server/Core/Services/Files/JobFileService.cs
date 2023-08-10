@@ -2,7 +2,6 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Akkatecture.Jobs;
 using SimpleProjectManager.Server.Data;
 using SimpleProjectManager.Server.Data.Data;
 using SimpleProjectManager.Shared;
@@ -82,10 +81,10 @@ public class JobFileService : IJobFileService, IDisposable
                     new ProjectFileId(d.FileId),
                     new FileName(d.FileName),
                     new FileSize(d.Length),
-                    new JobName(d.JobName)))
+                    d.JobName))
            .ToArrayAsync(token).ConfigureAwait(false);
 
-    public async Task<SimpleResult> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
+    public async Task<SimpleResultContainer> RegisterFile(ProjectFileInfo projectFile, CancellationToken token)
     {
         try
         {
@@ -116,10 +115,10 @@ public class JobFileService : IJobFileService, IDisposable
         }
     }
 
-    public async Task<SimpleResult> CommitFiles(FileList files, CancellationToken token)
+    public async Task<SimpleResultContainer> CommitFiles(FileList files, CancellationToken token)
         => await AggregateErrors(files.Files, id => _contentManager.CommitFile(id, token)).ConfigureAwait(false);
 
-    public async Task<SimpleResult> DeleteFiles(FileList files, CancellationToken token)
+    public async Task<SimpleResultContainer> DeleteFiles(FileList files, CancellationToken token)
         => await AggregateErrors(files.Files, id => _contentManager.DeleteFile(id, token)).ConfigureAwait(false);
 
     private static async ValueTask<SimpleResult> AggregateErrors<TItem>(IEnumerable<TItem> items, Func<TItem, ValueTask<SimpleResult>> executor)

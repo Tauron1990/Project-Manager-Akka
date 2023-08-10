@@ -1,5 +1,6 @@
 using System.Reactive;
 using SimpleProjectManager.Client.Shared.Services;
+using SimpleProjectManager.Shared.Services;
 using Tauron.Application;
 using Tauron.Application.Blazor;
 using Tauron.Operations;
@@ -18,6 +19,12 @@ public sealed class MessageDispatcher : IMessageDispatcher
 
     public ValueTask<bool> IsSuccess(Func<ValueTask<SimpleResult>> runner)
         => _eventAggregator.IsSuccess(runner);
+
+    public Func<TInput, bool> IsSuccess<TInput>(Func<TInput, SimpleResultContainer> runner) =>
+        IsSuccess<TInput>(i => runner(i).SimpleResult);
+
+    public ValueTask<bool> IsSuccess(Func<ValueTask<SimpleResultContainer>> runner) =>
+        IsSuccess(async () => (await runner().ConfigureAwait(false)).SimpleResult);
 
     public ValueTask<bool> IsSuccess(Func<ValueTask<Unit>> runner)
         => _eventAggregator.IsSuccess(runner);

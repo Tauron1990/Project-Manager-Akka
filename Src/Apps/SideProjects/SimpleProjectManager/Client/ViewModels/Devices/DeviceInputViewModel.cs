@@ -3,12 +3,11 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ReactiveUI;
 using SimpleProjectManager.Client.Shared.Devices;
+using SimpleProjectManager.Client.Shared.Services;
 using SimpleProjectManager.Shared.Services.Devices;
 using Stl.Fusion;
 using Tauron;
-using Tauron.Application;
 using Tauron.Application.Blazor;
-using Tauron.Operations;
 
 namespace SimpleProjectManager.Client.ViewModels.Devices;
 
@@ -24,7 +23,7 @@ public class DeviceInputViewModel : BlazorViewModel
 
     public ReactiveCommand<Unit, Unit> Send { get; }
 
-    protected DeviceInputViewModel(IStateFactory stateFactory, IEventAggregator aggregator, IDeviceService service) : base(stateFactory)
+    protected DeviceInputViewModel(IStateFactory stateFactory, IMessageDispatcher aggregator, IDeviceService service) : base(stateFactory)
     {
         var deviceId = GetParameter<DeviceId>(nameof(DeviceInputDisplay.DeviceId));
         var element = GetParameter<DeviceId>(nameof(DeviceInputDisplay.Element));

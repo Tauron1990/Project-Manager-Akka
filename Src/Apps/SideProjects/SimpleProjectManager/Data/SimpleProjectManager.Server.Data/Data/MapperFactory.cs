@@ -23,17 +23,11 @@ public static class MapperFactory
         exp.CreateMap<FileInfoData, DbFileInfoData>()
            .ForMember(
                m => m.Size, 
-               m => m.MapFrom(d => d.Size.Value))
-           .ForMember(
-               m => m.Id, 
-               m => m.MapFrom(d => d.Id.Value));
+               m => m.MapFrom(d => d.Size.Value));
         exp.CreateMap<DbFileInfoData, FileInfoData>()
            .ForMember(
                m => m.Size, 
-               m => m.MapFrom(d => new FileSize(d.Size)))
-           .ForMember(
-               m => m.Id,
-               m => m.MapFrom(d => new Ic<ProjectFileId>(new ProjectFileId(d.Id))));
+               m => m.MapFrom(d => new FileSize(d.Size)));
 
         exp.CreateMap<ProjectFileInfo, DbFileInfoData>()
            .ForMember(d => d.Size, m => m.MapFrom(i => i.Size.Value));
