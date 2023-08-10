@@ -8,6 +8,7 @@ namespace SimpleProjectManager.Shared;
 public readonly partial record struct PropertyValue([property:DataMember, MemoryPackOrder(0)]string Value) : IStringValueType<PropertyValue>
 {
     public static PropertyValue GetEmpty { get; } = new(string.Empty);
+    public static PropertyValue Empty => GetEmpty;
 
     public static PropertyValue From(string value) =>
         new(value);

@@ -8,6 +8,8 @@ namespace SimpleProjectManager.Shared;
 public readonly partial record struct SimpleMessage([property:DataMember, MemoryPackOrder(0)]string Value) : IStringValueType<SimpleMessage>
 {
     public static SimpleMessage GetEmpty { get; } = new(string.Empty);
+    public static SimpleMessage Empty => GetEmpty;
+
     public static SimpleMessage From(string value) =>
         new(value);
 

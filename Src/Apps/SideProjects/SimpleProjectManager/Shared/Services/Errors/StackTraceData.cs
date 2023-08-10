@@ -1,12 +1,14 @@
 ﻿using System.Diagnostics;
+using System.Runtime.Serialization;
 using Akkatecture.ValueObjects;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared.Services;
 
-#pragma warning disable MA0097
-public sealed class StackTraceData : SingleValueObject<string>
-    #pragma warning restore MA0097
+[DataContract, MemoryPackable]
+public sealed partial class StackTraceData : SingleValueObject<string>
 {
+    [MemoryPackConstructor]
     public StackTraceData(string value) : base(value) { }
 
     public StackTraceData(StackTrace stackTrace)

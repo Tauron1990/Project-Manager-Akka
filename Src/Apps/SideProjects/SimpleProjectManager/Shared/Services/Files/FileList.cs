@@ -1,5 +1,8 @@
 ﻿using System.Collections.Immutable;
+using System.Runtime.Serialization;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared.Services;
 
-public sealed record FileList(ImmutableList<ProjectFileId> Files);
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public sealed partial record FileList([property:DataMember, MemoryPackOrder(0)]ImmutableList<ProjectFileId> Files);

@@ -21,9 +21,19 @@ public static class MapperFactory
     private static void ConfigurateMapper(IMapperConfigurationExpression exp)
     {
         exp.CreateMap<FileInfoData, DbFileInfoData>()
-           .ForMember(m => m.Size, m => m.MapFrom(d => d.Size.Value));
+           .ForMember(
+               m => m.Size, 
+               m => m.MapFrom(d => d.Size.Value))
+           .ForMember(
+               m => m.Id, 
+               m => m.MapFrom(d => d.Id.Value));
         exp.CreateMap<DbFileInfoData, FileInfoData>()
-           .ForMember(m => m.Size, m => m.MapFrom(d => new FileSize(d.Size)));
+           .ForMember(
+               m => m.Size, 
+               m => m.MapFrom(d => new FileSize(d.Size)))
+           .ForMember(
+               m => m.Id,
+               m => m.MapFrom(d => new Ic<ProjectFileId>(new ProjectFileId(d.Id))));
 
         exp.CreateMap<ProjectFileInfo, DbFileInfoData>()
            .ForMember(d => d.Size, m => m.MapFrom(i => i.Size.Value));

@@ -36,7 +36,7 @@ else if(ViewModel != null)
             </MudTd>
             <MudTd DataLabel="Datei Name">@context.Name</MudTd>
             <MudTd DataLabel="Datei Größe">@((context.Size.Value / 1024d / 1024d).ToString("F"))</MudTd>
-            <MudTd DataLabel="Job Name">@context.JobName.Value</MudTd>
+            <MudTd DataLabel="Job Name">@context.JobName</MudTd>
         </RowTemplate>
         <GroupFooterTemplate>
             <MudTh Class="mud-table-cell-custom-group mud-table-cell-custom-group-footer" colspan="5">Anzahl: @context.Items.Count()</MudTh>

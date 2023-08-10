@@ -1,13 +1,20 @@
-﻿namespace SimpleProjectManager.Shared.Services;
+﻿using System.Runtime.Serialization;
+using MemoryPack;
 
-public sealed record SortOrder
+namespace SimpleProjectManager.Shared.Services;
+
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public sealed partial record SortOrder
 {
     public static readonly SortOrder Empty = new();
 
+    [property:DataMember, MemoryPackOrder(0)]
     public ProjectId Id { get; init; } = ProjectId.Empty;
 
+    [property:DataMember, MemoryPackOrder(1)]
     public int SkipCount { get; init; }
 
+    [property:DataMember, MemoryPackOrder(2)]
     public bool IsPriority { get; init; }
 
     public SortOrder WithCount(int count)

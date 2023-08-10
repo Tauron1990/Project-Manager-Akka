@@ -1,8 +1,11 @@
-﻿using Akkatecture.Core;
+﻿using System.Runtime.Serialization;
+using Akkatecture.Core;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared;
 
-public sealed class ProjectFileId : Identity<ProjectFileId>
+[DataContract, MemoryPackable]
+public sealed partial class ProjectFileId : Identity<ProjectFileId>
 {
     public static readonly Guid FileNamespace = Guid.Parse("5124368E-157D-44FE-AFFB-EB04B0F59825");
 

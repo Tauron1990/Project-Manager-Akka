@@ -1,9 +1,12 @@
-﻿using Akkatecture.ValueObjects;
+﻿using System.Runtime.Serialization;
+using Akkatecture.ValueObjects;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared;
 
+[DataContract, MemoryPackable]
 #pragma warning disable MA0097
-public sealed class ProjectDeadline : SingleValueObject<DateTime>
+public sealed partial class ProjectDeadline : SingleValueObject<DateTime>
     #pragma warning restore MA0097
 {
     public ProjectDeadline(DateTime value) : base(value) { }

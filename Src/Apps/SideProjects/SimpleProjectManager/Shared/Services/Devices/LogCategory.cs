@@ -6,4 +6,7 @@ namespace SimpleProjectManager.Shared.Services.Devices;
 
 [DataContract, MemoryPackable(GenerateType.VersionTolerant)]
 public readonly partial record struct LogCategory(
-    [property:DataMember, MemoryPackOrder(0)] string Value);
+    [property:DataMember, MemoryPackOrder(0)] string Value)
+{
+    public static LogCategory From(string name) => new(name);
+}

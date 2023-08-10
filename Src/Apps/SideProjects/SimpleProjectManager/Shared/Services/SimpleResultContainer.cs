@@ -17,6 +17,8 @@ public readonly partial struct SimpleResultContainer
         SimpleResult = simpleResult;
 
     [MemoryPackConstructor]
-    public SimpleResultContainer(ErrorContainer errorContainer) => 
-        SimpleResult = new SimpleResult(errorContainer.Error);
+    public SimpleResultContainer(ErrorContainer error) => 
+        SimpleResult = new SimpleResult(error.Error);
+
+    public static implicit operator SimpleResult(SimpleResultContainer container) => container.SimpleResult;
 }

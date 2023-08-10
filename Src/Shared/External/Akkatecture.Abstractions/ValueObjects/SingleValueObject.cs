@@ -27,6 +27,7 @@
 
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.Serialization;
 using Akkatecture.Extensions;
 using MemoryPack;
 
@@ -51,7 +52,8 @@ public abstract class SingleValueObject<T> : ValueObject, IComparable, ISingleVa
     }
 
     // ReSharper disable once ConvertToAutoProperty
-    public T Value => _value;
+    [DataMember]
+    public virtual T Value => _value;
 
     public int CompareTo(object? obj)
     {

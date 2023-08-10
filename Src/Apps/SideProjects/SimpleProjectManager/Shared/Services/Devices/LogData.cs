@@ -8,7 +8,7 @@ namespace SimpleProjectManager.Shared.Services.Devices;
 
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 [DataContract, MemoryPackable(GenerateType.VersionTolerant)]
-public sealed record LogData(
+public sealed partial record LogData(
     [property:DataMember, MemoryPackOrder(0)] LogLevel LogLevel, 
     [property:DataMember, MemoryPackOrder(1)] LogCategory Category, 
     [property:DataMember, MemoryPackOrder(2)] SimpleMessage Message, 

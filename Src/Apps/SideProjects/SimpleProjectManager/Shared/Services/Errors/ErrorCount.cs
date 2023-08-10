@@ -1,17 +1,13 @@
 ﻿using System.Runtime.InteropServices;
-using Vogen;
+using System.Runtime.Serialization;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared.Services;
 
-[ValueObject(typeof(long))]
 [StructLayout(LayoutKind.Auto)]
-#pragma warning disable MA0097
-public readonly partial struct ErrorCount
-    #pragma warning restore MA0097
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public readonly partial record struct ErrorCount([property:DataMember, MemoryPackOrder(0)]long Value)
 {
-    private static Validation Validate(long value)
-        => value < 0 ? Validation.Invalid("Error Count must be Greater then zero") : Validation.Ok;
-
     public static bool operator >(ErrorCount left, int right)
         => left.Value > right;
 
@@ -20,6 +16,8 @@ public readonly partial struct ErrorCount
 
     public static ErrorCount operator +(ErrorCount left, int right)
         => From(left.Value + right);
+
+    public static ErrorCount From(long value) => new(value);
 
     public static ErrorCount operator -(ErrorCount left, int right)
         => From(left.Value - right);

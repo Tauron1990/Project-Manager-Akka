@@ -20,6 +20,8 @@ using Tauron.Applicarion.Redux;
 using Tauron.Applicarion.Redux.Configuration;
 using Tauron.Operations;
 
+#pragma warning disable GU0011
+
 namespace SimpleProjectManager.Client.Shared.Data.States.JobState;
 
 public sealed partial class JobsState : StateBase<InternalJobData>
@@ -63,7 +65,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                     {
                         try
                         {
-                            (Jobs jobs, SortOrders orders) = serverData;
+                            (var jobs, SortOrders orders) = serverData;
                             var pairs = jobs.JobInfos.Select(j => new JobSortOrderPair(orders.OrdersList.First(o => o.Id == j.Project), j)).ToArray();
 
                             CurrentSelected? selection = originalData.CurrentSelected;
@@ -71,6 +73,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                             if(selection?.Pair is not null && pairs.All(s => s.Info.Project != selection.Pair?.Info.Project))
                                 selection = new CurrentSelected(null, null);
 
+                            // ReSharper disable once WithExpressionModifiesAllMembers
                             return originalData with { IsLoaded = true, CurrentJobs = pairs, CurrentSelected = selection };
                         }
                         catch (Exception e)
@@ -89,7 +92,7 @@ public sealed partial class JobsState : StateBase<InternalJobData>
                         JobDataSelectors.CurrentSelected,
                         (cancel, source) => JobDataRequests.FetchjobData(source, _service, cancel),
                         JobDataPatcher.ReplaceSelected);
-                    requestFactory.AddRequest<SetSortOrder>(_service.ChangeOrder, JobDataPatcher.PatchSortOrder);
+                    requestFactory.AddRequest<InternalJobData, SetSortOrder>(_service.ChangeOrder, JobDataPatcher.PatchSortOrder);
                 });
     }
 

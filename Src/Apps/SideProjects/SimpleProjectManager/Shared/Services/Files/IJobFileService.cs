@@ -11,9 +11,9 @@ public interface IJobFileService : IComputeService
     [ComputeMethod(MinCacheDuration = 5)]
     Task<DatabaseFile[]> GetAllFiles(CancellationToken token);
 
-    Task<SimpleResult> RegisterFile(ProjectFileInfo projectFile, CancellationToken token);
+    Task<SimpleResultContainer> RegisterFile(ProjectFileInfo projectFile, CancellationToken token);
 
-    Task<SimpleResult> CommitFiles(FileList files, CancellationToken token);
+    Task<SimpleResultContainer> CommitFiles(FileList files, CancellationToken token);
 
-    Task<SimpleResult> DeleteFiles(FileList files, CancellationToken token);
+    Task<SimpleResultContainer> DeleteFiles(FileList files, CancellationToken token);
 }

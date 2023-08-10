@@ -1,3 +1,9 @@
-﻿namespace SimpleProjectManager.Shared.Services;
+﻿using System.Runtime.Serialization;
+using MemoryPack;
 
-public record SetSortOrder(bool IgnoreIfEmpty, SortOrder? SortOrder);
+namespace SimpleProjectManager.Shared.Services;
+
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public sealed partial record SetSortOrder(
+    [property:DataMember, MemoryPackOrder(0)]bool IgnoreIfEmpty, 
+    [property:DataMember, MemoryPackOrder(1)]SortOrder? SortOrder);

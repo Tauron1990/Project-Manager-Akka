@@ -1,5 +1,8 @@
 ﻿using System.Collections.Immutable;
+using System.Runtime.Serialization;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared.Services;
 
-public record SortOrders(ImmutableList<SortOrder> OrdersList);
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public sealed partial record SortOrders([property:DataMember, MemoryPackOrder(0)]ImmutableList<SortOrder> OrdersList);

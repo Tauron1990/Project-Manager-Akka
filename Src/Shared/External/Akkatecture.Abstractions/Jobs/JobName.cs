@@ -27,7 +27,7 @@ namespace Akkatecture.Jobs;
 
 #pragma warning disable MA0097
 public class JobName : SingleValueObject<string>, IJobName
-    #pragma warning restore MA0097
+#pragma warning restore MA0097
 {
     public JobName(string value)
         : base(value) { }

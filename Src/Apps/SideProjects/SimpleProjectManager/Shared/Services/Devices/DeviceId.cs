@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
 using Akkatecture.Core;
 using JetBrains.Annotations;
 using MemoryPack;
@@ -6,7 +7,8 @@ using MemoryPack;
 namespace SimpleProjectManager.Shared.Services.Devices;
 
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
-public sealed class DeviceId : Identity<DeviceId>
+[DataContract, MemoryPackable]
+public sealed partial class DeviceId : Identity<DeviceId>
 {
     private static readonly Guid Namespace = new("14958213-06AB-4ACE-A6CF-897F67755015");
 

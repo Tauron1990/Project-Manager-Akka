@@ -1,13 +1,17 @@
 ﻿using System.Globalization;
+using System.Runtime.Serialization;
 using Akkatecture.ValueObjects;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared;
 
-#pragma warning disable MA0097
-public sealed class ProjectName : SingleValueObject<string>
-    #pragma warning restore MA0097
+[DataContract, MemoryPackable]
+public sealed partial class ProjectName : SingleValueObject<string>
 {
     public static readonly ProjectName Empty = new(string.Empty);
+
+    public override string Value => base.Value;
+
     public ProjectName(string value) : base(NormalizeName(value)) { }
 
     private static string NormalizeName(string input)

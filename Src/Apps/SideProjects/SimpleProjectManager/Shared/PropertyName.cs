@@ -1,12 +1,13 @@
-﻿using Vogen;
+﻿using System.Runtime.Serialization;
+using MemoryPack;
+using Vogen;
 
 namespace SimpleProjectManager.Shared;
 
-[ValueObject(typeof(string))]
-public readonly partial struct PropertyName : IStringValueType<PropertyName>
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public partial record struct PropertyName([property:DataMember, MemoryPackOrder(0)]string Value) : IStringValueType<PropertyName>
 {
-    private static Validation Validate(string value)
-        => value.ValidateNotNullOrEmpty(nameof(PropertyName));
-
-    static PropertyName IStringValueType<PropertyName>.GetEmpty => From("");
+    public static PropertyName GetEmpty { get; } = new(string.Empty);
+    public static PropertyName From(string value) =>
+        new(value);
 }

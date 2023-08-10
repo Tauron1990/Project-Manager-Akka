@@ -1,10 +1,14 @@
-﻿using Akkatecture.ValueObjects;
+﻿using System.Runtime.Serialization;
+using Akkatecture.ValueObjects;
+using MemoryPack;
 
 namespace SimpleProjectManager.Shared;
 
-public sealed class FileSize : SingleValueObject<long>
+[DataContract, MemoryPackable]
+public sealed partial class FileSize : SingleValueObject<long>
 {
     public static readonly FileSize Empty = new(0);
+
     public FileSize(long value) : base(value) { }
 
     public string ToByteString()

@@ -8,7 +8,8 @@ namespace SimpleProjectManager.Shared.Services.Devices;
 [DataContract, MemoryPackable(GenerateType.VersionTolerant)]
 public readonly partial record struct DeviceName([property:DataMember, MemoryPackOrder(0)]string Value)
 {
-    
+    public static DeviceName From(string name) => new(name);
+    public static DeviceName Empty { get; } = new(string.Empty);
 }
 
 /*[ValueObject(typeof(string))]

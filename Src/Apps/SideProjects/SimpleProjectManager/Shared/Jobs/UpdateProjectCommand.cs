@@ -1,8 +1,15 @@
-﻿using SimpleProjectManager.Shared.Services;
+﻿using System.Runtime.Serialization;
+using MemoryPack;
+using SimpleProjectManager.Shared.Services;
 
 namespace SimpleProjectManager.Shared;
 
-public sealed record UpdateProjectCommand(ProjectId Id, ProjectName? Name, ProjectStatus? Status, NullableData<ProjectDeadline?>? Deadline)
+[DataContract, MemoryPackable(GenerateType.VersionTolerant)]
+public sealed partial record UpdateProjectCommand(
+    [property:DataMember, MemoryPackOrder(0)]ProjectId Id,
+    [property:DataMember, MemoryPackOrder(1)]ProjectName? Name, 
+    [property:DataMember, MemoryPackOrder(2)]ProjectStatus? Status, 
+    [property:DataMember, MemoryPackOrder(3)]NullableData<ProjectDeadline?>? Deadline)
 {
     public static UpdateProjectCommand Create(JobData newData, JobData oldData)
     {
