@@ -148,7 +148,7 @@ public class JobDatabaseService : IJobDatabaseService, IDisposable
     {
         (bool ignoreIfEmpty, SortOrder? sortOrder) = newOrder;
 
-        if(sortOrder is null)
+        if(sortOrder?.Id is null)
             return ignoreIfEmpty ? SimpleResult.Success() : SimpleResult.Failure("Sortier Daten nicht zur Verfügung gestellt");
 
         DbOperationResult result = await _projects.UpdateOneAsync(

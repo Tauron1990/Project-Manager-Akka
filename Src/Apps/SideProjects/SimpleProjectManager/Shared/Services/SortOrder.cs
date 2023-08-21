@@ -8,8 +8,8 @@ public sealed partial record SortOrder
 {
     public static readonly SortOrder Empty = new();
 
-    [property:DataMember, MemoryPackOrder(0)]
-    public ProjectId Id { get; init; } = ProjectId.Empty;
+    [property: DataMember, MemoryPackOrder(0)]
+    public ProjectId? Id { get; init; }
 
     [property:DataMember, MemoryPackOrder(1)]
     public int SkipCount { get; init; }

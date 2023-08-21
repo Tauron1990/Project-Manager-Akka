@@ -62,7 +62,7 @@ public partial class CurrentJobs
                             if(d?.Order is null)
                                 return Unit.Default;
 
-                            await JsRuntime.InvokeVoidAsync("window.applyUrl", $"/CurrentJobs/{d.Order.Id.Value}");
+                            await JsRuntime.InvokeVoidAsync("window.applyUrl", $"/CurrentJobs/{d.Order.Id?.Value}");
 
                             return Unit.Default;
                         }

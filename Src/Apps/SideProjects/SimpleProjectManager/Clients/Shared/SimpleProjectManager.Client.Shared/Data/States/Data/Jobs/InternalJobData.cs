@@ -18,8 +18,11 @@ public sealed record InternalJobData(bool IsLoaded, JobSortOrderPair[] CurrentJo
 
     #pragma warning disable EPS05
     public JobSortOrderPair? FindPair(PairSelection id)
-        #pragma warning restore EPS05
-        => id == PairSelection.Nothing ? null : CurrentJobs.FirstOrDefault(p => p.Order.Id.Value == id);
+#pragma warning restore EPS05
+        => id == PairSelection.Nothing
+            ? null
+            : CurrentJobs.FirstOrDefault(
+                p => p.Order.Id?.Value == id);
 
     public override int GetHashCode()
         => HashCode.Combine(CurrentSelected, CurrentJobs.Aggregate(0, (i, pair) => HashCode.Combine(i, pair.GetHashCode())));
