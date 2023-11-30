@@ -1,8 +1,8 @@
 ﻿namespace Tauron.TextAdventure.Engine.Systems.Rooms;
 
-public sealed class MoveToRommCommand : IGameCommand
+public sealed class MoveToRoomCommand : IGameCommand
 {
-    public MoveToRommCommand(string roomName)
+    public MoveToRoomCommand(string roomName)
         => RoomName = roomName;
 
     public string RoomName { get; }

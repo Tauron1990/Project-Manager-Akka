@@ -65,7 +65,8 @@ public abstract class SpectreVisitor : IRenderVisitor
 
         foreach (CommandBase menuItem in commandMenu.MenuItems)
             menuItem.Accept(this);
-
+        new CommandItem("Cancel", "null").Accept(this);
+        
         if(needPop)
             CommandFrameExit();
     }

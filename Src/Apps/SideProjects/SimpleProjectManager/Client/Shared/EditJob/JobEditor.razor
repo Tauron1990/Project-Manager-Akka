@@ -14,7 +14,8 @@
             <MudTabPanel Text="Job information">
                 <MudCardContent>
                     <MudForm @ref="_editorForm" IsValid="ViewModel.IsValid" IsValidChanged="ViewModel.IsValidChanged">
-                        <MudTextField @bind-Value="ViewModel.Data.JobName" Label="Job Name" Validation="ViewModel.ProjectNameValidator" DebounceInterval="100"/>
+                        <MudTextField @bind-Value="ViewModel.Data.JobName" Label="Job Name" Validation="ViewModel.ProjectNameValidator"
+                                      DebounceInterval="100" Converter="@ProjectNameConverter.Inst"/>
                         <MudDatePicker @bind-Date="ViewModel.Data.Deadline" Label="Termin" Validation="ViewModel.DeadlineValidator"/>
                         @if(StatusEditing)
                         {

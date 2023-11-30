@@ -26,7 +26,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="FluentValidation" Version="11.6.0" />
+        <PackageReference Include="FluentValidation" Version="11.7.1" />
         <PackageReference Include="Gu.Analyzers" Version="2.0.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -35,7 +35,7 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.81">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.85">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -47,9 +47,9 @@
         <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10" />
         <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" />
         <PackageReference Include="Stl.Fusion.Client" Version="6.0.35" />
-        <PackageReference Include="Stl.Generators" Version="6.1.111" />
+        <PackageReference Include="Stl.Generators" Version="6.4.33" />
         <PackageReference Include="System.Text.Json" Version="7.0.3" />
-        <PackageReference Include="Vogen" Version="3.0.20" />
+        <PackageReference Include="Vogen" Version="3.0.21" />
     </ItemGroup>
 
     <ItemGroup>

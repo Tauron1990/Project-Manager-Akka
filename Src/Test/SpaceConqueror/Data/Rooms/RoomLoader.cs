@@ -18,7 +18,7 @@ public static class RoomLoader
                     {
                         builder
                            .WithContent(man => man.GetDocument("Intro1"))
-                           .WithCommand(() => new MoveToRommCommand(RoomKeys.End));
+                           .WithCommand(() => new MoveToRoomCommand(RoomKeys.End));
                     });
 
                 uni.WithPage(

@@ -52,6 +52,7 @@ public sealed class RunningGame
 
     private void ProcessCommand(string command)
     {
+        if(command is "null") return;
         if(_currentCommands is null) throw new InvalidOperationException("_currentCommands not Found");
 
         switch (_mode)
@@ -101,8 +102,8 @@ public sealed class RunningGame
         var element = MultiElement.Create(renderState.ToRender);
 
         element = MultiElement.Add(element, new SpacingElement { Amount = 3 });
-        element = MultiElement.Add(element, mainMenu);
         element = MultiElement.AddRange(element, renderState.Commands.Select(c => c.Collect()));
+        element = MultiElement.Add(element, mainMenu);
 
         _mode = _currentCommands.Any(c => c.IsAsk) ? Mode.Ask : Mode.Command;
 

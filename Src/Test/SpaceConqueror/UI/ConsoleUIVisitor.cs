@@ -38,6 +38,7 @@ public sealed class ConsoleUIVisitor : SpectreVisitor
     {
         RootInputElement = null;
         _frames.Clear();
+        _currentFrame = null;
 
         base.Visit(element);
     }

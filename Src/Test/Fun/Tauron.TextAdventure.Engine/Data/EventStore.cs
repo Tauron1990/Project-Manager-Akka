@@ -10,6 +10,9 @@ internal sealed class EventStore
 {
     internal EventStore(string saveGameName)
     {
+        if (!saveGameName.EndsWith(".sav", StringComparison.Ordinal))
+            saveGameName += ".sav";
+            
         GameState = new GameState();
         CurrentEvents = ImmutableSortedDictionary<int, IEvent>.Empty;
         SaveGameName = saveGameName;

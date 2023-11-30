@@ -3,7 +3,9 @@ using Akkatecture.Core;
 using LiquidProjections;
 using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SimpleProjectManager.Shared;
+using SimpleProjectManager.Shared.Services;
 using Tauron;
 using Tauron.Akkatecture.Projections;
 
@@ -21,11 +23,20 @@ public sealed class LiteDataRepository : IInternalDataRepository
         SerializationHelper<CheckPointInfo>.Register();
         Databases = new LiteDatabases(serviceProvider, database);
 
-        ObjectFactory objectFactory = ActivatorUtilities.CreateFactory(
-            typeof(LiteTransaction),
-            typeof(LiteTransaction).GetConstructors().Single().GetParameterTypes().ToArray());
+        // ObjectFactory objectFactory = ActivatorUtilities.CreateFactory(
+        //     typeof(LiteTransaction),
+        //     typeof(LiteTransaction).GetConstructors().Single().GetParameterTypes().ToArray());
 
-        _transactionFactory = liteDatabase => (LiteTransaction)objectFactory(serviceProvider, new object?[] { liteDatabase });
+        LiteTransaction TransactionFactory(ILiteDatabase liteDatabase)
+        {
+            return new LiteTransaction(
+                database,
+                serviceProvider.GetRequiredService<ICriticalErrorService>(),
+                serviceProvider.GetRequiredService<ILogger<LiteTransaction>>());
+            //return (LiteTransaction)objectFactory(serviceProvider, new object?[] { liteDatabase });
+        }
+
+        _transactionFactory = TransactionFactory;
     }
 
     public Task<TProjection?> Get<TProjection, TIdentity>(ProjectionContext context, TIdentity identity)
@@ -109,7 +120,8 @@ public sealed class LiteDataRepository : IInternalDataRepository
     public IDatabases Databases { get; }
 
     private LiteTransaction GetTransaction(object key)
-        => _transactions.GetOrAdd(key, static (_, db) => db._transactionFactory(db._database), (_database, _transactionFactory));
+        => _transactions.GetOrAdd(key, 
+            static (_, db) => db._transactionFactory(db._database), (_database, _transactionFactory));
 
     private static string GetDatabaseId(Type type)
         => type.FullName ?? type.Name;

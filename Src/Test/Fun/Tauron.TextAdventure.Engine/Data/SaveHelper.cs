@@ -8,6 +8,10 @@ public static class SaveHelper
         if(!Directory.Exists(dic))
             Directory.CreateDirectory(dic);
 
-        return Directory.EnumerateFiles(dic, "*.sav");
+        return 
+            from file in Directory.EnumerateFiles(dic, "*.sav")
+            let name = Path.GetFileNameWithoutExtension(file)
+            where !string.IsNullOrWhiteSpace(name)
+            select name;
     }
 }
